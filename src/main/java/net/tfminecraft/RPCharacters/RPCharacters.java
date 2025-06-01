@@ -20,7 +20,7 @@ public class RPCharacters extends JavaPlugin{
 	public static RPCharacters plugin;
 	
 	private final CommandManager commandManager = new CommandManager();
-	private final PlayerManager playerManager = new PlayerManager();
+	private static final PlayerManager playerManager = new PlayerManager();
 	private final CreationManager creationManager = new CreationManager();
 	
 	private final ConfigLoader configLoader = new ConfigLoader();
@@ -114,5 +114,9 @@ public class RPCharacters extends JavaPlugin{
 		p.sendMessage(ChatColor.GREEN + "[RPCharacters]" + ChatColor.YELLOW + " Reloading plugin...");
 		reload();
 		p.sendMessage(ChatColor.GREEN + "[RPCharacters]" + ChatColor.YELLOW + " Reloading complete!");
+	}
+
+	public static PlayerManager getPlayerManager() {
+		return playerManager;
 	}
 }

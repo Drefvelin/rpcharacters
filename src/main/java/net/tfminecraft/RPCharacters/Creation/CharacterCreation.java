@@ -110,9 +110,6 @@ public class CharacterCreation {
 	public void finish() {
 		PlayerData pd = PlayerManager.get(p);
 		character.update();
-		if(!pd.hasActiveCharacter()) {
-			pd.setActive(true);
-		}
 		pd.addCharacter(character);
 		pd.setActiveCharacter(character);
 		p.sendTitle("§aFinished!", "§eCharacter §7"+character.getName()+"§e created!", 5, 50, 5);

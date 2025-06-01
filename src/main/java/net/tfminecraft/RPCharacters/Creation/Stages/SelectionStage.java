@@ -13,6 +13,7 @@ import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.InventoryManager;
+import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
@@ -93,9 +94,13 @@ public class SelectionStage extends Stage{
 		return selected;
 	}
 	public void select(SelectableItem i) {
+		spendPoints(i.getCost());
+		increase();
 		selected.add(i);
 	}
 	public void unSelect(SelectableItem i) {
+		addPoints(i.getCost());
+		decrease();
 		selected.remove(i);
 	}
 	public String getKey() {
@@ -156,32 +161,47 @@ public class SelectionStage extends Stage{
 			p.sendMessage("§cYou need to select at least "+minSelect+ " options!");
 			return;
 		}
-		for(SelectableItem item : options) {
-			if(item.isSelected()) {
-				if(item.getType().equalsIgnoreCase("race")) {
-					Race r = RaceLoader.getByString(item.getId());
-					cc.getCharacter().setRace(r);
-					p.sendMessage("§aRace set to "+r.getName());
-				} else if(item.getType().equalsIgnoreCase("trait")) {
-					Trait t = TraitLoader.getByString(item.getId());
-					cc.getCharacter().addTrait(t);
-					p.sendMessage("§aAdded trait "+t.getName());
+		active = false;
+		p.closeInventory();
+		if(cc != null) {
+			for(SelectableItem item : options) {
+				if(item.isSelected()) {
+					if(item.getType().equalsIgnoreCase("race")) {
+						Race r = RaceLoader.getByString(item.getId());
+						cc.getCharacter().setRace(r);
+						p.sendMessage("§aRace set to "+r.getName());
+					} else if(item.getType().equalsIgnoreCase("trait")) {
+						Trait t = TraitLoader.getByString(item.getId());
+						cc.getCharacter().addTrait(t);
+						p.sendMessage("§aAdded trait "+t.getName());
+					}
+				}
+			}
+			new BukkitRunnable()
+			{
+				public void run()
+				{
+					if(autoNext()) {
+						cc.runStage();
+					} else {
+						cc.setCanNext(true);
+					}
+				}
+			}.runTaskLater(RPCharacters.plugin, 2L);
+		}
+	}
+
+	@Override
+	public void update(PlayerData pd) {
+		if(!pd.hasActiveCharacter()) return;
+		for(Trait t : pd.getActiveCharacter().getTraits()) {
+			for(SelectableItem item : options) {
+				if(item.getId().equalsIgnoreCase(t.getId())) {
+					item.setSelected(true);
+					select(item);
 				}
 			}
 		}
-		active = false;
-		p.closeInventory();
-		new BukkitRunnable()
-		{
-			public void run()
-			{
-				if(autoNext()) {
-					cc.runStage();
-				} else {
-					cc.setCanNext(true);
-				}
-			}
-		}.runTaskLater(RPCharacters.plugin, 2L);
 	}
 	
 	public void execute(Player p, CharacterCreation cc) {

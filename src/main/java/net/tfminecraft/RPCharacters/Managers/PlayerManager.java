@@ -21,9 +21,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.RPCharacters;
+import net.tfminecraft.RPCharacters.Creation.Stage;
+import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Database.Database;
+import net.tfminecraft.RPCharacters.Holder.RPCHolder;
+import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
+import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.enums.ConfirmType;
 import net.tfminecraft.RPCharacters.enums.Status;
 
@@ -46,7 +51,18 @@ public class PlayerManager implements Listener{
 		for(PlayerData pd : data) {
 			if(pd.getPlayer().equals(p)) return pd;
 		}
-		throw new IllegalArgumentException("No playerdata for player "+p.getName());
+		return null;
+	}
+
+	public boolean hasTrait(Player p, String trait) {
+		PlayerData pd = get(p);
+		if(pd == null) return false;
+		RPCharacter active = pd.getActiveCharacter();
+		if(active == null) return false;
+		for(Trait t : active.getTraits()) {
+			if(t.getId().equalsIgnoreCase(trait)) return true;
+		}
+		return false;
 	}
 
 	public boolean isAtFreezeLoc(Player p) {
@@ -147,8 +163,6 @@ public class PlayerManager implements Listener{
 	public void confirmClick(Player p, RPCharacter c, ConfirmType t) {
 		if(t.equals(ConfirmType.KILL)) {
 			if(c.isActive()) {
-				PlayerData pd = get(p);
-				pd.setActive(false);
 				c.deactivate();
 			}
 			c.setStatus(Status.DEAD);
@@ -161,14 +175,35 @@ public class PlayerManager implements Listener{
 			inv.characterView(p, c);
 		}
 	}
+
+	public void traitEdit(Player p, String key) {
+		for(Stage s : StageLoader.getNew()) {
+			if(!(s instanceof SelectionStage)) continue;
+			SelectionStage stage = new SelectionStage((SelectionStage) s);
+			if(!stage.getKey().equals(key)) continue;
+			if(stage.hasDependency()) {
+				if(!stage.getDependency().check(get(p).getActiveCharacter())) {
+					p.sendMessage("§cYou do not fulfill the prerequisites to view those traits ("+key+")");
+					return;
+				}
+			}
+			InventoryManager inv = new InventoryManager();
+			stage.update(get(p));
+			inv.selectionView(p, stage, null);
+		}
+	}
+
 	@EventHandler
 	public void selectionClick(InventoryClickEvent e) {
 		Player p = (Player) e.getWhoClicked();
+		if(!(e.getView().getTopInventory().getHolder() instanceof RPCHolder)) return;
+		if(e.getClickedInventory() == null) return;
+		if(!e.getClickedInventory().equals(e.getView().getTopInventory())) return;
+		RPCHolder h = (RPCHolder) e.getView().getTopInventory().getHolder();
+		Player o = h.getOwner();
 		if(e.getView().getTitle().equalsIgnoreCase("§7Character Menu")) {
 			e.setCancelled(true);
 			if(e.getSlot() == Cache.deadSlot) {
-				NamespacedKey oKey = new NamespacedKey(RPCharacters.plugin, "owner");
-				Player o = Bukkit.getPlayerExact(e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(oKey, PersistentDataType.STRING));
 				PlayerData pd = get(o);
 				if(pd.getCharacters(Status.DEAD).size() > 0) {
 					InventoryManager inv = new InventoryManager();
@@ -178,6 +213,7 @@ public class PlayerManager implements Listener{
 			} else if(Cache.characterSlots.contains(e.getSlot())) {
 				ItemStack i = e.getCurrentItem();
 				if(i.getType().equals(Material.YELLOW_CONCRETE)) {
+					if(!p.equals(o)) return;
 					p.closeInventory();
 					CreationManager.initiateCreation(p);
 					p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
@@ -185,8 +221,6 @@ public class PlayerManager implements Listener{
 					if(e.getSlot() == 0) return;
 					NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
 					String id = i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-					NamespacedKey oKey = new NamespacedKey(RPCharacters.plugin, "owner");
-					Player o = Bukkit.getPlayerExact(i.getItemMeta().getPersistentDataContainer().get(oKey, PersistentDataType.STRING));
 					if(o == null) {
 						p.sendMessage("§cCant find player, maybe they are offline?");
 						return;
@@ -205,9 +239,6 @@ public class PlayerManager implements Listener{
 		} else if(e.getView().getTitle().equalsIgnoreCase("§7Character Info")) {
 			e.setCancelled(true);
 			if(e.getSlot() == 26) {
-				ItemStack i = e.getInventory().getItem(10);
-				NamespacedKey oKey = new NamespacedKey(RPCharacters.plugin, "owner");
-				Player o = Bukkit.getPlayerExact(i.getItemMeta().getPersistentDataContainer().get(oKey, PersistentDataType.STRING));
 				if(o == null) {
 					p.sendMessage("§cCant find player, maybe they are offline?");
 					return;
@@ -218,8 +249,6 @@ public class PlayerManager implements Listener{
 			} else if(e.getSlot() == 8) {
 				ItemStack i = e.getInventory().getItem(10);
 				if(!e.getCurrentItem().getType().equals(Material.IRON_AXE)) return;
-				NamespacedKey oKey = new NamespacedKey(RPCharacters.plugin, "owner");
-				Player o = Bukkit.getPlayerExact(i.getItemMeta().getPersistentDataContainer().get(oKey, PersistentDataType.STRING));
 				if(o == null) {
 					p.sendMessage("§cCant find player, maybe they are offline?");
 					return;
@@ -239,8 +268,6 @@ public class PlayerManager implements Listener{
 			} else if(e.getSlot() == 6) {
 				ItemStack i = e.getInventory().getItem(10);
 				if(!e.getCurrentItem().getType().equals(Material.EMERALD)) return;
-				NamespacedKey oKey = new NamespacedKey(RPCharacters.plugin, "owner");
-				Player o = Bukkit.getPlayerExact(i.getItemMeta().getPersistentDataContainer().get(oKey, PersistentDataType.STRING));
 				if(o == null) {
 					p.sendMessage("§cCant find player, maybe they are offline?");
 					return;
@@ -277,8 +304,6 @@ public class PlayerManager implements Listener{
 			if(e.getCurrentItem().getType().equals(Material.ENDER_PEARL)) {
 				NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
 				String id = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-				NamespacedKey oKey = new NamespacedKey(RPCharacters.plugin, "owner");
-				Player o = Bukkit.getPlayerExact(e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(oKey, PersistentDataType.STRING));
 				if(o == null) {
 					p.sendMessage("§cCant find player, maybe they are offline?");
 					return;
@@ -293,9 +318,6 @@ public class PlayerManager implements Listener{
 				inv.characterView(p, c);
 				p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
 			} else if(e.getCurrentItem() != null) {
-				ItemStack i = e.getInventory().getItem(0);
-				NamespacedKey oKey = new NamespacedKey(RPCharacters.plugin, "owner");
-				Player o = Bukkit.getPlayerExact(i.getItemMeta().getPersistentDataContainer().get(oKey, PersistentDataType.STRING));
 				if(o == null) {
 					p.sendMessage("§cCant find player, maybe they are offline?");
 					return;

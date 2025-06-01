@@ -9,7 +9,9 @@ import org.bukkit.event.Listener;
 
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Permissions;
+import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
+import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class CommandManager implements Listener, CommandExecutor{
@@ -30,6 +32,7 @@ public class CommandManager implements Listener, CommandExecutor{
 					return true;
 				}
 				CreationManager.initiateCreation(p);
+				return true;
 			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("next") && args.length == 1) {
 				if(!CreationManager.activeCreators.containsKey(p)) {
 					p.sendMessage("§cYou dont have an active creator");
@@ -40,6 +43,7 @@ public class CommandManager implements Listener, CommandExecutor{
 					return true;
 				}
 				CreationManager.next(p);
+				return true;
 			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("menu") && args.length >= 1) {
 				Player target = p;
 				if(args.length > 1) {
@@ -57,15 +61,34 @@ public class CommandManager implements Listener, CommandExecutor{
 				}
 				InventoryManager inv = new InventoryManager();
 				inv.profileView(p, target);
-			}  else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("cancel") && args.length == 1) {
+				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("cancel") && args.length == 1) {
 				if(!CreationManager.activeCreators.containsKey(p)) {
 					p.sendMessage("§cYou dont have an active creator");
 					return true;
 				}
 				CreationManager.activeCreators.get(p).cancel();
+				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("edit") && args.length == 2) {
+				if(CreationManager.activeCreators.containsKey(p)) {
+					p.sendMessage("§cYou have an active creator");
+					return true;
+				}
+				if(!PlayerManager.get(p).hasActiveCharacter()) {
+					p.sendMessage("§cYou have no character");
+					return true;
+				}
+				String key = args[1];
+				if(!Cache.editableTraits.contains(key)) {
+					return true;
+				}
+				RPCharacters.getPlayerManager().traitEdit(p, key);
+				return true;
 			}
+			p.sendMessage("§a[RPCharacters] §cError with command format");
+			return true;
 		}
-		return false;
+		return true;
 	}
 
 }

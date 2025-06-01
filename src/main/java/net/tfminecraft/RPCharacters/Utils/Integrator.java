@@ -40,7 +40,7 @@ public class Integrator {
 		AttributeInstance attribute = pd.getAttributes().getInstance(type);
 		if(attribute == null) return;
 		attribute.setBase(attribute.getBase()-amount);
-		p.sendMessage(type + " has "+attribute.getBase()+ " points");
+		//p.sendMessage(type + " has "+attribute.getBase()+ " points");
 	}
 	public List<String> getRemoveList(Player p, RPCharacter c) {
 		List<String> remove = new ArrayList<>();

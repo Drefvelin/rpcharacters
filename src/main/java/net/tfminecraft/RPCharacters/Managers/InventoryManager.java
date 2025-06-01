@@ -22,6 +22,7 @@ import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Dependency;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
+import net.tfminecraft.RPCharacters.Holder.RPCHolder;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
@@ -29,6 +30,7 @@ import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeModifier;
+import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.enums.Status;
@@ -36,7 +38,7 @@ import net.tfminecraft.RPCharacters.enums.Status;
 public class InventoryManager {
 	public void characterView(Player p, RPCharacter c) {
 		PlayerData pd = PlayerManager.get(c.getOwner());
-		Inventory i = RPCharacters.plugin.getServer().createInventory(null, 27, "§7Character Info");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(c.getOwner()), 27, "§7Character Info");
 		i.setItem(10, getCharacterItem(c, false));
 		i.setItem(12, getDescriptionItem(c));
 		i.setItem(14, getTraitsItem(c));
@@ -61,7 +63,7 @@ public class InventoryManager {
 		p.openInventory(i);
 	}
 	public void deadView(Player p, Player t) {
-		Inventory i = RPCharacters.plugin.getServer().createInventory(null, 27, "§7Dead Characters");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(t), 27, "§7Dead Characters");
 		PlayerData pd = PlayerManager.get(t);
 		for(int x = 0; x<i.getSize()-1; x++) {
 			List<RPCharacter> chars = pd.getCharacters(Status.DEAD);
@@ -84,7 +86,7 @@ public class InventoryManager {
 		p.openInventory(i);
 	}
 	public void profileView(Player p, Player t) {
-		Inventory i = RPCharacters.plugin.getServer().createInventory(null, 27, "§7Character Menu");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(t), 27, "§7Character Menu");
 		i.setItem(0, getPlayerHead(t));
 		PlayerData pd = PlayerManager.get(t);
 		for(int x = 0; x<Cache.characterSlots.size(); x++) {
@@ -110,22 +112,23 @@ public class InventoryManager {
 		p.openInventory(i);
 	}
 	public void selectionView(Player player, SelectionStage s, CharacterCreation cc) {
-		Inventory i = RPCharacters.plugin.getServer().createInventory(null, s.getSize(), "§7"+WordUtils.capitalize(s.getKey())+ " Selection");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player, s), s.getSize(), "§7"+WordUtils.capitalize(s.getKey())+ " Selection");
 		for(int x = 0; x<s.getSlots().size(); x++) {
 			if(x >= s.getOptions().size()) break;
-			i.setItem(s.getSlots().get(x), getSelectableItem(s, s.getOptions().get(x), cc));
+			i.setItem(s.getSlots().get(x), getSelectableItem(player, s, s.getOptions().get(x), cc));
 		}
 		i.setItem(s.getSize()-1, getConfirmItem());
+		if(cc != null) i.setItem(s.getSize()-9, createCancelItem(cc));
 		player.openInventory(i);
 	}
 	public void selectionUpdate(Inventory i, Player player, SelectionStage s, CharacterCreation cc) {
 		for(int x = 0; x<s.getSlots().size(); x++) {
 			if(x >= s.getOptions().size()) break;
-			i.setItem(s.getSlots().get(x), getSelectableItem(s, s.getOptions().get(x), cc));
+			i.setItem(s.getSlots().get(x), getSelectableItem(player, s, s.getOptions().get(x), cc));
 		}
 	}
 	public void confirmView(Player player) {
-		Inventory i = RPCharacters.plugin.getServer().createInventory(null, 27, "§7Confirm Action");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player), 27, "§7Confirm Action");
 		i.setItem(11, createItemStack(Material.GREEN_CONCRETE, "§aConfirm"));
 		i.setItem(15, createItemStack(Material.RED_CONCRETE, "§cCancel"));
 		Integer slot = 0;
@@ -170,6 +173,25 @@ public class InventoryManager {
 		ItemStack i = new ItemStack(Material.BARRIER, 1);
 		ItemMeta meta = i.getItemMeta();
 		meta.setDisplayName("§cBack");
+		i.setItemMeta(meta);
+		return i;
+	}
+	public ItemStack createCancelItem(CharacterCreation cc) {
+		ItemStack i = new ItemStack(Material.BARRIER, 1);
+		ItemMeta meta = i.getItemMeta();
+		List<String> lore = new ArrayList<>();
+		if(cc != null) {
+			meta.setDisplayName("§cCancel Creation");
+		
+			lore.add("§7Cancel the current character creation");
+			lore.add("§cThis is not reversible!");
+		} else{ 
+			meta.setDisplayName("§cCancel");
+		
+			lore.add("§7Cancel the edit");
+		}
+		
+		meta.setLore(lore);
 		i.setItemMeta(meta);
 		return i;
 	}
@@ -306,7 +328,7 @@ public class InventoryManager {
 		return i;
 	}
 	
-	public ItemStack getSelectableItem(SelectionStage stage, SelectableItem s, CharacterCreation cc) {
+	public ItemStack getSelectableItem(Player p, SelectionStage stage, SelectableItem s, CharacterCreation cc) {
 		ItemStack i = new ItemStack(Material.BARRIER, 1);
 		if(s.isSelected()) {
 			i.setType(Material.GREEN_CONCRETE);
@@ -323,7 +345,7 @@ public class InventoryManager {
 			}
 			if(r.getRaceData().getAttributeData().hasModifiers()) {
 				lore.add(" ");
-				addModifiers(lore, r.getRaceData().getAttributeData(), cc);
+				addModifiers(p, lore, r.getRaceData().getAttributeData(), cc);
 				lore.add(" ");
 			}
 			meta.setLore(lore);
@@ -356,7 +378,7 @@ public class InventoryManager {
 			}
 			if(t.getTraitData().getAttributeData().hasModifiers()) {
 				lore.add(" ");
-				addModifiers(lore, t.getTraitData().getAttributeData(), cc);
+				addModifiers(p, lore, t.getTraitData().getAttributeData(), cc);
 				lore.add(" ");
 			}
 			if(t.getTraitData().hasCost()) {
@@ -372,8 +394,14 @@ public class InventoryManager {
 		return i;
 	}
 	
-	public void addModifiers(List<String> lore, AttributeData data, CharacterCreation cc) {
-		for(AttributeModifier m : cc.getTempData().getModifiers()) {
+	public void addModifiers(Player p, List<String> lore, AttributeData data, CharacterCreation cc) {
+		AttributeData current = null;
+		if(cc != null) {
+			current = cc.getTempData();
+		} else {
+			current = PlayerManager.get(p).getActiveCharacter().getAttributeData();
+		}
+		for(AttributeModifier m : current.getModifiers()) {
 			int amount = m.getAmount();
 			int added = 0;
 			if(data.hasModifier(m)) {
@@ -385,6 +413,19 @@ public class InventoryManager {
 				lore.add("§7"+WordUtils.capitalize(m.getType())+ ": §f"+amount);
 			} else {
 				lore.add("§7"+WordUtils.capitalize(m.getType())+ ": §f"+amount+" §c("+added+")");
+			}
+		}
+		for(ExperienceModifier m : current.getExperienceModifiers()) {
+			int amount = m.getModifier();
+			int added = 0;
+			if(data.hasXPModifier(m)) {
+				added = data.getAmount(m);
+			}
+			if(amount == 0 && added == 0) continue;
+			if(added > 0) {
+				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e% §a(+"+added+"§e%)");
+			} else if(added < 0){
+				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e% §c("+added+"§e%)");
 			}
 		}
 	}

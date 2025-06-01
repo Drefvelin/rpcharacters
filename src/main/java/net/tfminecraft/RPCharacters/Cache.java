@@ -5,8 +5,11 @@ import java.util.List;
 
 public class Cache {
 	public static List<String> attributes = new ArrayList<>();
+	public static List<String> professions = new ArrayList<>();
 	
 	public static List<String> backgroundTraitTypes = new ArrayList<>();
+
+	public static List<String> editableTraits = new ArrayList<>();
 	
 	//Profile stuff
 	

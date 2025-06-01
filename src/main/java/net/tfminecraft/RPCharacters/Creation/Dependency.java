@@ -2,6 +2,8 @@ package net.tfminecraft.RPCharacters.Creation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -30,29 +32,40 @@ public class Dependency {
 	}
 	
 	public boolean check(RPCharacter c) {
-		if(type.equalsIgnoreCase("trait")) {
-			if(mode.equalsIgnoreCase("all")) {
-				for(String s : dependencies) {
-					boolean found = false;
-					for(Trait t : c.getTraits()) {
-						if(t.getId().equalsIgnoreCase(s)) found = true;
-					}
-					if(!found) return false;
+		return checkExclude(c, "noneTrait");
+	}
+	public boolean checkExclude(RPCharacter c, String id) {
+		if (type.equalsIgnoreCase("trait")) {
+			Set<String> traitIds = c.getTraits().stream()
+									.map(Trait::getId)
+									.filter(traitId -> !traitId.equalsIgnoreCase(id))
+									.collect(Collectors.toSet());
+
+			if (mode.equalsIgnoreCase("all")) {
+				for (String s : dependencies) {
+					if (!traitIds.contains(s)) return false;
 				}
 				return true;
 			}
-			if(mode.equalsIgnoreCase("one-or-more")) {
-				for(String s : dependencies) {
-					for(Trait t : c.getTraits()) {
-						if(t.getId().equalsIgnoreCase(s)) return true;
-					}
+			if (mode.equalsIgnoreCase("one-or-more")) {
+				for (String s : dependencies) {
+					if(traitIds.contains(s)) return true;
 				}
+				return false;
 			}
-		} else if(type.equalsIgnoreCase("race")) {
-			for(String s : dependencies) {
-				if(c.getRace().getId().equalsIgnoreCase(s)) return true;
+		} else if (type.equalsIgnoreCase("race")) {
+			for (String s : dependencies) {
+				if (c.getRace().getId().equalsIgnoreCase(s)) return true;
 			}
 		}
 		return false;
+	}
+	@Override
+	public String toString() {
+		return "Dependency{" +
+				"type='" + type + '\'' +
+				", mode='" + mode + '\'' +
+				", dependencies=" + dependencies +
+				'}';
 	}
 }

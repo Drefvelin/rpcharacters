@@ -96,9 +96,6 @@ public class Database {
     					integrator.integrate(pd.getPlayer(), c);
     				}
     				pd.addCharacter(c);
-    				if(active) {
-    					pd.setActive(true);
-    				}
     			} catch (Exception ex) {
     				ex.printStackTrace();
     			}

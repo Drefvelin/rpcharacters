@@ -6,6 +6,7 @@ import net.tfminecraft.RPCharacters.Creation.Stages.InfoStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
+import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.enums.StageType;
 
 public class Stage {
@@ -105,6 +106,9 @@ public class Stage {
 
 	public void cancel() {
 		cancelled = true;
+	}
+	public void update(PlayerData pd) {
+
 	}
 	public void setCancelled(boolean b) {
 		this.cancelled = b;

@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
 
+import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
+
 public class Trait {
 	private String id;
 	private String name;
@@ -14,8 +16,10 @@ public class Trait {
 	
 	public Trait(String key, ConfigurationSection config) {
 		this.id = key;
-		this.name = config.getString("name");
-		this.desc = config.getStringList("description");
+		this.name = StringFormatter.formatHex(config.getString("name"));
+		for(String s : config.getStringList("description")) {
+			desc.add(StringFormatter.formatHex(s));
+		}
 		this.data = new TraitData(config);
 	}
 

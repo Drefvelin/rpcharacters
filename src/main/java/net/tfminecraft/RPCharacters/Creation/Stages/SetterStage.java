@@ -55,8 +55,39 @@ public class SetterStage extends Stage{
 	public void execute(Player p, CharacterCreation cc) {
 		runMessage(p, message);
 	}
+
+	public boolean isAlphabetic(String input) {
+		return input != null && input.matches("^[a-zA-Z ]+$");
+	}
+
+	public String capitalizeWords(String input) {
+		if (input == null || input.isEmpty()) return input;
+		
+		String[] words = input.toLowerCase().split("\\s+");
+		StringBuilder sb = new StringBuilder();
+		
+		for (String word : words) {
+			if (word.length() > 0) {
+				sb.append(Character.toUpperCase(word.charAt(0)));
+				sb.append(word.substring(1));
+				sb.append(" ");
+			}
+		}
+		
+		return sb.toString().trim();
+	}
+
+
+
 	
 	public void finish(String n, Player p, CharacterCreation cc) {
+		if (!isAlphabetic(n)) {
+			p.sendMessage("§cInvalid input! Only letters are allowed.");
+			return;
+		}
+
+		n = capitalizeWords(n);
+
 		p.sendTitle(" ", "§7"+WordUtils.capitalize(target)+" set to §e"+n, 5, 50, 5);
 		p.sendMessage("§7"+WordUtils.capitalize(target)+" set to §e"+n);
 		cc.getCharacter().modify(target, n);

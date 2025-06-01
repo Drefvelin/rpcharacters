@@ -48,12 +48,18 @@ public class PlayerData {
 	public Player getPlayer() {
 		return p;
 	}
-	
-	public void setActive(boolean b) {
-		this.hasActive = b;
-	}
 	public boolean hasActiveCharacter() {
-		return this.hasActive;
+		for(RPCharacter ch : characters) {
+			if(ch.isActive()) return true;
+		}
+		return false;
+	}
+
+	public RPCharacter getActiveCharacter() {
+		for(RPCharacter ch : characters) {
+			if(ch.isActive()) return ch;
+		}
+		return null;
 	}
 	
 	public boolean hasCharacters() {

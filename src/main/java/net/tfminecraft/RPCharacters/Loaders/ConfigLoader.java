@@ -23,6 +23,12 @@ public class ConfigLoader implements LoaderInterface{
         if(config.contains("attributes")) {
         	Cache.attributes = config.getStringList("attributes");
         }
+        if(config.contains("professions")) {
+        	Cache.professions = config.getStringList("professions");
+        }
+        if(config.contains("editable-trait-types")) {
+        	Cache.editableTraits = config.getStringList("editable-trait-types");
+        }
         Cache.backgroundTraitTypes = config.getStringList("background-trait-types");
         Cache.requireCharacter = config.getBoolean("require-character", false);
 	}

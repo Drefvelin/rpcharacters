@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Dependency;
+import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
@@ -91,6 +92,9 @@ public class SelectableItem {
 	public int getCost() {
 		return cost;
 	}
+	public void setSelected(boolean b) {
+		selected = b;
+	}
 	public boolean isSelected() {
 		return selected;
 	}
@@ -100,6 +104,16 @@ public class SelectableItem {
 			cc.getTempData().mergeFrom(data);
 		} else {
 			cc.getTempData().mergeFromReverse(data);
+		}
+	}
+	public void click(RPCharacter c) {
+		this.selected = !this.selected;
+		if(this.selected) {
+			c.addTrait(TraitLoader.getByString(id));
+			c.getAttributeData().mergeFrom(data);
+		} else {
+			c.removeTrait(TraitLoader.getByString(id));
+			c.getAttributeData().mergeFromReverse(data);
 		}
 	}
 	

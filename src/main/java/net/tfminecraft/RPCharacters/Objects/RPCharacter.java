@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
@@ -100,6 +102,15 @@ public class RPCharacter {
 	public Race getRace() {
 		return race;
 	}
+	public void removeTrait(Trait t) {
+		for(int i = 0; i<traits.size(); i++) {
+			Trait trait = traits.get(i);
+			if(trait.equals(t)) {
+				traits.remove(i);
+				return;
+			}
+		}
+	}
 	public void addTrait(Trait t) {
 		this.traits.add(t);
 	}
@@ -124,12 +135,22 @@ public class RPCharacter {
 	public void modify(String type, String value) {
 		if(type.equalsIgnoreCase("name")) {
 			name = value;
-			Integrator i = new Integrator();
-			i.dispatchCommand(owner, "char set name "+value);
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					Integrator i = new Integrator();
+					i.dispatchCommand(owner, "char set name "+value);
+				}
+			}.runTask(RPCharacters.plugin);
 		} else if(type.equalsIgnoreCase("race")) {
 			name = value;
-			Integrator i = new Integrator();
-			i.dispatchCommand(owner, "char set race "+value);
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					Integrator i = new Integrator();
+					i.dispatchCommand(owner, "char set race "+value);
+				}
+			}.runTask(RPCharacters.plugin);
 		}
 	}
 }
