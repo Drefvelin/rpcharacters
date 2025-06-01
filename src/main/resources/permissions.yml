@@ -1,0 +1,3 @@
+rpcharacters.admin:
+       description: Admin Perms for RPCharacters.
+       default: false
