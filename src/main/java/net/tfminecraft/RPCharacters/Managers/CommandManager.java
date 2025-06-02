@@ -1,11 +1,14 @@
 package net.tfminecraft.RPCharacters.Managers;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Permissions;
@@ -91,4 +94,15 @@ public class CommandManager implements Listener, CommandExecutor{
 		return true;
 	}
 
+	@EventHandler
+    public void onCommand(PlayerCommandPreprocessEvent event) {
+		Player p = event.getPlayer();
+		if(PlayerManager.get(p).hasActiveCharacter() || !Cache.requireCharacter || !p.getGameMode().equals(GameMode.SURVIVAL)) return;
+        String message = event.getMessage().toLowerCase();
+
+        if (!message.startsWith("/rpcharacter")) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage("§cYou cannot use other commands when you have no character, only §e/rpcharacter");
+        }
+    }
 }

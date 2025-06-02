@@ -15,6 +15,7 @@ import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.CommandManager;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
+import net.tfminecraft.RPCharacters.Utils.CommandTabCompleter;
 
 public class RPCharacters extends JavaPlugin{
 	public static RPCharacters plugin;
@@ -39,6 +40,7 @@ public class RPCharacters extends JavaPlugin{
 		loadPlayers();
 		startManagers();
 		getCommand(commandManager.cmd1).setExecutor(commandManager);
+		getCommand("rpcharacter").setTabCompleter(new CommandTabCompleter());
 	}
 	@Override
 	public void onDisable() {

@@ -3,8 +3,11 @@ package net.tfminecraft.RPCharacters.Database;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +34,40 @@ import org.json.simple.parser.JSONParser;
 public class Database {
 	private JSONObject json; // org.json.simple
     JSONParser parser = new JSONParser();
+
+	public static void log(Player p, String action) {
+		try {
+			// Base folder
+			File baseFolder = new File("plugins/RPCharacters/logs");
+			if (!baseFolder.exists()) baseFolder.mkdirs();
+
+			// Get first letter, lowercase
+			String firstLetter = p.getName().substring(0, 1).toLowerCase();
+
+			// Subfolder (A-Z)
+			File subFolder = new File(baseFolder, firstLetter);
+			if (!subFolder.exists()) subFolder.mkdirs();
+
+			// The player's log file
+			File logFile = new File(subFolder, p.getName() + ".txt");
+
+			// Write to file (append mode)
+			FileWriter writer = new FileWriter(logFile, true);
+
+			// Log format: timestamp + action
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+			String timestamp = LocalDateTime.now().format(formatter);
+			String logEntry = "[" + timestamp + "] " + action + System.lineSeparator();
+
+			writer.write(logEntry);
+			writer.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+
 	public PlayerData loadPlayer(Player p) {
 		File file = new File("plugins/RPCharacters/data/playerdata", p.getUniqueId().toString()+".json");
 		if (file.exists()) {

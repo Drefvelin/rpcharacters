@@ -399,6 +399,7 @@ public class InventoryManager {
 		if(cc != null) {
 			current = cc.getTempData();
 		} else {
+			if(!PlayerManager.get(p).hasActiveCharacter()) return;
 			current = PlayerManager.get(p).getActiveCharacter().getAttributeData();
 		}
 		for(AttributeModifier m : current.getModifiers()) {

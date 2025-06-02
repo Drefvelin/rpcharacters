@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -91,7 +92,7 @@ public class PlayerManager implements Listener{
 					if(frozen.containsKey(p)) {
 						if(!isAtFreezeLoc(p)) {
 							PlayerData pd = get(p);
-							if(pd.hasActiveCharacter() || !Cache.requireCharacter) {
+							if(pd.hasActiveCharacter() || !Cache.requireCharacter || !p.getGameMode().equals(GameMode.SURVIVAL)) {
 								frozen.remove(p);
 							}
 							toFreezeLoc(p);

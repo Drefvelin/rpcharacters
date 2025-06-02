@@ -10,8 +10,6 @@ import net.tfminecraft.RPCharacters.enums.Status;
 
 public class PlayerData {
 	private Player p;
-	
-	private boolean hasActive;
 	private int cooldown;
 	
 	private List<RPCharacter> characters = new ArrayList<>();
@@ -19,13 +17,11 @@ public class PlayerData {
 	
 	public PlayerData(Player p) {
 		this.p = p;
-		this.hasActive = false;
 		this.cooldown = 0;
 	}
 	public PlayerData(Player p, List<String> cs, int c) {
 		this.p = p;
 		this.completedStages = cs;
-		this.hasActive = false;
 		cooldown = c;
 	}
 	

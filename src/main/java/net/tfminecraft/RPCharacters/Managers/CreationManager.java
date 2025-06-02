@@ -61,6 +61,7 @@ public class CreationManager implements Listener{
 	}
 
 	public void click(Player p, Stage stage, CharacterCreation cc, InventoryClickEvent e) {
+		if(stage == null) return;
 		RPCharacter c = null;
 		if(cc != null) {
 			c = cc.getCharacter();
@@ -128,9 +129,9 @@ public class CreationManager implements Listener{
 			}
 		}
 		if(e.getSlot() == s.getSize()-9) {
+			if(cc != null) cc.cancel();
 			h.override();
 			p.closeInventory();
-			if(cc != null) cc.cancel();
 			return;
 		}
 		if(e.getSlot() == s.getSize()-1) {
@@ -167,9 +168,9 @@ public class CreationManager implements Listener{
 	@EventHandler
 	public void stopClose(InventoryCloseEvent e) {
 		Player p = (Player) e.getPlayer();
+		if(!(e.getInventory().getHolder() instanceof RPCHolder)) return;
+		RPCHolder h = (RPCHolder) e.getInventory().getHolder();
 		if(!activeCreators.containsKey(p)) {
-			if(!(e.getInventory().getHolder() instanceof RPCHolder)) return;
-			RPCHolder h = (RPCHolder) e.getInventory().getHolder();
 			if(h.isOverridden()) return;
 			if(h.getStage() == null) return;
 			Stage stage = h.getStage();
@@ -189,6 +190,7 @@ public class CreationManager implements Listener{
 		if(cc.getCurrentStage() instanceof SelectionStage) {
 			SelectionStage s = (SelectionStage) cc.getCurrentStage();
 			if(!s.isActive()) return;
+			if(h.isOverridden()) return;
 			new BukkitRunnable()
 			{
 				public void run()
