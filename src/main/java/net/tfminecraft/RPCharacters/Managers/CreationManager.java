@@ -86,7 +86,7 @@ public class CreationManager implements Listener{
 						}
 					}
 					for(Trait t : c.getTraits()) {
-						if(item.isExclusive(t.getId())) {
+						if(item.isExclusive(t.getId()) || t.getTraitData().isExclusive(item.getId())) {
 							p.sendMessage("§cYou have one or more incompatible traits");
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;

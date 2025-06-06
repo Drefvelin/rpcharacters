@@ -205,6 +205,7 @@ public class SelectionStage extends Stage{
 	}
 	
 	public void execute(Player p, CharacterCreation cc) {
+		if(cc.isCancelled()) return;
 		active = true;
 		InventoryManager inv = new InventoryManager();
 		inv.selectionView(p, this, cc);

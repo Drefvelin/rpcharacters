@@ -40,9 +40,9 @@ public class AttributeData {
 				if(s.split("\\(").length > 1) {
 					String prof = s.split("\\(")[0];
 					String alias = s.split("\\(")[1].replace(")", "");
-					xpModifiers.add(new ExperienceModifier(prof, alias, 0));
+					xpModifiers.add(new ExperienceModifier(prof, alias, Cache.startingProfessionFactor));
 				} else {
-					xpModifiers.add(new ExperienceModifier(s, s, 0));
+					xpModifiers.add(new ExperienceModifier(s, s, Cache.startingProfessionFactor));
 				}
 			}
 		}

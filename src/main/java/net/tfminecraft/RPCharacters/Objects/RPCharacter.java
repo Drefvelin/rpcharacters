@@ -77,16 +77,16 @@ public class RPCharacter {
 		return active;
 	}
 	public void activate() {
-		modify("name", name);
-		modify("race", race.getId());
+		modify("name", name, false);
+		modify("race", race.getId(), false);
 		Database.log(owner, "Activated the character "+name);
 		active = true;
 		Integrator i = new Integrator();
 		i.integrate(owner, this);
 	}
 	public void deactivate() {
-		modify("name", "Unknown");
-		modify("race", "Human");
+		modify("name", "Unknown", false);
+		modify("race", "Human", false);
 		Database.log(owner, "Deactivated the character "+name);
 		active = false;
 		Integrator i = new Integrator();
@@ -144,8 +144,11 @@ public class RPCharacter {
 		this.name = name;
 	}
 	public void modify(String type, String value) {
+		modify(type, value, true);
+	}
+	public void modify(String type, String value, boolean affect) {
 		if(type.equalsIgnoreCase("name")) {
-			name = value;
+			if(affect) name = value;
 			new BukkitRunnable() {
 				@Override
 				public void run() {
@@ -155,7 +158,7 @@ public class RPCharacter {
 			}.runTask(RPCharacters.plugin);
 		} else if(type.equalsIgnoreCase("race")) {
 			Race newRace = RaceLoader.getByString(value);
-			if(newRace != null) race = newRace;
+			if(affect && newRace != null) race = newRace;
 			new BukkitRunnable() {
 				@Override
 				public void run() {

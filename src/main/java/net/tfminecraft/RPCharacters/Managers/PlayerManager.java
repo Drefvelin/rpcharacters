@@ -20,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import net.Indyuce.mmocore.api.event.PlayerExperienceGainEvent;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.Stage;
@@ -29,6 +30,7 @@ import net.tfminecraft.RPCharacters.Holder.RPCHolder;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
+import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.enums.ConfirmType;
 import net.tfminecraft.RPCharacters.enums.Status;
@@ -330,4 +332,20 @@ public class PlayerManager implements Listener{
 		}
 	}
 
+	@EventHandler
+	public void xpGain(PlayerExperienceGainEvent e) {
+		Player p = e.getPlayer();
+		PlayerData pd = get(p);
+		if(!pd.hasActiveCharacter()) return;
+		RPCharacter c = pd.getActiveCharacter();
+		if(c.getAttributeData().getExperienceModifiers().size() == 0) return;
+		String profession = e.getProfession().getId();
+		for(ExperienceModifier m : c.getAttributeData().getExperienceModifiers()) {
+			if(m.getProfession().equalsIgnoreCase(profession)) {
+				double amount = e.getExperience();
+				amount *= m.getFactor();
+				e.setExperience((int) Math.round(amount));
+			}
+		}
+	}
 }

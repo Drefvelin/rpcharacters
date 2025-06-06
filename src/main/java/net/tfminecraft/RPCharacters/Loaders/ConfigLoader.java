@@ -31,6 +31,7 @@ public class ConfigLoader implements LoaderInterface{
         }
         Cache.backgroundTraitTypes = config.getStringList("background-trait-types");
         Cache.requireCharacter = config.getBoolean("require-character", false);
+        Cache.startingProfessionFactor = config.getInt("base-profession-factor", -15);
 	}
 
 }

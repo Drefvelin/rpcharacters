@@ -19,4 +19,6 @@ public class Cache {
 	public static int deadSlot;
 
 	public static boolean requireCharacter;
+
+	public static int startingProfessionFactor;
 }

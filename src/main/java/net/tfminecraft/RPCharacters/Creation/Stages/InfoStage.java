@@ -74,7 +74,7 @@ public class InfoStage extends Stage{
 			int i = 0;
 			public void run()
 			{
-				if(isCancelled()) {
+				if(isCancelled() || cc.isCancelled()) {
 					this.cancel();
 				}
 				if(i >= messages.size()) {

@@ -247,6 +247,18 @@ public class InventoryManager {
 			lore.add("§f- "+t.getName()+" §7("+WordUtils.capitalize(t.getTraitData().getKey()+")"));
 		}
 		lore.add("§7------------------------");
+		lore.add("§eProfession EXP:");
+		for(ExperienceModifier m : c.getAttributeData().getExperienceModifiers()) {
+			int amount = m.getModifier();
+			if(amount > 0) {
+				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §a"+amount+"%");
+			} else if(amount == 0) {
+				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §e"+amount+"%");
+			} else if(amount < 0){
+				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §c"+amount+"%");
+			}
+		}
+		lore.add("§7------------------------");
 		meta.setLore(lore);
 		i.setItemMeta(meta);
 		return i;
@@ -416,17 +428,19 @@ public class InventoryManager {
 				lore.add("§7"+WordUtils.capitalize(m.getType())+ ": §f"+amount+" §c("+added+")");
 			}
 		}
+		lore.add(" ");
 		for(ExperienceModifier m : current.getExperienceModifiers()) {
 			int amount = m.getModifier();
 			int added = 0;
 			if(data.hasXPModifier(m)) {
 				added = data.getAmount(m);
 			}
-			if(amount == 0 && added == 0) continue;
 			if(added > 0) {
-				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e% §a(+"+added+"§e%)");
+				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e% §a(+"+added+"§e%§a)");
+			} else if(added == 0) {
+				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e%");
 			} else if(added < 0){
-				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e% §c("+added+"§e%)");
+				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e% §c("+added+"§e%§c)");
 			}
 		}
 	}

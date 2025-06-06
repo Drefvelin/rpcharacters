@@ -14,7 +14,6 @@ import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
-import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class CommandManager implements Listener, CommandExecutor{
@@ -22,8 +21,10 @@ public class CommandManager implements Listener, CommandExecutor{
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		
 		if(sender instanceof Player) {
 			Player p = (Player) sender;
+			if(cmd.getName().equalsIgnoreCase(cmd1) && args.length == 0) return true;
 			if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("create") && args.length == 1) {
 				if(CreationManager.activeCreators.containsKey(p)) {
 					p.sendMessage("§cYou are already creating a character");

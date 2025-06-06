@@ -1,7 +1,9 @@
 package net.tfminecraft.RPCharacters.Creation.Stages;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -14,8 +16,10 @@ import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Objects.Question;
 
 public class QuestionStage extends Stage{
-	private List<Question> questions = new ArrayList<Question>();
+	private List<Question> base = new ArrayList<>();
+	private List<Question> questions = new ArrayList<>();
 	
+	private int amount;
 	private int currentQuestion;
 	
 	public QuestionStage(Stage s, ConfigurationSection config) {
@@ -27,9 +31,9 @@ public class QuestionStage extends Stage{
 		Set<String> set = config.getConfigurationSection("questions").getKeys(false);
 
 		List<String> list = new ArrayList<String>(set);
-		
+		amount = config.getInt("amount", 1);
 		for(String key : list) {
-			questions.add(new Question(config.getConfigurationSection("questions."+key).getString("question"), config.getConfigurationSection("questions."+key).getStringList("answers")));
+			base.add(new Question(config.getConfigurationSection("questions."+key).getString("question"), config.getConfigurationSection("questions."+key).getStringList("answers")));
 		}
 		currentQuestion = 0;
 	}
@@ -39,12 +43,33 @@ public class QuestionStage extends Stage{
 		setAutoNext(another.autoNext());
 		setCancelled(another.isCancelled());
 		if(another.hasDependency()) setDependency(another.getDependency());
-		setQuestions(another.getQuestions());
+		setStored(another.getQuestions());
 		setCurrentQuestion(0);
 	}
+	public int getAmount() {
+		return amount;
+	}
+
+	public void pick() {
+		// Defensive check: if amount > base size, limit it
+		int pickAmount = Math.min(amount, base.size());
+
+		// Create a copy of base to shuffle
+		List<Question> shuffled = new ArrayList<>(base);
+		
+		// Shuffle the copy randomly
+		Collections.shuffle(shuffled, new Random());
+
+		// Pick the first N elements after shuffle
+		questions = new ArrayList<>(shuffled.subList(0, pickAmount));
+	}
+
 	public List<Question> getQuestions() {
 		return questions;
 	}
+	public void setStored(List<Question> questions) {
+		base = questions;
+	} 
 	public void setQuestions(List<Question> questions) {
 		this.questions = questions;
 	}
@@ -56,6 +81,7 @@ public class QuestionStage extends Stage{
 		this.currentQuestion = currentQuestion;
 	}
 	public void execute(Player p, CharacterCreation cc) {
+		if(cc.isCancelled()) return;
 		if(currentQuestion >= questions.size()) {
 			if(autoNext()) {
 				cc.runStage();

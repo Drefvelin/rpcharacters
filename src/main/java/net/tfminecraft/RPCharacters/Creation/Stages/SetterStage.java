@@ -53,6 +53,7 @@ public class SetterStage extends Stage{
 		}
 	}
 	public void execute(Player p, CharacterCreation cc) {
+		if(cc.isCancelled()) return;
 		runMessage(p, message);
 	}
 
