@@ -10,6 +10,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
+import net.Indyuce.mmocore.MMOCore;
+import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.RPCharacters;
@@ -87,6 +89,31 @@ public class CommandManager implements Listener, CommandExecutor{
 					return true;
 				}
 				RPCharacters.getPlayerManager().traitEdit(p, key);
+				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("setclass") && args.length == 3) {
+				Player argPlayer = Bukkit.getPlayerExact(args[1]);
+				if(argPlayer != null && !Permissions.isAdmin(sender)) {
+					p.sendMessage("§a[RPCharacters] §cYou do not have access to view other player's profiles");
+					return true;
+				}
+				String newClass = args[2].toUpperCase();
+				PlayerClass mmoClass = MMOCore.plugin.classManager.get(newClass);
+				if(mmoClass == null) {
+					p.sendMessage("§a[RPCharacters] §cNo class by the id "+newClass);
+					return true;
+				}
+				if(CreationManager.activeCreators.containsKey(argPlayer)) {
+					p.sendMessage("§c"+argPlayer.getName()+" is busy creating a character");
+					return true;
+				}
+				PlayerData pd = PlayerManager.get(argPlayer);
+				if(!pd.hasActiveCharacter()) {
+					p.sendMessage("§c"+argPlayer.getName()+" has no character");
+					return true;
+				}
+				pd.getActiveCharacter().setMMOClass(newClass);
+				net.Indyuce.mmocore.api.player.PlayerData.get(argPlayer).setClass(mmoClass);
+				argPlayer.sendMessage("§eYour class was changed to "+mmoClass.getName());
 				return true;
 			}
 			p.sendMessage("§a[RPCharacters] §cError with command format");

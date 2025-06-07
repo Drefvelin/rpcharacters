@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.Permissions;
 
 public class CommandTabCompleter implements TabCompleter {
 
@@ -28,6 +29,9 @@ public class CommandTabCompleter implements TabCompleter {
             completions.add("menu");
             completions.add("cancel");
             completions.add("edit");
+            if(Permissions.isAdmin(sender)) {
+                completions.add("setclass");
+            }
             return completions.stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
@@ -42,6 +46,14 @@ public class CommandTabCompleter implements TabCompleter {
             } else if (args[0].equalsIgnoreCase("edit")) {
                 // Suggest editable traits
                 completions.addAll(Cache.editableTraits);
+            } else if (args[0].equalsIgnoreCase("setclass") && args.length < 3) {
+                // Suggest editable traits
+                for (Player online : Bukkit.getOnlinePlayers()) {
+                    completions.add(online.getName());
+                }
+            } else if (args[0].equalsIgnoreCase("setclass") && args.length >= 3) {
+                // Suggest editable traits
+                completions.add("className");
             }
 
             return completions.stream()

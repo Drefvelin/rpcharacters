@@ -9,6 +9,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
+import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 
 public class SetterStage extends Stage{
 	private String target;
@@ -87,11 +88,23 @@ public class SetterStage extends Stage{
 			return;
 		}
 
-		n = capitalizeWords(n);
-
-		p.sendTitle(" ", "§7"+WordUtils.capitalize(target)+" set to §e"+n, 5, 50, 5);
-		p.sendMessage("§7"+WordUtils.capitalize(target)+" set to §e"+n);
-		cc.getCharacter().modify(target, n);
+		if(target.equalsIgnoreCase("real_age")) {
+			if(n.equalsIgnoreCase("yes")) {
+				PlayerManager.get(p).setEighteen(true);
+				p.sendTitle(" ", "§7Real age set to §e18+", 5, 50, 5);
+			} else if(n.equalsIgnoreCase("no")) {
+				PlayerManager.get(p).setEighteen(false);
+				p.sendTitle(" ", "§7Real age set to §ebelow 18", 5, 50, 5);
+			} else {
+				p.sendMessage("§cInvalid input! write either §eyes §cor §eno");
+				return;
+			}
+		} else {
+			n = capitalizeWords(n);
+			p.sendTitle(" ", "§7"+WordUtils.capitalize(target)+" set to §e"+n, 5, 50, 5);
+			p.sendMessage("§7"+WordUtils.capitalize(target)+" set to §e"+n);
+			cc.getCharacter().modify(target, n);
+		}
 		new BukkitRunnable()
 		{
 			public void run()

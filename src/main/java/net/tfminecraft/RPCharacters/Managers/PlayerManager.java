@@ -3,6 +3,7 @@ package net.tfminecraft.RPCharacters.Managers;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -20,7 +21,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import net.Indyuce.mmocore.api.event.PlayerChangeClassEvent;
 import net.Indyuce.mmocore.api.event.PlayerExperienceGainEvent;
+import net.Indyuce.mmocore.api.player.attribute.PlayerAttributes.AttributeInstance;
+import net.Indyuce.mmocore.api.player.profess.SavedClassInformation;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.Stage;
@@ -32,6 +36,7 @@ import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.enums.ConfirmType;
 import net.tfminecraft.RPCharacters.enums.Status;
 
@@ -346,6 +351,27 @@ public class PlayerManager implements Listener{
 				amount *= m.getFactor();
 				e.setExperience((int) Math.round(amount));
 			}
+		}
+	}
+
+	@EventHandler
+	public void classChange(PlayerChangeClassEvent e) {
+		PlayerData pd = get(e.getPlayer());
+		if(pd.hasActiveCharacter()) {
+			RPCharacter c = pd.getActiveCharacter();
+			final Map<String, Integer> map = (new Integrator()).get(e.getPlayer(), c);
+			c.setMMOClass(e.getData().getProfess().getId());
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					net.Indyuce.mmocore.api.player.PlayerData mpd = net.Indyuce.mmocore.api.player.PlayerData.get(e.getPlayer());
+					for(Map.Entry<String, Integer> entry : map.entrySet()) {
+						for(AttributeInstance a : mpd.getAttributes().getInstances()) {
+							if(a.getId().equalsIgnoreCase(entry.getKey())) a.setBase(entry.getValue());
+						}
+					}
+				}
+			}.runTaskLater(RPCharacters.plugin, 1L);
 		}
 	}
 }

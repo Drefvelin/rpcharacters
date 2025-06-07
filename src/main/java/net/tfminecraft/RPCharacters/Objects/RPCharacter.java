@@ -7,6 +7,10 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import net.Indyuce.mmocore.MMOCore;
+import net.Indyuce.mmocore.api.MMOCoreAPI;
+import net.Indyuce.mmocore.api.player.profess.PlayerClass;
+import net.Indyuce.mmocore.manager.ClassManager;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Database.Database;
@@ -21,6 +25,8 @@ public class RPCharacter {
 	private String id;
 	private String name;
 	private Player owner;
+
+	private String mmoClass;
 	
 	private Boolean active;
 	private Status status;
@@ -40,7 +46,7 @@ public class RPCharacter {
 		active = false;
 		id = UUID.randomUUID().toString();
 	}
-	public RPCharacter(Player p, String i, String n, Boolean a, Status s, Race r, List<Trait> t) {
+	public RPCharacter(Player p, String i, String n, Boolean a, Status s, Race r, List<Trait> t, String c) {
 		owner = p;
 		attributeData = new AttributeData();
 		status = s;
@@ -49,10 +55,20 @@ public class RPCharacter {
 		name = n;
 		race = r;
 		traits = t;
+		mmoClass = c;
 		update();
 	}
 	
 	public void update() {
+		if(active) {
+			if(mmoClass != null) {
+				PlayerClass newClass = MMOCore.plugin.classManager.get(mmoClass);
+				if(newClass != null) {
+					net.Indyuce.mmocore.api.player.PlayerData.get(owner).setClass(newClass);
+					owner.sendMessage("§eYour class was changed to "+newClass.getName());
+				}
+			}
+		}
 		attributeData = new AttributeData();
 		attributeData.mergeFrom(race.getRaceData().getAttributeData());
 		desc = new ArrayList<>();
@@ -76,7 +92,23 @@ public class RPCharacter {
 	public Boolean isActive() {
 		return active;
 	}
+	public boolean hasMMOClass() {
+		return mmoClass != null;
+	}
+	public void setMMOClass(String s) {
+		mmoClass = s.toUpperCase();
+	}
+	public String getMMOClass() {
+		return mmoClass;
+	}
 	public void activate() {
+		if(mmoClass != null) {
+			PlayerClass newClass = MMOCore.plugin.classManager.get(mmoClass);
+			if(newClass != null) {
+				net.Indyuce.mmocore.api.player.PlayerData.get(owner).setClass(newClass);
+				owner.sendMessage("§eYour class was changed to "+newClass.getName());
+			}
+		}
 		modify("name", name, false);
 		modify("race", race.getId(), false);
 		Database.log(owner, "Activated the character "+name);
@@ -85,6 +117,7 @@ public class RPCharacter {
 		i.integrate(owner, this);
 	}
 	public void deactivate() {
+		if(mmoClass == null) mmoClass = net.Indyuce.mmocore.api.player.PlayerData.get(owner).getProfess().getId();
 		modify("name", "Unknown", false);
 		modify("race", "Human", false);
 		Database.log(owner, "Deactivated the character "+name);

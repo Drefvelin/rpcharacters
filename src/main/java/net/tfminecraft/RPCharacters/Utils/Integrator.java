@@ -1,7 +1,9 @@
 package net.tfminecraft.RPCharacters.Utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.entity.Player;
 
@@ -19,12 +21,21 @@ public class Integrator {
 			attribute.setBase(attribute.getBase()+m.getAmount());
 		}
 	}
-	public void remove(Player p, RPCharacter c, boolean reset) {
+	public Map<String, Integer> get(Player p, RPCharacter c) {
+		Map<String, Integer> map = new HashMap<>();
+		PlayerData pd = PlayerData.get(p);
+		for(AttributeInstance a : pd.getAttributes().getInstances()) {
+			map.put(a.getId(), a.getBase());
+		}
+		return map;
+	}
+ 	public void remove(Player p, RPCharacter c, boolean reset) {
 		PlayerData pd = PlayerData.get(p);
 		int count = 0;
 		for(AttributeModifier m : c.getAttributeData().getModifiers()) {
 			AttributeInstance attribute = pd.getAttributes().getInstance(m.getType());
 			if(attribute == null) continue;
+			if(attribute.getBase() < m.getAmount()) continue;
 			attribute.setBase(attribute.getBase()-m.getAmount());
 			if(reset) {
 				count = count+attribute.getBase();

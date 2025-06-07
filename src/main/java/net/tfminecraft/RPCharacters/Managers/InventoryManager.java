@@ -327,6 +327,12 @@ public class InventoryManager {
 		m.setOwningPlayer(Bukkit.getOfflinePlayer(p.getName()));
 		List<String> lore = new ArrayList<String>();
 		lore.add("§eCharacter profile of "+p.getName());
+		PlayerData pd = PlayerManager.get(p);
+		if(pd.isEighteen()) {
+			lore.add("§7Real Age: §e18+");
+		} else {
+			lore.add("§7Real Age: §cbelow 18");
+		}
 		m.setLore(lore);
 		i.setItemMeta(m);
 		return i;

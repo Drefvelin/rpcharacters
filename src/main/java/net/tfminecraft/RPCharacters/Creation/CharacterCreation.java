@@ -121,6 +121,9 @@ public class CharacterCreation {
 		}
 	}
 	public void finish() {
+		ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
+		String command = "mmocore admin class-points set " + p.getName() + " " + 0;
+		Bukkit.dispatchCommand(console, command);
 		PlayerData pd = PlayerManager.get(p);
 		character.update();
 		pd.addCharacter(character);
@@ -133,6 +136,9 @@ public class CharacterCreation {
 	}
 
 	public void cancel() {
+		ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
+		String command = "mmocore admin class-points set " + p.getName() + " " + 0;
+		Bukkit.dispatchCommand(console, command);
 		CreationManager.activeCreators.remove(p);
 		Stage s = stages.get(currentStage);
 		cancelled = true;

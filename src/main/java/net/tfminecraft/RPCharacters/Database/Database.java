@@ -87,6 +87,7 @@ public class Database {
 					}
 				}
 				int cooldown = (int) Math.round(((Double) json.get("cooldown")));
+				boolean eighteen = json.containsKey("eighteen") ? Boolean.parseBoolean((String) json.get("eighteen")) : false;
 				List<String> completedStages = new ArrayList<>();
 				int i = 0;
 				JSONArray stageArray = (JSONArray) json.get("completed stages");
@@ -94,7 +95,7 @@ public class Database {
 					completedStages.add(stageArray.get(i).toString());
 					i++;
 				}
-				PlayerData pd = new PlayerData(p, completedStages, cooldown);
+				PlayerData pd = new PlayerData(p, completedStages, cooldown, eighteen);
 				loadCharacters(pd);
 				return pd;
 			} catch (Exception ex) {
@@ -114,6 +115,7 @@ public class Database {
     				Status status = Status.valueOf(((String) json.get("status")).toUpperCase());
     				Boolean active = Boolean.parseBoolean((String) json.get("active"));
     				Race r = RaceLoader.getByString((String) json.get("race"));
+					String mmoClass = json.containsKey("class") ? (String) json.get("class") : null;
     				if(r == null) {
     					r = RaceLoader.get().get(0);
     				}
@@ -127,7 +129,7 @@ public class Database {
     					}
     					i++;
     				}
-    				RPCharacter c = new RPCharacter(pd.getPlayer(), id, name, active, status, r, traits);
+    				RPCharacter c = new RPCharacter(pd.getPlayer(), id, name, active, status, r, traits, mmoClass);
     				if(c.isActive()) {
     					Integrator integrator = new Integrator();
     					integrator.integrate(pd.getPlayer(), c);
@@ -154,6 +156,7 @@ public class Database {
             HashMap<String, Object> defaults = new HashMap<String, Object>();
         	json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
         	defaults.put("cooldown", pd.getRemainingTime());
+			defaults.put("eighteen", String.valueOf(pd.isEighteen()));
         	int i = 0;
         	JSONArray stageArray = new JSONArray();
         	while(i < pd.getCompletedStages().size()) {
@@ -198,6 +201,7 @@ public class Database {
         	defaults.put("status", c.getStatus().toString());
         	defaults.put("race", c.getRace().getId());
         	defaults.put("active", c.isActive().toString());
+			if(c.hasMMOClass()) defaults.put("class", c.getMMOClass());
         	int i = 0;
         	JSONArray traitArray = new JSONArray();
         	while(i < c.getTraits().size()) {
