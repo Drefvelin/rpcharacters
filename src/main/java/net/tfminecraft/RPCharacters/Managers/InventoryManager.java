@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Dependency;
@@ -46,7 +47,7 @@ public class InventoryManager {
 		if(c.getStatus().equals(Status.ALIVE) && c.getOwner().equals(p)) {
 			i.setItem(8, getKillItem());
 		}
-		if(c.getStatus().equals(Status.ALIVE) && !c.isActive() && !pd.hasCooldown() && c.getOwner().equals(p)) {
+		if(c.getStatus().equals(Status.ALIVE) && !c.isActive() && (!pd.hasCooldown() || Permissions.isAdmin(p)) && c.getOwner().equals(p)) {
 			i.setItem(6, getSwitchItem());
 		}
 		int slotn = 0;
@@ -145,22 +146,27 @@ public class InventoryManager {
 		player.openInventory(i);
 	}
 	public String formatTime(Integer time) {
-		Integer remainder = time % 60;
-		Integer hoursTime = time/60;
-		Integer minutes = remainder % 60;
-		String hours = String.valueOf(hoursTime);
-		String mins = String.valueOf(minutes);
+		Integer days = time / 1440;
+		Integer remainderAfterDays = time % 1440;
+		Integer hours = remainderAfterDays / 60;
+		Integer minutes = remainderAfterDays % 60;
+
 		String formattedTime = "";
-		if(hoursTime > 0) {
-			formattedTime = formattedTime+hours + "h ";
+
+		if (days > 0) {
+			formattedTime += days + "d ";
 		}
-		if(minutes > 0) {
-			formattedTime = formattedTime + mins + "m ";
+		if (hours > 0) {
+			formattedTime += hours + "h ";
 		}
-		if(minutes == 0 && hoursTime == 0) {
+		if (minutes > 0) {
+			formattedTime += minutes + "m ";
+		}
+		if (days == 0 && hours == 0 && minutes == 0) {
 			formattedTime = "0m";
 		}
-		return formattedTime;
+
+		return formattedTime.trim();
 	}
 	public ItemStack createItemStack(Material m, String name) {
 		ItemStack i = new ItemStack(m, 1);

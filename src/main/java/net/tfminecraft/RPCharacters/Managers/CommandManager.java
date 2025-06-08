@@ -115,6 +115,22 @@ public class CommandManager implements Listener, CommandExecutor{
 				net.Indyuce.mmocore.api.player.PlayerData.get(argPlayer).setClass(mmoClass);
 				argPlayer.sendMessage("§eYour class was changed to "+mmoClass.getName());
 				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("seteighteen") && args.length == 3) {
+				Player argPlayer = Bukkit.getPlayerExact(args[1]);
+				if(!Permissions.isAdmin(sender)) {
+					p.sendMessage("§a[RPCharacters] §cYou do not have access to this command");
+					return true;
+				}
+				if(argPlayer == null) {
+					p.sendMessage("§cNo player found");
+					return true;
+				}
+				Boolean value = Boolean.parseBoolean(args[2]);
+				PlayerData pd = PlayerManager.get(argPlayer);
+				pd.setEighteen(value);
+				p.sendMessage("§e18+ value for "+argPlayer.getName()+" changed to §9"+value.toString());
+				argPlayer.sendMessage("§e18+ value changed to §9"+value.toString());
+				return true;
 			}
 			p.sendMessage("§a[RPCharacters] §cError with command format");
 			return true;
@@ -125,12 +141,13 @@ public class CommandManager implements Listener, CommandExecutor{
 	@EventHandler
     public void onCommand(PlayerCommandPreprocessEvent event) {
 		Player p = event.getPlayer();
+		if(Permissions.isAdmin(p)) return;
 		if(PlayerManager.get(p).hasActiveCharacter() || !Cache.requireCharacter || !p.getGameMode().equals(GameMode.SURVIVAL)) return;
         String message = event.getMessage().toLowerCase();
 
-        if (!message.startsWith("/rpcharacter")) {
+        if (!(message.startsWith("/rpcharacter") || message.startsWith("/class"))) {
             event.setCancelled(true);
-            event.getPlayer().sendMessage("§cYou cannot use other commands when you have no character, only §e/rpcharacter");
+            event.getPlayer().sendMessage("§cYou cannot use other commands when you have no character, only §e/rpcharacter §cor §e/class");
         }
     }
 }

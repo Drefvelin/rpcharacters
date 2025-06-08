@@ -74,7 +74,9 @@ public class PlayerManager implements Listener{
 	}
 
 	public boolean isAtFreezeLoc(Player p) {
+		if(!p.getGameMode().equals(GameMode.SURVIVAL)) return true;
 		Location loc = frozen.get(p);
+		if(loc == null) return true;
 		if(p.getLocation().getX() != loc.getX()) return false;
 		if(p.getLocation().getY() != loc.getY()) return false;
 		if(p.getLocation().getZ() != loc.getZ()) return false;
@@ -82,6 +84,7 @@ public class PlayerManager implements Listener{
 	}
 
 	public void toFreezeLoc(Player p) {
+		if(frozen.get(p) == null) return;
 		Location loc = frozen.get(p).clone();
 		loc.setYaw(p.getLocation().getYaw());
 		loc.setPitch(p.getLocation().getPitch());
@@ -99,6 +102,7 @@ public class PlayerManager implements Listener{
 					if(frozen.containsKey(p)) {
 						if(!isAtFreezeLoc(p)) {
 							PlayerData pd = get(p);
+							if(pd == null) continue;
 							if(pd.hasActiveCharacter() || !Cache.requireCharacter || !p.getGameMode().equals(GameMode.SURVIVAL)) {
 								frozen.remove(p);
 							}
@@ -139,7 +143,7 @@ public class PlayerManager implements Listener{
 					pd.tick();
 				}
 			}
-		}.runTaskTimer(RPCharacters.plugin, 0L, 20L);
+		}.runTaskTimer(RPCharacters.plugin, 0L, 1200L);
 	}
 	
 	@EventHandler
@@ -161,6 +165,10 @@ public class PlayerManager implements Listener{
 	
 	public void initiatePlayer(Player p) {
 		if(!exists(p)) {
+			net.Indyuce.mmocore.api.player.PlayerData mpd = net.Indyuce.mmocore.api.player.PlayerData.get(p);
+			for(AttributeInstance a : mpd.getAttributes().getInstances()) {
+				a.setBase(0);
+			}
 			PlayerData pd = db.loadPlayer(p);
 			if(pd == null) {
 				pd = new PlayerData(p);
@@ -349,7 +357,7 @@ public class PlayerManager implements Listener{
 			if(m.getProfession().equalsIgnoreCase(profession)) {
 				double amount = e.getExperience();
 				amount *= m.getFactor();
-				e.setExperience((int) Math.round(amount));
+				e.setExperience(amount);
 			}
 		}
 	}
@@ -357,6 +365,7 @@ public class PlayerManager implements Listener{
 	@EventHandler
 	public void classChange(PlayerChangeClassEvent e) {
 		PlayerData pd = get(e.getPlayer());
+		if(pd == null) return;
 		if(pd.hasActiveCharacter()) {
 			RPCharacter c = pd.getActiveCharacter();
 			final Map<String, Integer> map = (new Integrator()).get(e.getPlayer(), c);

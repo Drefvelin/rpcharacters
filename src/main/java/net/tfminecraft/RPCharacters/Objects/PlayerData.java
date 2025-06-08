@@ -47,7 +47,7 @@ public class PlayerData {
 		cooldown = i;
 	}
 	public void resetCooldown() {
-		cooldown = 30;
+		cooldown = 20160;
 	}
 	public void tick() {
 		cooldown--;

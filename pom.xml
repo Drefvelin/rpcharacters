@@ -6,7 +6,7 @@
 
     <groupId>net.tfminecraft</groupId>
     <artifactId>rpcharacters</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -52,9 +52,9 @@
         <dependency>
             <groupId>local</groupId>
             <artifactId>MMOCore</artifactId>
-            <version>1.11.3</version>
+            <version>1.13.1</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MMOCore-1.11.3.jar</systemPath>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MMOCore-1.13.1.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>

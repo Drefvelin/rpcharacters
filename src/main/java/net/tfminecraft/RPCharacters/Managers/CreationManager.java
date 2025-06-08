@@ -10,7 +10,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import net.tfminecraft.RPCharacters.RPCharacters;
@@ -24,13 +23,14 @@ import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.enums.Status;
 
 public class CreationManager implements Listener{
 	public static HashMap<Player, CharacterCreation> activeCreators = new HashMap<>();
 	
 	public static void initiateCreation(Player p) {
 		PlayerData pd = PlayerManager.get(p);
-		if(pd.hasCooldown()) {
+		if(pd.hasCooldown() && pd.getCharacters(Status.ALIVE).size() > 0) {
 			p.sendMessage("§cYou are on cooldown from switching characters");
 			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 			return;
