@@ -137,6 +137,7 @@ public class PlayerManager implements Listener{
 		{
 			public void run()
 			{
+				db.tickDownCooldownForOfflinePlayers();
 				for(Player p : Bukkit.getOnlinePlayers()) {
 					PlayerData pd = get(p);
 					if(!pd.hasCooldown()) continue;
@@ -174,12 +175,21 @@ public class PlayerManager implements Listener{
 				pd = new PlayerData(p);
 			}
 			data.add(pd);
+			if(!pd.hasActiveCharacter() && pd.getCharacters(Status.ALIVE).size() > 0) {
+				pd.setActiveCharacter(pd.getCharacters(Status.ALIVE).get(0));
+			}
+			mpd.setAttributePoints(0);
+			mpd.setAttributeReallocationPoints(0);
 		}
 	}
 	public void confirmClick(Player p, RPCharacter c, ConfirmType t) {
 		if(t.equals(ConfirmType.KILL)) {
 			if(c.isActive()) {
 				c.deactivate();
+				PlayerData pd = PlayerManager.get(p);
+				if(pd.getCharacters(Status.ALIVE).size() > 0) {
+					pd.setActiveCharacter(pd.getCharacters(Status.ALIVE).get(0));
+				}
 			}
 			c.setStatus(Status.DEAD);
 			InventoryManager inv = new InventoryManager();

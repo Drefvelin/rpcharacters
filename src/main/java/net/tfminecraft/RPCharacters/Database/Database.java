@@ -24,7 +24,9 @@ import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.enums.Status;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -103,6 +105,41 @@ public class Database {
 			}
         }
 		return null;
+	}
+	@SuppressWarnings("unchecked")
+	public void tickDownCooldownForOfflinePlayers() {
+		File folder = new File("plugins/RPCharacters/data/playerdata");
+		if (!folder.exists() || !folder.isDirectory()) return;
+
+		File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
+		if (files == null) return;
+
+		for (File file : files) {
+			try {
+				String uuidString = file.getName().replace(".json", "");
+				OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(java.util.UUID.fromString(uuidString));
+
+				if (offlinePlayer.isOnline()) continue; // Skip online players
+
+				JSONObject json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+
+				// Ensure the cooldown exists and is a number
+				if (json.containsKey("cooldown")) {
+					double cooldown = ((Number) json.get("cooldown")).doubleValue();
+					if (cooldown > 0) {
+						json.put("cooldown", cooldown - 1);
+						
+						// Write the updated JSON back to file
+						try (FileWriter writer = new FileWriter(file)) {
+							Gson gson = new GsonBuilder().setPrettyPrinting().create();
+							gson.toJson(json, writer);
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace(); // Log per-file issues
+			}
+		}
 	}
 	public void loadCharacters(PlayerData pd) {
 		File folder = new File("plugins/RPCharacters/data/characterdata", pd.getPlayer().getUniqueId().toString());
