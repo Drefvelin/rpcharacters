@@ -1,11 +1,10 @@
 package net.tfminecraft.RPCharacters.Creation.Stages;
 
-import org.apache.commons.lang.WordUtils;
-
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import me.plugins.tlibs.shaded.lang3.text.WordUtils;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
@@ -82,6 +81,7 @@ public class SetterStage extends Stage{
 
 
 	
+	@SuppressWarnings("deprecation")
 	public void finish(String n, Player p, CharacterCreation cc) {
 		if (!isAlphabetic(n)) {
 			p.sendMessage("§cInvalid input! Only letters are allowed.");

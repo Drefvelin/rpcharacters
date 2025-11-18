@@ -31,6 +31,7 @@ public class CommandTabCompleter implements TabCompleter {
             completions.add("edit");
             if(Permissions.isAdmin(sender)) {
                 completions.add("setclass");
+                completions.add("skipcooldown");
             }
             return completions.stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
@@ -54,6 +55,11 @@ public class CommandTabCompleter implements TabCompleter {
             } else if (args[0].equalsIgnoreCase("setclass") && args.length >= 3) {
                 // Suggest editable traits
                 completions.add("className");
+            } else if (args[0].equalsIgnoreCase("skipcooldown") && args.length < 2) {
+                // Suggest editable traits
+                for (Player online : Bukkit.getOnlinePlayers()) {
+                    completions.add(online.getName());
+                }
             }
 
             return completions.stream()

@@ -131,6 +131,21 @@ public class CommandManager implements Listener, CommandExecutor{
 				p.sendMessage("§e18+ value for "+argPlayer.getName()+" changed to §9"+value.toString());
 				argPlayer.sendMessage("§e18+ value changed to §9"+value.toString());
 				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("skipcooldown") && args.length == 2) {
+				Player argPlayer = Bukkit.getPlayerExact(args[1]);
+				if(!Permissions.isAdmin(sender)) {
+					p.sendMessage("§a[RPCharacters] §cYou do not have access to this command");
+					return true;
+				}
+				if(argPlayer == null) {
+					p.sendMessage("§cNo player found");
+					return true;
+				}
+				PlayerData pd = PlayerManager.get(argPlayer);
+				pd.setCooldown(0);
+				p.sendMessage("§eRemoved cooldown for "+argPlayer);
+				argPlayer.sendMessage("§eCharacter Cooldown has been skipped");
+				return true;
 			}
 			p.sendMessage("§a[RPCharacters] §cError with command format");
 			return true;

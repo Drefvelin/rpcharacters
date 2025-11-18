@@ -184,6 +184,7 @@ public class PlayerManager implements Listener{
 	}
 	public void confirmClick(Player p, RPCharacter c, ConfirmType t) {
 		if(t.equals(ConfirmType.KILL)) {
+			c.setStatus(Status.DEAD);
 			if(c.isActive()) {
 				c.deactivate();
 				PlayerData pd = PlayerManager.get(p);
@@ -191,7 +192,6 @@ public class PlayerManager implements Listener{
 					pd.setActiveCharacter(pd.getCharacters(Status.ALIVE).get(0));
 				}
 			}
-			c.setStatus(Status.DEAD);
 			InventoryManager inv = new InventoryManager();
 			inv.characterView(p, c);
 		} else if(t.equals(ConfirmType.SWITCH)) {

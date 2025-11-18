@@ -30,7 +30,7 @@ public class CreationManager implements Listener{
 	
 	public static void initiateCreation(Player p) {
 		PlayerData pd = PlayerManager.get(p);
-		if(pd.hasCooldown() && pd.getCharacters(Status.ALIVE).size() > 0) {
+		if(pd.hasCooldown() && pd.getCharacters(Status.ALIVE).size() > 0 && !p.hasPermission("rpcharacters.no_cooldown")) {
 			p.sendMessage("§cYou are on cooldown from switching characters");
 			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 			return;

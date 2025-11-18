@@ -3,7 +3,6 @@ package net.tfminecraft.RPCharacters.Managers;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -17,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import me.plugins.tlibs.shaded.lang3.text.WordUtils;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.RPCharacters;
@@ -113,6 +113,7 @@ public class InventoryManager {
 		p.openInventory(i);
 	}
 	public void selectionView(Player player, SelectionStage s, CharacterCreation cc) {
+		@SuppressWarnings("deprecation")
 		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player, s), s.getSize(), "§7"+WordUtils.capitalize(s.getKey())+ " Selection");
 		for(int x = 0; x<s.getSlots().size(); x++) {
 			if(x >= s.getOptions().size()) break;
@@ -240,6 +241,7 @@ public class InventoryManager {
 		i.setItemMeta(meta);
 		return i;
 	}
+	@SuppressWarnings("deprecation")
 	public ItemStack getTraitsItem(RPCharacter c) {
 		ItemStack i = new ItemStack(Material.GOLDEN_APPLE, 1);
 		ItemMeta meta = i.getItemMeta();
@@ -352,6 +354,7 @@ public class InventoryManager {
 		return i;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public ItemStack getSelectableItem(Player p, SelectionStage stage, SelectableItem s, CharacterCreation cc) {
 		ItemStack i = new ItemStack(Material.BARRIER, 1);
 		if(s.isSelected()) {
@@ -418,6 +421,7 @@ public class InventoryManager {
 		return i;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void addModifiers(Player p, List<String> lore, AttributeData data, CharacterCreation cc) {
 		AttributeData current = null;
 		if(cc != null) {
