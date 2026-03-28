@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -178,7 +179,8 @@ public class PlayerManager implements Listener{
 					}
 
 					for(Map.Entry<PotionEffectType, Integer> entry : effects.entrySet()) {
-						p.addPotionEffect(entry.getKey().createEffect(TRAIT_POTION_DURATION_TICKS, entry.getValue()), true);
+						PotionEffect effect = new PotionEffect(entry.getKey(), TRAIT_POTION_DURATION_TICKS, entry.getValue(), false, false, false);
+						p.addPotionEffect(effect, true);
 					}
 				}
 			}
@@ -348,6 +350,24 @@ public class PlayerManager implements Listener{
 				last.put(p, c);
 				InventoryManager inv = new InventoryManager();
 				inv.confirmView(p);
+			} else if(e.getSlot() == 14) {
+				ItemStack i = e.getInventory().getItem(10);
+				if(i == null || i.getItemMeta() == null) return;
+				if(o == null) {
+					p.sendMessage("§cCant find player, maybe they are offline?");
+					return;
+				}
+				NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
+				String id = i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+				PlayerData pd = get(o);
+				RPCharacter c = pd.getCharacterById(id);
+				if(c == null) {
+					p.sendMessage("§cCant find character");
+					return;
+				}
+				InventoryManager inv = new InventoryManager();
+				inv.traitsView(p, c);
+				p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
 			}
 		} else if(e.getView().getTitle().equalsIgnoreCase("§7Confirm Action")) {
 			e.setCancelled(true);
@@ -363,7 +383,27 @@ public class PlayerManager implements Listener{
 				confirm.remove(p);
 				last.remove(p);
 			}
-		} if(e.getView().getTitle().equalsIgnoreCase("§7Dead Characters")) {
+		} else if(e.getView().getTitle().equalsIgnoreCase("§7Trait List")) {
+			e.setCancelled(true);
+			if(e.getSlot() != e.getInventory().getSize() - 1) return;
+			ItemStack item = e.getCurrentItem();
+			if(item == null || item.getItemMeta() == null) return;
+			NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
+			String id = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+			if(o == null) {
+				p.sendMessage("§cCant find player, maybe they are offline?");
+				return;
+			}
+			PlayerData pd = get(o);
+			RPCharacter c = pd.getCharacterById(id);
+			if(c == null) {
+				p.sendMessage("§cCant find character");
+				return;
+			}
+			InventoryManager inv = new InventoryManager();
+			inv.characterView(p, c);
+			p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+		} else if(e.getView().getTitle().equalsIgnoreCase("§7Dead Characters")) {
 			e.setCancelled(true);
 			if(e.getCurrentItem().getType().equals(Material.ENDER_PEARL)) {
 				NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");

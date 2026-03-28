@@ -33,10 +33,13 @@ import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeModifier;
 import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
+import net.tfminecraft.RPCharacters.Objects.Trait.PotionData;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class InventoryManager {
+	private static final String CHARACTER_ID_KEY = "character_id";
+
 	public void characterView(Player p, RPCharacter c) {
 		PlayerData pd = PlayerManager.get(c.getOwner());
 		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(c.getOwner()), 27, "§7Character Info");
@@ -50,6 +53,37 @@ public class InventoryManager {
 		if(c.getStatus().equals(Status.ALIVE) && !c.isActive() && (!pd.hasCooldown() || Permissions.isAdmin(p)) && c.getOwner().equals(p)) {
 			i.setItem(6, getSwitchItem());
 		}
+		int slotn = 0;
+		while(slotn < i.getSize()) {
+			if(i.getItem(slotn) == null) {
+				ItemStack fill = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+				ItemMeta fm = fill.getItemMeta();
+				fm.setDisplayName("§8 ");
+				fill.setItemMeta(fm);
+				i.setItem(slotn, fill);
+			}
+			slotn++;
+		}
+		p.openInventory(i);
+	}
+	public void traitsView(Player p, RPCharacter c) {
+		int visibleTraitCount = 0;
+		for(Trait t : c.getTraits()) {
+			if(Cache.backgroundTraitTypes.contains(t.getTraitData().getKey())) continue;
+			visibleTraitCount++;
+		}
+		int rows = Math.max(3, Math.min(6, ((visibleTraitCount + 1) + 8) / 9));
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(c.getOwner()), rows * 9, "§7Trait List");
+
+		int slot = 0;
+		for(Trait t : c.getTraits()) {
+			if(slot >= i.getSize() - 1) break;
+			if(Cache.backgroundTraitTypes.contains(t.getTraitData().getKey())) continue;
+			i.setItem(slot, getTraitInfoItem(t, c.getId()));
+			slot++;
+		}
+		i.setItem(i.getSize() - 1, getBackButton(c.getId()));
+
 		int slotn = 0;
 		while(slotn < i.getSize()) {
 			if(i.getItem(slotn) == null) {
@@ -183,6 +217,14 @@ public class InventoryManager {
 		i.setItemMeta(meta);
 		return i;
 	}
+	public ItemStack getBackButton(String characterId) {
+		ItemStack i = getBackButton();
+		ItemMeta meta = i.getItemMeta();
+		NamespacedKey key = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
+		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, characterId);
+		i.setItemMeta(meta);
+		return i;
+	}
 	public ItemStack createCancelItem(CharacterCreation cc) {
 		ItemStack i = new ItemStack(Material.BARRIER, 1);
 		ItemMeta meta = i.getItemMeta();
@@ -267,6 +309,59 @@ public class InventoryManager {
 			}
 		}
 		lore.add("§7------------------------");
+		lore.add("§bClick §7to view all trait details");
+		meta.setLore(lore);
+		NamespacedKey key = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
+		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, c.getId());
+		i.setItemMeta(meta);
+		return i;
+	}
+	@SuppressWarnings("deprecation")
+	public ItemStack getTraitInfoItem(Trait t, String characterId) {
+		ItemStack i = new ItemStack(Material.GREEN_CONCRETE, 1);
+		ItemMeta meta = i.getItemMeta();
+		meta.setDisplayName(t.getName());
+		List<String> lore = new ArrayList<String>();
+		for(String d : t.getDesc()) {
+			lore.add(d);
+		}
+		lore.add(" ");
+		lore.add("§eEffects:");
+
+		boolean hasEffects = false;
+		AttributeData data = t.getTraitData().getAttributeData();
+		for(AttributeModifier modifier : data.getModifiers()) {
+			hasEffects = true;
+			int amount = modifier.getAmount();
+			if(amount > 0) {
+				lore.add("§7"+WordUtils.capitalize(modifier.getType())+": §a+"+amount);
+			} else if(amount < 0) {
+				lore.add("§7"+WordUtils.capitalize(modifier.getType())+": §c"+amount);
+			} else {
+				lore.add("§7"+WordUtils.capitalize(modifier.getType())+": §e0");
+			}
+		}
+		for(ExperienceModifier modifier : data.getExperienceModifiers()) {
+			hasEffects = true;
+			int amount = modifier.getModifier();
+			if(amount > 0) {
+				lore.add("§7"+WordUtils.capitalize(modifier.getAlias())+": §a+"+amount+"%");
+			} else if(amount < 0) {
+				lore.add("§7"+WordUtils.capitalize(modifier.getAlias())+": §c"+amount+"%");
+			} else {
+				lore.add("§7"+WordUtils.capitalize(modifier.getAlias())+": §e0%");
+			}
+		}
+		for(PotionData potion : t.getTraitData().getPotionEffects()) {
+			hasEffects = true;
+			lore.add("§7"+WordUtils.capitalize(potion.getId().replace("_", " "))+": §f"+(potion.getAmplifier() + 1)+" §7(3s)");
+		}
+		if(!hasEffects) {
+			lore.add("§7No direct effects");
+		}
+
+		NamespacedKey key = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
+		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, characterId);
 		meta.setLore(lore);
 		i.setItemMeta(meta);
 		return i;
