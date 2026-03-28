@@ -11,6 +11,7 @@ import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 public class TraitData {
 	private int cost;
 	private List<String> exclusive = new ArrayList<>();
+	private List<PotionData> potionEffects = new ArrayList<>();
 	private String key;
 	
 	private Dependency dependency;
@@ -28,6 +29,14 @@ public class TraitData {
 		}
 		if(config.contains("dependency")) {
 			dependency = new Dependency(config.getConfigurationSection("dependency"));
+		}
+		if(config.contains("potion-effects")) {
+			for(String s : config.getStringList("potion-effects")) {
+				PotionData potion = new PotionData(s);
+				if(potion.isValid()) {
+					potionEffects.add(potion);
+				}
+			}
 		}
 		data = new AttributeData(config);
 	}
@@ -73,6 +82,15 @@ public class TraitData {
 
 	public AttributeData getAttributeData() {
 		return data;
+	}
+
+	public boolean hasPotionEffects() {
+		if(potionEffects.size() > 0) return true;
+		return false;
+	}
+
+	public List<PotionData> getPotionEffects() {
+		return potionEffects;
 	}
 	
 	

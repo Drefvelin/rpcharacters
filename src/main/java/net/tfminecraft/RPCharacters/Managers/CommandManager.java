@@ -13,9 +13,13 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import net.Indyuce.mmocore.MMOCore;
 import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
+import net.tfminecraft.RPCharacters.Objects.PlayerData;
+import net.tfminecraft.RPCharacters.Objects.RPCharacter;
+import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.RPCharacters;
-import net.tfminecraft.RPCharacters.Objects.PlayerData;
+import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class CommandManager implements Listener, CommandExecutor{
@@ -145,6 +149,93 @@ public class CommandManager implements Listener, CommandExecutor{
 				pd.setCooldown(0);
 				p.sendMessage("§eRemoved cooldown for "+argPlayer);
 				argPlayer.sendMessage("§eCharacter Cooldown has been skipped");
+				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("addtrait") && args.length == 3) {
+				if(!Permissions.isAdmin(sender)) {
+					p.sendMessage("§a[RPCharacters] §cYou do not have access to this command");
+					return true;
+				}
+				Player argPlayer = Bukkit.getPlayerExact(args[1]);
+				if(argPlayer == null) {
+					p.sendMessage("§cNo player found");
+					return true;
+				}
+				PlayerData pd = PlayerManager.get(argPlayer);
+				if(pd == null || !pd.hasActiveCharacter()) {
+					p.sendMessage("§c"+argPlayer.getName()+" has no active character");
+					return true;
+				}
+				Trait trait = TraitLoader.getByString(args[2]);
+				if(trait == null) {
+					p.sendMessage("§cNo trait found with the id " + args[2]);
+					return true;
+				}
+
+				RPCharacter character = pd.getActiveCharacter();
+				for(Trait current : character.getTraits()) {
+					if(current.getId().equalsIgnoreCase(trait.getId())) {
+						p.sendMessage("§c" + argPlayer.getName() + " already has the trait " + trait.getId());
+						return true;
+					}
+				}
+				if(character.isActive()) {
+					Integrator integrator = new Integrator();
+					integrator.remove(argPlayer, character, false);
+					character.addTrait(trait);
+					character.update();
+					integrator.integrate(argPlayer, character);
+				} else {
+					character.addTrait(trait);
+					character.update();
+				}
+
+				RPCharacters.getPlayerManager().savePlayer(argPlayer);
+				p.sendMessage("§aAdded trait §e" + trait.getId() + "§a to §e" + argPlayer.getName());
+				argPlayer.sendMessage("§aAn admin added the trait §e" + trait.getName() + "§a to your active character.");
+				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("removetrait") && args.length == 3) {
+				if(!Permissions.isAdmin(sender)) {
+					p.sendMessage("§a[RPCharacters] §cYou do not have access to this command");
+					return true;
+				}
+				Player argPlayer = Bukkit.getPlayerExact(args[1]);
+				if(argPlayer == null) {
+					p.sendMessage("§cNo player found");
+					return true;
+				}
+				PlayerData pd = PlayerManager.get(argPlayer);
+				if(pd == null || !pd.hasActiveCharacter()) {
+					p.sendMessage("§c"+argPlayer.getName()+" has no active character");
+					return true;
+				}
+
+				RPCharacter character = pd.getActiveCharacter();
+				Trait trait = null;
+				for(Trait current : character.getTraits()) {
+					if(current.getId().equalsIgnoreCase(args[2])) {
+						trait = current;
+						break;
+					}
+				}
+				if(trait == null) {
+					p.sendMessage("§c" + argPlayer.getName() + " does not have the trait " + args[2]);
+					return true;
+				}
+
+				if(character.isActive()) {
+					Integrator integrator = new Integrator();
+					integrator.remove(argPlayer, character, false);
+					character.removeTrait(trait);
+					character.update();
+					integrator.integrate(argPlayer, character);
+				} else {
+					character.removeTrait(trait);
+					character.update();
+				}
+
+				RPCharacters.getPlayerManager().savePlayer(argPlayer);
+				p.sendMessage("§aRemoved trait §e" + trait.getId() + "§a from §e" + argPlayer.getName());
+				argPlayer.sendMessage("§cAn admin removed the trait §e" + trait.getName() + "§c from your active character.");
 				return true;
 			}
 			p.sendMessage("§a[RPCharacters] §cError with command format");
