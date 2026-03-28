@@ -19,28 +19,31 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import net.Indyuce.mmocore.api.event.PlayerChangeClassEvent;
 import net.Indyuce.mmocore.api.event.PlayerExperienceGainEvent;
 import net.Indyuce.mmocore.api.player.attribute.PlayerAttributes.AttributeInstance;
-import net.Indyuce.mmocore.api.player.profess.SavedClassInformation;
 import net.tfminecraft.RPCharacters.Cache;
-import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Database.Database;
 import net.tfminecraft.RPCharacters.Holder.RPCHolder;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
+import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
-import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
+import net.tfminecraft.RPCharacters.Objects.Trait.PotionData;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.enums.ConfirmType;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class PlayerManager implements Listener{
+	private static final int TRAIT_POTION_DURATION_TICKS = 60;
+	private static final int TRAIT_POTION_PULSE_TICKS = 40;
 	
 	private static List<PlayerData> data = new ArrayList<>();
 	private HashMap<Player, Location> frozen = new HashMap<>();
@@ -94,6 +97,7 @@ public class PlayerManager implements Listener{
 	public void start() {
 		Bukkit.getLogger().info("[RPCharacters] Starting Player Manager");
 		pulse();
+		traitPotionPulse();
 		new BukkitRunnable()
 		{
 			public void run()
@@ -145,6 +149,40 @@ public class PlayerManager implements Listener{
 				}
 			}
 		}.runTaskTimer(RPCharacters.plugin, 0L, 1200L);
+	}
+
+	public void traitPotionPulse() {
+		Bukkit.getLogger().info("[RPCharacters] Starting Trait Potion Pulse");
+		new BukkitRunnable()
+		{
+			public void run()
+			{
+				for(Player p : Bukkit.getOnlinePlayers()) {
+					PlayerData pd = get(p);
+					if(pd == null) continue;
+					if(!pd.hasActiveCharacter()) continue;
+
+					RPCharacter c = pd.getActiveCharacter();
+					Map<PotionEffectType, Integer> effects = new HashMap<>();
+
+					for(Trait trait : c.getTraits()) {
+						if(!trait.getTraitData().hasPotionEffects()) continue;
+						for(PotionData potion : trait.getTraitData().getPotionEffects()) {
+							PotionEffectType type = potion.getType();
+							if(type == null) continue;
+							int current = effects.getOrDefault(type, -1);
+							if(potion.getAmplifier() > current) {
+								effects.put(type, potion.getAmplifier());
+							}
+						}
+					}
+
+					for(Map.Entry<PotionEffectType, Integer> entry : effects.entrySet()) {
+						p.addPotionEffect(entry.getKey().createEffect(TRAIT_POTION_DURATION_TICKS, entry.getValue()), true);
+					}
+				}
+			}
+		}.runTaskTimer(RPCharacters.plugin, 0L, TRAIT_POTION_PULSE_TICKS);
 	}
 	
 	@EventHandler
