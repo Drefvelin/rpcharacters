@@ -31,11 +31,13 @@ public class CommandTabCompleter implements TabCompleter {
             completions.add("menu");
             completions.add("cancel");
             completions.add("edit");
+            completions.add("clues");
             if(Permissions.isAdmin(sender)) {
                 completions.add("setclass");
                 completions.add("skipcooldown");
                 completions.add("addtrait");
                 completions.add("removetrait");
+                completions.add("clearclues");
             }
             return completions.stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
@@ -45,6 +47,10 @@ public class CommandTabCompleter implements TabCompleter {
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("menu")) {
                 // Suggest online players
+                for (Player online : Bukkit.getOnlinePlayers()) {
+                    completions.add(online.getName());
+                }
+            } else if (args[0].equalsIgnoreCase("clues") && Permissions.isAdmin(sender)) {
                 for (Player online : Bukkit.getOnlinePlayers()) {
                     completions.add(online.getName());
                 }
@@ -69,6 +75,11 @@ public class CommandTabCompleter implements TabCompleter {
                 for (Player online : Bukkit.getOnlinePlayers()) {
                     completions.add(online.getName());
                 }
+            } else if (args[0].equalsIgnoreCase("clearclues") && Permissions.isAdmin(sender)) {
+                completions.add("5");
+                completions.add("10");
+                completions.add("25");
+                completions.add("50");
             }
 
             return completions.stream()

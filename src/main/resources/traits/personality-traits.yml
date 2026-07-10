@@ -1,0 +1,197 @@
+brave:
+    name: "§aBrave"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - craven
+    description:
+        - "§7Challenges or danger, this character fears nothing."
+craven:
+    name: "§cCraven"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - brave
+    description:
+        - "§7This character does not enjoy being challenged, or scared, at all."
+zealous:
+    name: "§aZealous"
+    key: personality
+    mutually-exclusive:
+        - cynical
+    cost: 2
+    description:
+        - "§7Conviction to faith or cause burns bright at the center of this character."
+just:
+    name: "§aJust"
+    key: personality
+    mutually-exclusive:
+        - cynical
+    cost: 2
+    description:
+        - "§7This character has a strong sense of justice."
+cynical:
+    name: "§aCynical"
+    key: personality
+    mutually-exclusive:
+        - just
+        - zealous
+    cost: 2
+    description:
+        - "§7This character trusts in self-interest above all else."
+content:
+    name: "§cContent"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - ambitious
+        - greedy
+    description:
+        - "§7What they already have is enough for this character."
+ambitious:
+    name: "§aAmbitious"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - content
+    description:
+        - "§7This character knows what they want, and are not afraid to try and get it."
+generous:
+    name: "§cGenerous"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - greedy
+    description:
+        - "§7Acts of benevolence and charity are no strangers to this character."
+greedy:
+    name: "§aGreedy"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - generous
+        - content
+    description:
+        - "§7This character keeps a tight grip on their purse, always looking to engorge it."
+compassionate:
+    name: "§aCompassionate"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - spiteful
+        - callous
+    description:
+        - "§7Both merciful and sympathetic, this characer is warmhearted."
+spiteful:
+    name: "§cSpiteful"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - compassionate
+    description:
+        - "§7Few things brings this character as much joy as the suffering of others."
+callous:
+    name: "§aCallous"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - compassionate
+    description:
+        - "§7Both heartless and cold-blooded, this characer is indifferent to most."
+honest:
+    name: "§cHonest"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - deceitful
+    description:
+        - "§7This character values truth and sincerity highly."
+deceitful:
+    name: "§aDeceitful"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - honorable
+    description:
+        - "§7To lie and deceive is in this character's nature."
+sociable:
+    name: "§aSociable"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - shy
+    description:
+        - "§7This character enjoys spending time with other people."
+shy:
+    name: "§cShy"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - sociable
+    description:
+        - "§7This character prefers to avoid interacting with other people."
+humble:
+    name: "§aHumble"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - arrogant
+    description:
+        - "§7This character does not ask for much in life."
+arrogant:
+    name: "§cArrogant"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - humble
+        - shy
+    description:
+        - "§7This character has no problem with their sense of worth."
+calm:
+    name: "§aCalm"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - wrathful
+    description:
+        - "§7This character takes things in stride and keep their cool."
+wrathful:
+    name: "§cWrathful"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - calm
+    description:
+        - "§7This character is quick to anger and fury."
+flexible:
+    name: "§aFlexible"
+    key: personality
+    cost: 2
+    mutually-exclusive:
+        - stubborn
+    description:
+        - "§7This character changes their mind easily, quick to adapt."
+stubborn:
+    name: "§cStubborn"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - flexible
+    description:
+        - "§7This character does not back down for anything."
+trusting:
+    name: "§cTrusting"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - paranoid
+    description:
+        - "§7This character is quick to place their faith in others."
+paranoid:
+    name: "§cParanoid"
+    key: personality
+    cost: -1
+    mutually-exclusive:
+        - trusting
+    description:
+        - "§7This character sees enemies in every shadow."

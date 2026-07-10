@@ -20,6 +20,7 @@ import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
+import net.tfminecraft.RPCharacters.Utils.ClueGiver;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class CommandManager implements Listener, CommandExecutor{
@@ -190,6 +191,7 @@ public class CommandManager implements Listener, CommandExecutor{
 				}
 
 				RPCharacters.getPlayerManager().savePlayer(argPlayer);
+				RPCharacters.getPlayerManager().reevaluateFreeze(argPlayer);
 				p.sendMessage("§aAdded trait §e" + trait.getId() + "§a to §e" + argPlayer.getName());
 				argPlayer.sendMessage("§aAn admin added the trait §e" + trait.getName() + "§a to your active character.");
 				return true;
@@ -234,8 +236,78 @@ public class CommandManager implements Listener, CommandExecutor{
 				}
 
 				RPCharacters.getPlayerManager().savePlayer(argPlayer);
+				RPCharacters.getPlayerManager().reevaluateFreeze(argPlayer);
 				p.sendMessage("§aRemoved trait §e" + trait.getId() + "§a from §e" + argPlayer.getName());
 				argPlayer.sendMessage("§cAn admin removed the trait §e" + trait.getName() + "§c from your active character.");
+				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("clues")) {
+				if (args.length == 1) {
+					if (CreationManager.activeCreators.containsKey(p)) {
+						p.sendMessage("§cYou are busy creating a character");
+						return true;
+					}
+					PlayerData pd = PlayerManager.get(p);
+					if (!pd.hasActiveCharacter()) {
+						p.sendMessage("§cYou have no active character");
+						return true;
+					}
+					InventoryManager inv = new InventoryManager();
+					inv.cluesView(p, pd.getActiveCharacter());
+					return true;
+				}
+				if (args.length == 2) {
+					if (!Permissions.isAdmin(sender)) {
+						p.sendMessage("§a[RPCharacters] §cYou do not have access to this command");
+						return true;
+					}
+					Player target = Bukkit.getPlayerExact(args[1]);
+					if (target == null) {
+						p.sendMessage("§cNo player found");
+						return true;
+					}
+					PlayerData pd = PlayerManager.get(target);
+					if (pd == null || !pd.hasActiveCharacter()) {
+						p.sendMessage("§c" + target.getName() + " has no active character");
+						return true;
+					}
+					RPCharacter character = pd.getActiveCharacter();
+					p.sendMessage("§a[RPCharacters] §7Clues for §e" + character.getName() + " §7(" + target.getName() + ")");
+					p.sendMessage("§7Progress: §e" + character.getPlayerClues().size() + "§7/§e" + character.getCluesNeeded() + " §7required");
+					int i = 1;
+					for (String clue : character.getPlayerClues()) {
+						p.sendMessage("§7" + i + ". " + clue);
+						i++;
+					}
+					if (!ClueGiver.getAutomaticClues(character).isEmpty()) {
+						p.sendMessage("§7An automatic race clue is included in the leave-behind pool.");
+					}
+					return true;
+				}
+				p.sendMessage("§a[RPCharacters] §cError with command format");
+				return true;
+			} else if (cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("clearclues")) {
+				if (!Permissions.isAdmin(sender)) {
+					p.sendMessage("§a[RPCharacters] §cYou do not have access to this command");
+					return true;
+				}
+				if (args.length < 2) {
+					p.sendMessage("§a[RPCharacters] §cUsage: /rpcharacter clearclues <radius>");
+					return true;
+				}
+				double radius;
+				try {
+					radius = Double.parseDouble(args[1]);
+				} catch (NumberFormatException ex) {
+					p.sendMessage("§a[RPCharacters] §cRadius must be a number");
+					return true;
+				}
+				if (radius <= 0) {
+					p.sendMessage("§a[RPCharacters] §cRadius must be greater than 0");
+					return true;
+				}
+				int removed = SpawnedClueManager.get().clearInRadius(p.getLocation(), radius);
+				p.sendMessage("§a[RPCharacters] §7Removed §e" + removed + " §7spawned clue(s) within §e"
+						+ radius + " §7blocks. Chest clue items were not affected.");
 				return true;
 			}
 			p.sendMessage("§a[RPCharacters] §cError with command format");
@@ -251,9 +323,13 @@ public class CommandManager implements Listener, CommandExecutor{
 		if(PlayerManager.get(p).hasActiveCharacter() || !Cache.requireCharacter || !p.getGameMode().equals(GameMode.SURVIVAL)) return;
         String message = event.getMessage().toLowerCase();
 
-        if (!(message.startsWith("/rpcharacter") || message.startsWith("/class"))) {
-            event.setCancelled(true);
-            event.getPlayer().sendMessage("§cYou cannot use other commands when you have no character, only §e/rpcharacter §cor §e/class");
+        if (message.startsWith("/rpcharacter clues")
+        		|| message.startsWith("/rpcharacter")
+        		|| message.startsWith("/class")) {
+        	return;
         }
+
+        event.setCancelled(true);
+        event.getPlayer().sendMessage("§cYou cannot use other commands when you have no character, only §e/rpcharacter §cor §e/class");
     }
 }

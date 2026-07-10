@@ -166,7 +166,16 @@ public class Database {
     					}
     					i++;
     				}
-    				RPCharacter c = new RPCharacter(pd.getPlayer(), id, name, active, status, r, traits, mmoClass);
+    				List<String> clues = new ArrayList<>();
+    				if (json.containsKey("clues")) {
+    					JSONArray clueArray = (JSONArray) json.get("clues");
+    					int j = 0;
+    					while (j < clueArray.size()) {
+    						clues.add(clueArray.get(j).toString());
+    						j++;
+    					}
+    				}
+    				RPCharacter c = new RPCharacter(pd.getPlayer(), id, name, active, status, r, traits, mmoClass, clues);
     				if(c.isActive()) {
     					Integrator integrator = new Integrator();
     					integrator.integrate(pd.getPlayer(), c);
@@ -246,6 +255,13 @@ public class Database {
         		i++;
         	}
         	defaults.put("traits", traitArray);
+        	i = 0;
+        	JSONArray clueArray = new JSONArray();
+        	while (i < c.getPlayerClues().size()) {
+        		clueArray.add(c.getPlayerClues().get(i));
+        		i++;
+        	}
+        	defaults.put("clues", clueArray);
         	save(file, defaults);
         } catch (Throwable ex) {
 			ex.printStackTrace();

@@ -1,0 +1,6 @@
+max-alive-characters: 3
+character-switch-cooldown: 14 #days
+
+character-slots: [11, 12, 13]
+
+dead-slot: 16

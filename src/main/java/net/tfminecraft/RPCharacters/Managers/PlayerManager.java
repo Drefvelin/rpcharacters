@@ -40,6 +40,7 @@ import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.enums.ConfirmType;
+import net.tfminecraft.RPCharacters.enums.FreezeReason;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class PlayerManager implements Listener{
@@ -94,6 +95,59 @@ public class PlayerManager implements Listener{
 		loc.setPitch(p.getLocation().getPitch());
 		p.teleport(loc);
 	}
+
+	public void reevaluateFreeze(Player p) {
+		if (CreationManager.activeCreators.containsKey(p) || !p.getGameMode().equals(GameMode.SURVIVAL)) {
+			frozen.remove(p);
+			return;
+		}
+		PlayerData pd = get(p);
+		if (pd == null) return;
+
+		FreezeReason reason = getFreezeReason(pd);
+		if (reason != null) {
+			if (!frozen.containsKey(p)) {
+				frozen.put(p, p.getLocation());
+			}
+		} else {
+			frozen.remove(p);
+		}
+	}
+
+	private FreezeReason getFreezeReason(PlayerData pd) {
+		if (!pd.hasActiveCharacter() && Cache.noCharacterFreeze) {
+			return FreezeReason.NO_CHARACTER;
+		}
+		if (pd.hasActiveCharacter()) {
+			RPCharacter active = pd.getActiveCharacter();
+			if (!active.hasEnoughClues() && Cache.lackingCluesFreeze) {
+				return FreezeReason.LACKING_CLUES;
+			}
+		}
+		return null;
+	}
+
+	private void notifyFrozen(Player p, FreezeReason reason, PlayerData pd) {
+		if (CreationManager.activeCreators.containsKey(p)) return;
+		if (cooldown.containsKey(p) && cooldown.get(p) > System.currentTimeMillis()) {
+			return;
+		}
+		cooldown.put(p, System.currentTimeMillis() + 5000L);
+		if (reason == FreezeReason.NO_CHARACTER) {
+			p.sendTitle(" ", "§cNo Character!", 5, 50, 5);
+			p.sendMessage("§cYou do not have an active character!");
+			p.sendMessage("§cCreate one with §e/rpcharacter create");
+			p.sendMessage("§cOr do it through §e/rpcharacter menu");
+		} else if (reason == FreezeReason.LACKING_CLUES) {
+			RPCharacter c = pd.getActiveCharacter();
+			int have = c.getPlayerClues().size();
+			int need = c.getCluesNeeded();
+			p.sendTitle(" ", "§cMore Clues Needed!", 5, 50, 5);
+			p.sendMessage("§cYour character does not have enough clues (§e" + have + "§c/§e" + need + "§c).");
+			p.sendMessage("§cAdd clues with §e/rpcharacter clues");
+		}
+		p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+	}
 	
 	public void start() {
 		Bukkit.getLogger().info("[RPCharacters] Starting Player Manager");
@@ -104,33 +158,24 @@ public class PlayerManager implements Listener{
 			public void run()
 			{
 				for(Player p : Bukkit.getOnlinePlayers()) {
-					if(frozen.containsKey(p)) {
-						if(!isAtFreezeLoc(p)) {
-							PlayerData pd = get(p);
-							if(pd == null) continue;
-							if(pd.hasActiveCharacter() || !Cache.requireCharacter || !p.getGameMode().equals(GameMode.SURVIVAL)) {
-								frozen.remove(p);
-							}
-							toFreezeLoc(p);
-							if(!CreationManager.activeCreators.containsKey(p)) {
-								if(cooldown.containsKey(p)) {
-									if(cooldown.get(p) > System.currentTimeMillis()) {
-										return;
-									}
-								}
-								cooldown.put(p, System.currentTimeMillis() + (5000));
-								p.sendTitle(" ", "§cNo Character!", 5, 50, 5);
-								p.sendMessage("§cYou do not have an active character!");
-								p.sendMessage("§cCreate one with §e/rpcharacter create");
-								p.sendMessage("§cOr do it through §e/rpcharacter menu");
-								p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
-							}
-						}
-					} else {
-						PlayerData pd = get(p);
-						if(!pd.hasActiveCharacter() && Cache.requireCharacter) {
+					if (CreationManager.activeCreators.containsKey(p) || !p.getGameMode().equals(GameMode.SURVIVAL)) {
+						frozen.remove(p);
+						continue;
+					}
+					PlayerData pd = get(p);
+					if (pd == null) continue;
+
+					FreezeReason reason = getFreezeReason(pd);
+					if (reason != null) {
+						if (!frozen.containsKey(p)) {
 							frozen.put(p, p.getLocation());
 						}
+						if (!isAtFreezeLoc(p)) {
+							toFreezeLoc(p);
+							notifyFrozen(p, reason, pd);
+						}
+					} else {
+						frozen.remove(p);
 					}
 				}
 			}
@@ -237,6 +282,7 @@ public class PlayerManager implements Listener{
 		} else if(t.equals(ConfirmType.SWITCH)) {
 			PlayerData pd = get(p);
 			pd.setActiveCharacter(c);
+			reevaluateFreeze(p);
 			InventoryManager inv = new InventoryManager();
 			inv.characterView(p, c);
 		}
@@ -368,6 +414,67 @@ public class PlayerManager implements Listener{
 				InventoryManager inv = new InventoryManager();
 				inv.traitsView(p, c);
 				p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+			} else if(e.getSlot() == 16) {
+				ItemStack clicked = e.getCurrentItem();
+				if (clicked == null || clicked.getItemMeta() == null) return;
+				if (!clicked.getType().equals(Material.BOOK)) return;
+				if (!p.equals(o)) return;
+				NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
+				String id = clicked.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+				if (id == null) return;
+				PlayerData pd = get(o);
+				RPCharacter c = pd.getCharacterById(id);
+				if (c == null) {
+					p.sendMessage("§cCant find character");
+					return;
+				}
+				InventoryManager inv = new InventoryManager();
+				inv.cluesView(p, c);
+				p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+			}
+		} else if(e.getView().getTitle().startsWith("§7Clues (")) {
+			e.setCancelled(true);
+			if (o == null) return;
+			PlayerData pd = get(o);
+			if (pd == null) return;
+
+			ItemStack clicked = e.getCurrentItem();
+			if (clicked == null || clicked.getItemMeta() == null) return;
+			NamespacedKey characterKey = new NamespacedKey(RPCharacters.plugin, "character_id");
+			String characterId = clicked.getItemMeta().getPersistentDataContainer().get(characterKey, PersistentDataType.STRING);
+
+			if (e.getSlot() == e.getInventory().getSize() - 1) {
+				if (characterId == null) return;
+				RPCharacter c = pd.getCharacterById(characterId);
+				if (c == null) return;
+				InventoryManager inv = new InventoryManager();
+				inv.characterView(p, c);
+				p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+				return;
+			}
+
+			if (!p.equals(o)) return;
+
+			if (e.getSlot() == 8 && clicked.getType().equals(Material.LIME_DYE)) {
+				if (characterId == null) return;
+				ClueInputManager.beginInput(p, characterId);
+				return;
+			}
+
+			if (clicked.getType().equals(Material.PAPER)) {
+				if (characterId == null) return;
+				RPCharacter c = pd.getCharacterById(characterId);
+				if (c == null) return;
+				NamespacedKey clueIndexKey = new NamespacedKey(RPCharacters.plugin, "clue_index");
+				Integer index = clicked.getItemMeta().getPersistentDataContainer().get(clueIndexKey, PersistentDataType.INTEGER);
+				if (index == null) return;
+				if (c.removePlayerClue(index)) {
+					savePlayer(p);
+					reevaluateFreeze(p);
+					InventoryManager inv = new InventoryManager();
+					inv.cluesView(p, c);
+					p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+				}
 			}
 		} else if(e.getView().getTitle().equalsIgnoreCase("§7Confirm Action")) {
 			e.setCancelled(true);

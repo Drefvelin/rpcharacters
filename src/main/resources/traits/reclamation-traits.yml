@@ -1,0 +1,114 @@
+worker:
+    name: "§aWorker"
+    key: reclamation
+    description:
+        - "§7This character spent their time before the"
+        - "§7Calavorian Expedition doing manual labour."
+    attribute-modifiers:
+        - strength.3
+        - dexterity.3
+        - constitution.2
+        - wisdom.1
+    experience-modifiers:
+        smith:
+            modifier: 5
+        miner:
+            modifier: 10
+        forester:
+            modifier: 5
+   
+traveller:
+    name: "§aTraveler"
+    key: reclamation
+    description:
+        - "§7This character spent their time before the"
+        - "§7Calavorian Expedition travelling the new world."
+    attribute-modifiers:
+        - dexterity.3
+        - wisdom.3
+        - charisma.2
+        - constitution.1
+    experience-modifiers:
+        agriculturist:
+            modifier: 5
+        fisher:
+            modifier: 10
+        engineer:
+            modifier: 5
+        
+explorer:
+    name: "§aCraftsman"
+    key: reclamation
+    description:
+        - "§7This character spent their time before the"
+        - "§7Calavorian Expedition practicing their trade."
+    attribute-modifiers:
+        - constitution.3
+        - intelligence.3
+        - strength.2
+        - dexterity.1
+    experience-modifiers:
+        fisher:
+            modifier: 5
+        forester:
+            modifier: 10
+        miner:
+            modifier: 5
+
+student:
+    name: "§aStudent"
+    key: reclamation
+    description:
+        - "§7This character spent their time before the"
+        - "§7Calavorian Expedition studying and learning more."
+    attribute-modifiers:
+        - intelligence.3
+        - strength.3
+        - dexterity.2
+        - charisma.1
+    experience-modifiers:
+        smith:
+            modifier: 5
+        alchemist:
+            modifier: 10
+        engineer:
+            modifier: 5
+
+monk:
+    name: "§aDevotee"
+    key: reclamation
+    description:
+        - "§7This character spent their time before the"
+        - "§7Calavorian Expedition serving a religious group."
+    attribute-modifiers:
+        - wisdom.3
+        - charisma.3
+        - intelligence.2
+        - strength.1
+    experience-modifiers:
+        smith:
+            modifier: 10
+        agriculturist:
+            modifier: 5
+        alchemist:
+            modifier: 5
+        
+performer:
+    name: "§aHumanitarian"
+    key: reclamation
+    description:
+        - "§7This character spent their time before the"
+        - "§7Calavorian Expedition giving hope to others."
+    attribute-modifiers:
+        - charisma.3
+        - constitution.3
+        - wisdom.2
+        - intelligence.1
+    experience-modifiers:
+        agriculturist:
+            modifier: 10
+        engineer:
+            modifier: 10
+        forester:
+            modifier: 5
+        

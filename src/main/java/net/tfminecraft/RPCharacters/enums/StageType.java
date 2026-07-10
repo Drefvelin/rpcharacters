@@ -5,4 +5,5 @@ public enum StageType {
 	SETTER,
 	SELECTION,
 	QUESTIONS,
+	CLUE,
 }

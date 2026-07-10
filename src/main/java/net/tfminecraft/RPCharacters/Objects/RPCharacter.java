@@ -1,6 +1,7 @@
 package net.tfminecraft.RPCharacters.Objects;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +19,9 @@ import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
+import net.tfminecraft.RPCharacters.enums.ClueAddResult;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class RPCharacter {
@@ -36,6 +39,8 @@ public class RPCharacter {
 	private List<String> desc = new ArrayList<>();
 	
 	private List<Trait> traits = new ArrayList<Trait>();
+
+	private List<String> playerClues = new ArrayList<>();
 	
 	private AttributeData attributeData;
 	
@@ -47,6 +52,10 @@ public class RPCharacter {
 		id = UUID.randomUUID().toString();
 	}
 	public RPCharacter(Player p, String i, String n, Boolean a, Status s, Race r, List<Trait> t, String c) {
+		this(p, i, n, a, s, r, t, c, new ArrayList<>());
+	}
+
+	public RPCharacter(Player p, String i, String n, Boolean a, Status s, Race r, List<Trait> t, String c, List<String> clues) {
 		owner = p;
 		attributeData = new AttributeData();
 		status = s;
@@ -56,6 +65,12 @@ public class RPCharacter {
 		race = r;
 		traits = t;
 		mmoClass = c;
+		playerClues = new ArrayList<>();
+		if (clues != null) {
+			for (String clue : clues) {
+				playerClues.add(ClueFormatter.format(clue));
+			}
+		}
 		update();
 	}
 	
@@ -199,6 +214,74 @@ public class RPCharacter {
 					i.dispatchCommand(owner, "char set race "+newRace.getName());
 				}
 			}.runTask(RPCharacters.plugin);
+		}
+	}
+
+	/**
+	 * Required player-authored clue count for this character.
+	 * Uses the highest matching trait override (not additive), capped by max-clues.
+	 */
+	public int getCluesNeeded() {
+		int needed = Cache.defaultCluesRequired;
+		for (Trait trait : traits) {
+			Integer override = Cache.traitClueOverrides.get(trait.getId().toLowerCase());
+			if (override != null && override > needed) {
+				needed = override;
+			}
+		}
+		return Math.min(needed, Cache.maxClues);
+	}
+
+	/** Whether this character has enough player clues to satisfy {@link #getCluesNeeded()}. */
+	public boolean hasEnoughClues() {
+		return playerClues.size() >= getCluesNeeded();
+	}
+
+	public List<String> getPlayerClues() {
+		return Collections.unmodifiableList(playerClues);
+	}
+
+	public boolean canAddClue() {
+		return playerClues.size() < Cache.maxClues;
+	}
+
+	public ClueAddResult addPlayerClue(String raw) {
+		if (!canAddClue()) return ClueAddResult.AT_MAX;
+
+		String plain = ClueFormatter.stripColor(raw);
+		if (plain.length() < Cache.clueMinLength) return ClueAddResult.TOO_SHORT;
+		if (plain.length() > Cache.clueMaxLength) return ClueAddResult.TOO_LONG;
+
+		String formatted = ClueFormatter.format(raw);
+		for (String existing : playerClues) {
+			if (ClueFormatter.stripColor(existing).equalsIgnoreCase(plain)) {
+				return ClueAddResult.DUPLICATE;
+			}
+		}
+
+		playerClues.add(formatted);
+		Database.log(owner, "Added clue to " + name + ": " + plain);
+		return ClueAddResult.SUCCESS;
+	}
+
+	public boolean removePlayerClue(int index) {
+		if (index < 0 || index >= playerClues.size()) return false;
+		String removed = ClueFormatter.stripColor(playerClues.remove(index));
+		Database.log(owner, "Removed clue from " + name + ": " + removed);
+		return true;
+	}
+
+	public String getClueAddErrorMessage(ClueAddResult result) {
+		switch (result) {
+			case AT_MAX:
+				return "§cYou cannot have more than " + Cache.maxClues + " clues.";
+			case TOO_SHORT:
+			case TOO_LONG:
+				return ClueFormatter.lengthRangeMessage();
+			case DUPLICATE:
+				return "§cYou already have a clue like that.";
+			default:
+				return null;
 		}
 	}
 }

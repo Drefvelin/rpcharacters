@@ -1,1 +1,56 @@
-max-exposure-points: 120
+attributes:
+    - strength
+    - dexterity
+    - constitution
+    - intelligence
+    - wisdom
+    - charisma
+professions:
+    - miner(#b57f6eMiner Experience)
+    - smith(#b57f6eSmith Experience)
+    - alchemist(#b57f6eAlchemist Experience)
+    - engineer(#b57f6eEngineer Experience)
+    - forester(#b57f6eForester Experience)
+    - fisher(#b57f6eFisher Experience)
+    - agriculturist(#b57f6eAgriculturist Experience)
+
+background-trait-types:
+    - cataclysm
+    - reclamation
+    - expedition
+    - ambition
+    - physical
+    - celestial
+
+editable-trait-types:
+    - personality
+    - evil
+
+base-profession-factor: -10
+
+require-character: true
+
+default-clues-required: 3
+clue-min-length: 12
+clue-max-length: 48
+max-clues: 10
+
+trait-clue-overrides:
+    bandit: 8
+    thief: 8
+    assassin: 6
+    mercenary: 4
+
+no-character-freeze: true
+lacking-clues-freeze: true
+
+race-clue: "This seems to be the mark of {a/an} {race}"
+
+spawned-clue-timer: 48
+spawned-clue-visual-y-offset: 0.2
+spawned-clue-line-spacing: 0.22
+spawned-clue-first-line-offset: 0.18
+spawned-clue-scale: 0.6
+spawned-clue-particle-interval: 10
+spawned-clue-line-length: 18
+clue-spawn-radius: 3

@@ -10,10 +10,12 @@ import org.bukkit.entity.Player;
 
 import net.Indyuce.mmocore.api.MMOCoreAPI;
 import net.Indyuce.mmocore.api.player.profess.PlayerClass;
+import net.tfminecraft.RPCharacters.Creation.Stages.ClueStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.InfoStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
+import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
@@ -109,6 +111,9 @@ public class CharacterCreation {
 		} else if(s instanceof SelectionStage) {
 			SelectionStage ss = (SelectionStage) s;
 			ss.execute(p, this);
+		} else if(s instanceof ClueStage) {
+			ClueStage cs = (ClueStage) s;
+			cs.execute(p, this);
 		}
 		currentStage++;
 	}
@@ -121,6 +126,10 @@ public class CharacterCreation {
 		}
 	}
 	public void finish() {
+		if (!character.hasEnoughClues()) {
+			p.sendMessage("§cYou must enter all required clues before finishing character creation.");
+			return;
+		}
 		ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
 		String command = "mmocore admin class-points set " + p.getName() + " " + 0;
 		Bukkit.dispatchCommand(console, command);
@@ -128,6 +137,7 @@ public class CharacterCreation {
 		character.update();
 		pd.addCharacter(character);
 		pd.setActiveCharacter(character);
+		RPCharacters.getPlayerManager().reevaluateFreeze(p);
 		p.sendTitle("§aFinished!", "§eCharacter §7"+character.getName()+"§e created!", 5, 50, 5);
 	}
 

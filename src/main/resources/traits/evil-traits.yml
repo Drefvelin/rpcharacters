@@ -1,0 +1,77 @@
+bandit:
+    name: "§4Bandit"
+    key: evil
+    dependency:
+        type: trait
+        mode: one-or-more
+        depends-on:
+            - spiteful
+            - greedy
+            - callous
+    mutually-exclusive:
+        - content
+        - compassionate
+        - craven
+    description:
+        - "§e[§4Evil§e]"
+        - "§7This character is a bandit, robbing their way to the top."
+        - " "
+        - "§eUnlocks: §4Bandit §7type Evil RP"
+assassin:
+    name: "§8Assassin"
+    key: evil
+    dependency:
+        type: trait
+        mode: one-or-more
+        depends-on:
+            - callous
+            - deceitful
+            - cynical
+    mutually-exclusive:
+        - content
+        - honest
+        - craven
+        - just
+        - compassionate
+    description:
+        - "§e[§7Morally Gray§e]"
+        - "§7This character takes lives for the right price."
+        - " "
+        - "§eUnlocks: §8Assassin §7type Evil RP"
+thief:
+    name: "§cThief"
+    key: evil
+    dependency:
+        type: trait
+        mode: one-or-more
+        depends-on:
+            - greedy
+            - deceitful
+            - callous
+    mutually-exclusive:
+        - honest
+        - compassionate
+    description:
+        - "§e[§4Evil§e]"
+        - "§7This character is a thief, they may not rob but they will steal."
+        - " "
+        - "§eUnlocks: §cThief §7type Evil RP"
+mercenary:
+    name: "§eMercenary"
+    key: evil
+    dependency:
+        type: trait
+        mode: one-or-more
+        depends-on:
+            - greedy
+            - cynical
+            - callous
+    mutually-exclusive:
+        - content
+        - compassionate
+        - craven
+    description:
+        - "§e[§7Morally Gray§e]"
+        - "§7This character is a mercenary, willing to wage war for coin."
+        - " "
+        - "§eUnlocks: §eMercenary §7type Evil RP"

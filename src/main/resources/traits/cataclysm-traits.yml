@@ -1,0 +1,122 @@
+prisoner:
+    name: "§aPrisoner of War"
+    key: cataclysm
+    description:
+        - "§7This character or their parents worked in a"
+        - "§7prisoner camp during the Decarian Cataclysm."
+    attribute-modifiers:
+        - strength.2
+        - constitution.1
+        - dexterity.1
+        - wisdom.1
+        - charisma.1
+    experience-modifiers:
+        miner:
+            modifier: 5
+        forester:
+            modifier: 5
+        agriculturist:
+            modifier: 5
+
+refugees:
+    name: "§aPrison Escapee"
+    key: cataclysm
+    description:
+        - "§7This character or their parents escaped and"
+        - "§7lived on the run during the Decarian Cataclysm."
+    attribute-modifiers:
+        - dexterity.2
+        - strength.1
+        - constitution.1
+        - intelligence.1
+        - wisdom.1
+    experience-modifiers:
+        fisher:
+            modifier: 5
+        forester:
+            modifier: 5
+        alchemist:
+            modifier: 5
+
+wildlands:
+    name: "§aWildlands Survivor"
+    key: cataclysm
+    description:
+        - "§7This character or their parents survived the"
+        - "§7harsh Wildlands during the Decarian Cataclysm."
+    attribute-modifiers:
+        - constitution.2
+        - intelligence.1
+        - strength.1
+        - dexterity.1
+        - charisma.1
+        
+    experience-modifiers:
+        fisher:
+            modifier: 5
+        miner:
+            modifier: 5
+        forester:
+            modifier: 5
+        
+bastion:
+    name: "§aMagical Evader"
+    key: cataclysm
+    description:
+        - "§7This character or their parents survived the"
+        - "§7Decarian Cataclysm through the employment of magic."
+    attribute-modifiers:
+        - intelligence.2
+        - wisdom.1
+        - dexterity.1
+        - charisma.1
+        - constitution.1
+    experience-modifiers:
+        alchemist:
+            modifier: 5
+        engineer:
+            modifier: 5
+        fisher:
+            modifier: 5
+
+order:
+    name: "§aUndergrounder"
+    key: cataclysm
+    description:
+        - "§7This character or their parents survived by"
+        - "§7hiding underground during the Decarian Cataclysm."
+    attribute-modifiers:
+        - wisdom.2
+        - constitution.1
+        - strength.1
+        - intelligence.1
+        - charisma.1
+    experience-modifiers:
+        agriculturist:
+            modifier: 5
+        smith:
+            modifier: 5
+        alchemist:
+            modifier: 5
+
+renowned:
+    name: "§aHero of Bastion"
+    key: cataclysm
+    description:
+        - "§7This character or their parents is admired for"
+        - "§7fighting in Bastion during the Decarian Cataclysm."
+    attribute-modifiers:
+        - charisma.2
+        - dexterity.1
+        - intelligence.1
+        - wisdom.1
+        - strength.1
+    experience-modifiers:
+        smith:
+            modifier: 5
+        agriculturist:
+            modifier: 5
+        engineer:
+            modifier: 5
+
+

@@ -1,0 +1,113 @@
+str:
+    name: "§aAspirations of Power"
+    key: ambition
+    description:
+        - "§7This character aspires to be stronger than any other;"
+        - "§7a force to be reckoned with across all of Calavorn."
+    attribute-modifiers:
+        - strength.4
+        - charisma.3
+        - constitution.2
+        - intelligence.1
+    experience-modifiers:
+        smith:
+            modifier: 5
+        miner:
+            modifier: 5
+        forester:
+            modifier: 5
+        
+dex:
+    name: "§aAspirations of Precision"
+    key: ambition
+    description:
+        - "§7This character aspires to be a terrifying ranger,"
+        - "§7striking foes from afar with lethal efficiency."
+    attribute-modifiers:
+        - dexterity.4
+        - wisdom.3
+        - charisma.2
+        - strength.1
+    experience-modifiers:
+        fisher:
+            modifier: 5
+        engineer:
+            modifier: 5
+        forester:
+            modifier: 5
+        
+con:
+    name: "§aAspirations of Longevity"
+    key: ambition
+    description:
+        - "§7This character aspires to live a long and healthy"
+        - "§7life, and be able to survive the harshest of battles."
+    attribute-modifiers:
+        - constitution.4
+        - intelligence.3
+        - strength.2
+        - wisdom.1
+    experience-modifiers:
+        agriculturist:
+            modifier: 5
+        forester:
+            modifier: 5
+        fisher:
+            modifier: 5
+
+int:
+    name: "§aAspirations of Mastery"
+    key: ambition
+    description:
+        - "§7This character aspires to mastery of their craft and"
+        - "§7attain their true potential, in skill or in combat."
+    attribute-modifiers:
+        - intelligence.4
+        - constitution.3
+        - wisdom.2
+        - dexterity.1
+    experience-modifiers:
+        engineer:
+            modifier: 5
+        alchemist:
+            modifier: 5
+        smith:
+            modifier: 5
+
+wis:
+    name: "§aAspirations of Growth"
+    key: ambition
+    description:
+        - "§7This character aspires to develop as a person or a"
+        - "§7fighter, one day flourishing into their perfect self."
+    attribute-modifiers:
+        - wisdom.4
+        - dexterity.3
+        - intelligence.2
+        - charisma.1
+    experience-modifiers:
+        alchemist:
+            modifier: 5
+        agriculturist:
+            modifier: 5
+        miner:
+            modifier: 5
+        
+cha:
+    name: "§aAspirations of Respect"
+    key: ambition
+    description:
+        - "§7This character aspires to be known, loved, feared, or"
+        - "§7respected as an important figure in Calavorian history."
+    attribute-modifiers:
+        - charisma.4
+        - strength.3
+        - dexterity.2
+        - constitution.1
+    experience-modifiers:
+        smith:
+            modifier: 5
+        engineer:
+            modifier: 5
+        alchemist:
+            modifier: 5

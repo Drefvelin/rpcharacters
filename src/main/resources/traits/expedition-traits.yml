@@ -1,0 +1,113 @@
+rower:
+    name: "§aExpedition Deckhand"
+    key: expedition
+    description:
+        - "§7This character performed physical tasks on one"
+        - "§7of the vessels during the Calavorian Expedition."
+    attribute-modifiers:
+        - strength.3
+        - constitution.3
+        - charisma.2
+        - wisdom.2
+    experience-modifiers:
+        smith:
+            modifier: 5
+        miner:
+            modifier: 5
+        forester:
+            modifier: 5
+
+planner:
+    name: "§aExpedition Navigator"
+    key: expedition
+    description:
+        - "§7This character charted the course for the Calavorian"
+        - "§7Expedition, or served at the helm sailing their vessel."
+    attribute-modifiers:
+        - charisma.3
+        - dexterity.3
+        - strength.2
+        - constitution.2
+    experience-modifiers:
+        alchemist:
+            modifier: 5
+        agriculturist:
+            modifier: 5
+        miner:
+            modifier: 5
+        
+supplier:
+    name: "§aExpedition Caretaker"
+    key: expedition
+    description:
+        - "§7This character catered for their crew, or tended to"
+        - "§7the injured and sick during the Calavorian Expedition."
+    attribute-modifiers:
+        - constitution.3
+        - wisdom.3
+        - dexterity.2
+        - intelligence.2
+    experience-modifiers:
+        agriculturist:
+            modifier: 5
+        forester:
+            modifier: 5
+        fisher:
+            modifier: 5
+        
+navigator:
+    name: "§aExpedition Scout"
+    key: expedition
+    description:
+        - "§7This character scouted ahead for food, resources,"
+        - "§7and hazards during the Calavorian Expedition."
+    attribute-modifiers:
+        - dexterity.3
+        - intelligence.3
+        - strength.2
+        - wisdom.2
+    experience-modifiers:
+        fisher:
+            modifier: 5
+        engineer:
+            modifier: 5
+        forester:
+            modifier: 5
+
+organiser:
+    name: "§aExpedition Scryer"
+    key: expedition
+    description:
+        - "§7This character acted as lookout, or communicated"
+        - "§7between ships during the Calavorian Expedition."
+    attribute-modifiers:
+        - intelligence.3
+        - wisdom.3
+        - charisma.2
+        - dexterity.2
+    experience-modifiers:
+        engineer:
+            modifier: 5
+        alchemist:
+            modifier: 5
+        smith:
+            modifier: 5
+        
+leader:
+    name: "§aExpedition Organiser"
+    key: expedition
+    description:
+        - "§7This character managed their crew's supplies, or"
+        - "§7the crew itself, during the Calavorian Expedition."
+    attribute-modifiers:
+        - charisma.3
+        - strength.3
+        - intelligence.2
+        - constitution.2
+    experience-modifiers:
+        smith:
+            modifier: 5
+        engineer:
+            modifier: 5
+        alchemist:
+            modifier: 5

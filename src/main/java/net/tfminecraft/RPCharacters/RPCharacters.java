@@ -12,9 +12,12 @@ import net.tfminecraft.RPCharacters.Loaders.ProfileLoader;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
+import net.tfminecraft.RPCharacters.Managers.ClueInputManager;
+import net.tfminecraft.RPCharacters.Managers.ClueItemListener;
 import net.tfminecraft.RPCharacters.Managers.CommandManager;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
+import net.tfminecraft.RPCharacters.Managers.SpawnedClueManager;
 import net.tfminecraft.RPCharacters.Utils.CommandTabCompleter;
 
 public class RPCharacters extends JavaPlugin{
@@ -23,6 +26,9 @@ public class RPCharacters extends JavaPlugin{
 	private final CommandManager commandManager = new CommandManager();
 	private static final PlayerManager playerManager = new PlayerManager();
 	private final CreationManager creationManager = new CreationManager();
+	private final ClueInputManager clueInputManager = new ClueInputManager();
+	private final SpawnedClueManager spawnedClueManager = SpawnedClueManager.get();
+	private final ClueItemListener clueItemListener = new ClueItemListener();
 	
 	private final ConfigLoader configLoader = new ConfigLoader();
 	private final StageLoader stageLoader = new StageLoader();
@@ -37,6 +43,7 @@ public class RPCharacters extends JavaPlugin{
 		createConfigs();
 		registerListeners();
 		loadConfigs();
+		spawnedClueManager.loadAllFromDisk();
 		loadPlayers();
 		startManagers();
 		getCommand(commandManager.cmd1).setExecutor(commandManager);
@@ -44,6 +51,7 @@ public class RPCharacters extends JavaPlugin{
 	}
 	@Override
 	public void onDisable() {
+		spawnedClueManager.shutdown();
 		save();
 	}
 	
@@ -61,12 +69,15 @@ public class RPCharacters extends JavaPlugin{
 	public void registerListeners() {
 		getServer().getPluginManager().registerEvents(playerManager, this);
 		getServer().getPluginManager().registerEvents(creationManager, this);
+		getServer().getPluginManager().registerEvents(clueInputManager, this);
+		getServer().getPluginManager().registerEvents(clueItemListener, this);
 		getServer().getPluginManager().registerEvents(commandManager, this);
+		getServer().getPluginManager().registerEvents(spawnedClueManager, this);
 		
 	}
 	public void startManagers() {
 		playerManager.start();
-		
+		spawnedClueManager.startTicks();
 	}
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
@@ -120,5 +131,9 @@ public class RPCharacters extends JavaPlugin{
 
 	public static PlayerManager getPlayerManager() {
 		return playerManager;
+	}
+
+	public static SpawnedClueManager getSpawnedClueManager() {
+		return SpawnedClueManager.get();
 	}
 }

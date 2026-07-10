@@ -1,0 +1,36 @@
+one_legged:
+    name: "§cOne-Legged"
+    key: injury
+    potion-effects:
+        - slowness(0)
+    attribute-modifiers:
+        - dexterity.-4
+    description:
+        - "§7This character only has one leg."
+one_handed:
+    name: "§cOne-Handed"
+    key: injury
+    potion-effects:
+        - weakness(0)
+    attribute-modifiers:
+        - strength.-4
+        - constitution.-2
+    description:
+        - "§7This character only has one arm."
+blind:
+    name: "§cBlind"
+    key: injury
+    potion-effects:
+        - blindness(4)
+    attribute-modifiers:
+        - dexterity.-4
+        - strength.-2
+    description:
+        - "§7This character is blind."
+half_blind:
+    name: "§cHalf-Blind"
+    key: injury
+    attribute-modifiers:
+        - dexterity.-1
+    description:
+        - "§7This character only has one working eye."

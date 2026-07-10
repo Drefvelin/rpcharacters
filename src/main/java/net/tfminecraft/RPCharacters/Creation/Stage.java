@@ -2,6 +2,7 @@ package net.tfminecraft.RPCharacters.Creation;
 
 import org.bukkit.configuration.ConfigurationSection;
 
+import net.tfminecraft.RPCharacters.Creation.Stages.ClueStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.InfoStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
@@ -83,6 +84,8 @@ public class Stage {
 			return new SetterStage(s, config);
 		} else if(type.equals(StageType.SELECTION)) {
 			return new SelectionStage(s, config);
+		} else if(type.equals(StageType.CLUE)) {
+			return new ClueStage(s, config);
 		}
 		return s;
 	}
@@ -100,6 +103,9 @@ public class Stage {
 		} else if(another instanceof SelectionStage) {
 			SelectionStage s = (SelectionStage) another;
 			return new SelectionStage(s);
+		} else if(another instanceof ClueStage) {
+			ClueStage s = (ClueStage) another;
+			return new ClueStage(s);
 		}
 		return null;
 	}

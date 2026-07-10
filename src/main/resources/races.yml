@@ -1,1 +1,119 @@
-effect: blue
+human:
+    name: "§fHuman"
+    shown: true
+    key: race
+    description:
+        - "§7The most common of the Cerrithian races."
+        - "§7Can be found in every corner of the world."
+        - "§7Flexible and adaptive, can perform any task well."
+    attribute-modifiers:
+        - strength.3
+        - dexterity.3
+        - constitution.3
+        - intelligence.3
+        - wisdom.3
+        - charisma.3
+elf:
+    name: "§9Elf"
+    shown: true
+    key: race
+    description:
+        - "§7Known for their physical beauty and long ears."
+        - "§7Live twice as long as humans, often wiser."
+        - "§7Found in the forests of Cerrith, and great hunters."
+        - "§7Are often naturally gifted in magic."
+    attribute-modifiers:
+        - strength.3
+        - dexterity.3
+        - constitution.3
+        - intelligence.3
+        - wisdom.3
+        - charisma.3
+orc:
+    name: "§2Orc"
+    shown: true
+    key: race
+    description:
+        - "§7Are the result of Arcanum exposure,"
+        - "§7created through experiments on humans."
+        - "§7Historically used as slaves in various societies,"
+        - "§7now most are free and live all over the world."
+        - "§7An inherently nomadic and proud race,"
+        - "§7though many have abandoned that lifestyle."
+        - "§7Known for their strength and greenish skin."
+    attribute-modifiers:
+        - strength.3
+        - dexterity.3
+        - constitution.3
+        - intelligence.3
+        - wisdom.3
+        - charisma.3
+goblin:
+    name: "§2Goblin"
+    shown: true
+    key: race
+    description:
+        - "§7Like orcs, have greenish skin from transformation,"
+        - "§7though not from experimentation, but harsh environments."
+        - "§7A proud and communal race, close to their kin,"
+        - "§7with a reputation of being greedy, deceitful creatures."
+        - "§7Known for their swiftness and cunning."
+    attribute-modifiers:
+        - strength.3
+        - dexterity.3
+        - constitution.3
+        - intelligence.3
+        - wisdom.3
+        - charisma.3
+dwarf:
+    name: "§6Dwarf"
+    shown: true
+    key: race
+    description:
+        - "§7Known for their short, strong bodies and full beards."
+        - "§7Adapted for the mountains of Cerrith, great miners"
+        - "§7Typically found in large underground cities."
+        - "§7Are often industrious and value tradition."
+    attribute-modifiers:
+        - strength.3
+        - dexterity.3
+        - constitution.3
+        - intelligence.3
+        - wisdom.3
+        - charisma.3
+dryad:
+    name: "§aDryad"
+    shown: true
+    key: race
+    description:
+        - "§7One of the rarer Cerrithian races."
+        - "§7Come in many different forms."
+        - "§7Each in harmony with a natural biome."
+        - "§7Most are a hybrid of humanlike and plant features."
+        - "§7Found in places of strong elemental magic."
+        - "§7Known for being peaceful and magically connected."
+    attribute-modifiers:
+        - strength.3
+        - dexterity.3
+        - constitution.3
+        - intelligence.3
+        - wisdom.3
+        - charisma.3
+oseni:
+    name: "§cOseni"
+    shown: true
+    key: race
+    description:
+        - "§7Originally residents of the Fire Plane,"
+        - "§7many chose to stay after the invasion of Cerrith."
+        - "§7Able to survive due to an alliance between planes."
+        - "§7Come from a rigid warrior culture with castes."
+        - "§7Known for their red skin and other demonic features."
+        - "§7Often not accepted due to hatred of Oseni invasions."
+    attribute-modifiers:
+        - strength.3
+        - dexterity.3
+        - constitution.3
+        - intelligence.3
+        - wisdom.3
+        - charisma.3

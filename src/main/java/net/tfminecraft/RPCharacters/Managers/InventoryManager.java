@@ -39,6 +39,8 @@ import net.tfminecraft.RPCharacters.enums.Status;
 
 public class InventoryManager {
 	private static final String CHARACTER_ID_KEY = "character_id";
+	private static final String CLUE_INDEX_KEY = "clue_index";
+	private static final String OPEN_CLUES_GUI_KEY = "open_clues_gui";
 
 	public void characterView(Player p, RPCharacter c) {
 		PlayerData pd = PlayerManager.get(c.getOwner());
@@ -46,6 +48,9 @@ public class InventoryManager {
 		i.setItem(10, getCharacterItem(c, false));
 		i.setItem(12, getDescriptionItem(c));
 		i.setItem(14, getTraitsItem(c));
+		if (c.getStatus().equals(Status.ALIVE) && c.getOwner().equals(p)) {
+			i.setItem(16, getCluesPreviewItem(c));
+		}
 		i.setItem(26, getBackButton());
 		if(c.getStatus().equals(Status.ALIVE) && c.getOwner().equals(p)) {
 			i.setItem(8, getKillItem());
@@ -66,6 +71,101 @@ public class InventoryManager {
 		}
 		p.openInventory(i);
 	}
+
+	public void cluesView(Player viewer, RPCharacter c) {
+		int clueCount = c.getPlayerClues().size();
+		int rows = Math.max(3, Math.min(6, ((clueCount + 2) + 8) / 9));
+		String title = "§7Clues (" + clueCount + "/" + c.getCluesNeeded() + ")";
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(c.getOwner()), rows * 9, title);
+
+		NamespacedKey characterKey = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
+		NamespacedKey clueIndexKey = new NamespacedKey(RPCharacters.plugin, CLUE_INDEX_KEY);
+
+		int slot = 0;
+		List<String> clues = c.getPlayerClues();
+		for (int index = 0; index < clues.size(); index++) {
+			if (slot >= i.getSize() - 9) break;
+			ItemStack paper = new ItemStack(Material.PAPER, 1);
+			ItemMeta meta = paper.getItemMeta();
+			meta.setDisplayName("§7Clue #" + (index + 1));
+			List<String> lore = new ArrayList<>();
+			lore.add(clues.get(index));
+			lore.add(" ");
+			lore.add("§cClick to remove");
+			meta.setLore(lore);
+			meta.getPersistentDataContainer().set(characterKey, PersistentDataType.STRING, c.getId());
+			meta.getPersistentDataContainer().set(clueIndexKey, PersistentDataType.INTEGER, index);
+			paper.setItemMeta(meta);
+			i.setItem(slot, paper);
+			slot++;
+		}
+
+		if (c.canAddClue() && c.getOwner().equals(viewer)) {
+			ItemStack add = new ItemStack(Material.LIME_DYE, 1);
+			ItemMeta addMeta = add.getItemMeta();
+			addMeta.setDisplayName("§aAdd Clue");
+			List<String> addLore = new ArrayList<>();
+			addLore.add("§7Click to type a new clue in chat");
+			addMeta.setLore(addLore);
+			addMeta.getPersistentDataContainer().set(characterKey, PersistentDataType.STRING, c.getId());
+			add.setItemMeta(addMeta);
+			i.setItem(8, add);
+		} else if (!c.canAddClue() && c.getOwner().equals(viewer)) {
+			ItemStack max = new ItemStack(Material.GRAY_DYE, 1);
+			ItemMeta maxMeta = max.getItemMeta();
+			maxMeta.setDisplayName("§7Clue limit reached");
+			List<String> maxLore = new ArrayList<>();
+			maxLore.add("§7You cannot have more than §e" + Cache.maxClues + " §7clues.");
+			maxMeta.setLore(maxLore);
+			max.setItemMeta(maxMeta);
+			i.setItem(8, max);
+		}
+
+		i.setItem(i.getSize() - 1, getBackButton(c.getId()));
+
+		int slotn = 0;
+		while (slotn < i.getSize()) {
+			if (i.getItem(slotn) == null) {
+				ItemStack fill = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+				ItemMeta fm = fill.getItemMeta();
+				fm.setDisplayName("§8 ");
+				fill.setItemMeta(fm);
+				i.setItem(slotn, fill);
+			}
+			slotn++;
+		}
+		viewer.openInventory(i);
+	}
+
+	@SuppressWarnings("deprecation")
+	public ItemStack getCluesPreviewItem(RPCharacter c) {
+		ItemStack i = new ItemStack(Material.BOOK, 1);
+		ItemMeta meta = i.getItemMeta();
+		meta.setDisplayName("§7Character Clues");
+		List<String> lore = new ArrayList<>();
+		lore.add("§7------------------------");
+		lore.add("§eClues (" + c.getPlayerClues().size() + "/" + c.getCluesNeeded() + "):");
+		lore.add(" ");
+		if (c.getPlayerClues().isEmpty()) {
+			lore.add("§7No clues yet.");
+		} else {
+			for (String clue : c.getPlayerClues()) {
+				lore.add(clue);
+			}
+		}
+		lore.add(" ");
+		lore.add("§7------------------------");
+		lore.add("§eClick §7to manage clues");
+		lore.add("§7/rpcharacter clues");
+		meta.setLore(lore);
+		NamespacedKey characterKey = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
+		NamespacedKey openKey = new NamespacedKey(RPCharacters.plugin, OPEN_CLUES_GUI_KEY);
+		meta.getPersistentDataContainer().set(characterKey, PersistentDataType.STRING, c.getId());
+		meta.getPersistentDataContainer().set(openKey, PersistentDataType.BYTE, (byte) 1);
+		i.setItemMeta(meta);
+		return i;
+	}
+
 	public void traitsView(Player p, RPCharacter c) {
 		int visibleTraitCount = 0;
 		for(Trait t : c.getTraits()) {
@@ -379,7 +479,7 @@ public class InventoryManager {
 		if(click) {
 			lore.add("§bClick §7for details");
 			if(c.isActive()) {
-				meta.addEnchant(Enchantment.DURABILITY, 1, true);
+				meta.addEnchant(Enchantment.UNBREAKING, 1, true);
 				meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 			}
 		}

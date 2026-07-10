@@ -15,6 +15,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
+import net.tfminecraft.RPCharacters.Creation.Stages.ClueStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
@@ -56,6 +57,9 @@ public class CreationManager implements Listener{
 			cc.answerQuestion(e.getMessage());
 		} else if(cc.getCurrentStage() instanceof SetterStage) {
 			SetterStage s = (SetterStage) cc.getCurrentStage();
+			s.finish(e.getMessage(), p, cc);
+		} else if(cc.getCurrentStage() instanceof ClueStage) {
+			ClueStage s = (ClueStage) cc.getCurrentStage();
 			s.finish(e.getMessage(), p, cc);
 		}
 	}
@@ -123,7 +127,12 @@ public class CreationManager implements Listener{
 				}
 				p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
 				if(cc != null) item.click(cc);
-				else item.click(c);
+				else {
+					item.click(c);
+					c.update();
+					RPCharacters.getPlayerManager().savePlayer(p);
+					RPCharacters.getPlayerManager().reevaluateFreeze(p);
+				}
 				InventoryManager inv = new InventoryManager();
 				inv.selectionUpdate(e.getView().getTopInventory(), p, s, cc);
 			}

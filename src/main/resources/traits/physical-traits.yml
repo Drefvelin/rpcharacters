@@ -1,0 +1,126 @@
+#Strength
+strong:
+    name: "§aStrong"
+    cost: 1
+    key: physical
+    mutually-exclusive:
+        - weak
+    description:
+        - "§7This character has a strong physique."
+    attribute-modifiers:
+        - strength.2
+weak:
+    name: "§cWeak"
+    cost: -1
+    key: physical
+    mutually-exclusive:
+        - strong
+    description:
+        - "§7This character lacks physical prowess."
+    attribute-modifiers:
+        - strength.-2
+#Dexterity
+agile:
+    name: "§aAgile"
+    cost: 1
+    key: physical
+    mutually-exclusive:
+        - clumsy
+    description:
+        - "§7This character is quick on their feet."
+    attribute-modifiers:
+        - dexterity.2
+clumsy:
+    name: "§cClumsy"
+    cost: -1
+    key: physical
+    mutually-exclusive:
+        - agile
+    description:
+        - "§7This character struggles with movement."
+    attribute-modifiers:
+        - dexterity.-2
+#Constitution
+tough:
+    name: "§aTough"
+    cost: 1
+    key: physical
+    mutually-exclusive:
+        - frail
+    description:
+        - "§7This character has a high endurance."
+    attribute-modifiers:
+        - constitution.2
+frail:
+    name: "§cFrail"
+    cost: -1
+    key: physical
+    mutually-exclusive:
+        - tough
+    description:
+        - "§7This character gets tired easily."
+    attribute-modifiers:
+        - constitution.-2
+#Intelligence
+bright:
+    name: "§aBright"
+    cost: 1
+    key: physical
+    mutually-exclusive:
+        - dim
+    description:
+        - "§7This character is intellectually gifted."
+    attribute-modifiers:
+        - intelligence.2
+dim:
+    name: "§cDim"
+    cost: -1
+    key: physical
+    mutually-exclusive:
+        - bright
+    description:
+        - "§7This character isn't the sharpest tool in the shed."
+    attribute-modifiers:
+        - intelligence.-2
+#Wisdom
+prudent:
+    name: "§aPrudent"
+    cost: 1
+    key: physical
+    mutually-exclusive:
+        - ignorant
+    description:
+        - "§7This character can depend on their knowledge."
+    attribute-modifiers:
+        - wisdom.2
+ignorant:
+    name: "§cIgnorant"
+    cost: -1
+    key: physical
+    mutually-exclusive:
+        - prudent
+    description:
+        - "§7This character does not retain knowledge well."
+    attribute-modifiers:
+        - wisdom.-2
+#Charisma
+magnetic:
+    name: "§aMagnetic"
+    cost: 1
+    key: physical
+    mutually-exclusive:
+        - awkward
+    description:
+        - "§7This character wields a natural charm."
+    attribute-modifiers:
+        - charisma.2
+awkward:
+    name: "§cAwkward"
+    cost: -1
+    key: physical
+    mutually-exclusive:
+        - magnetic
+    description:
+        - "§7This character struggles to relate to others."
+    attribute-modifiers:
+        - charisma.-2
