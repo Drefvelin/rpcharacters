@@ -9,10 +9,12 @@ public class RaceData {
 	private String key;
 	
 	private AttributeData data;
+	private int ageMax = 100;
 
 	public RaceData(ConfigurationSection config) {
 		this.key = config.getString("key");
 		this.data = new AttributeData(config);
+		this.ageMax = config.getInt("age-max", 100);
 	}
 	
 	public String getKey() {
@@ -21,6 +23,10 @@ public class RaceData {
 	
 	public AttributeData getAttributeData() {
 		return data;
+	}
+
+	public int getAgeMax() {
+		return ageMax;
 	}
 
 }

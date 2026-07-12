@@ -1,0 +1,16 @@
+permission: rpchar.profile
+
+view:
+  require-sneak: true
+  require-empty-hand: true
+  cooldown-seconds: 0
+
+format:
+  - "&e{display_no_mask}'s &7Character Description:"
+  - "&fName: &e{display_no_mask}"
+  - "&fGender: &e{gender}"
+  - "&fAge: &e{age}"
+  - "&fRace: &e{race}"
+  - ""
+  - "&fDescription:"
+  - "&7{description}"

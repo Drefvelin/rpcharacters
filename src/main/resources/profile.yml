@@ -1,5 +1,5 @@
 max-alive-characters: 3
-character-switch-cooldown: 14 #days
+# character-switch-cooldown moved to permission-groups.yml
 
 character-slots: [11, 12, 13]
 

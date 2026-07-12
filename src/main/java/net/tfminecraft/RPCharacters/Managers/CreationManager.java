@@ -1,5 +1,6 @@
 package net.tfminecraft.RPCharacters.Managers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.bukkit.Sound;
@@ -26,6 +27,7 @@ import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Utils.PlaytimeGate;
+import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class CreationManager implements Listener{
@@ -33,7 +35,7 @@ public class CreationManager implements Listener{
 	
 	public static void initiateCreation(Player p) {
 		PlayerData pd = PlayerManager.get(p);
-		if(pd.hasCooldown() && pd.getCharacters(Status.ALIVE).size() > 0 && !p.hasPermission("rpcharacters.no_cooldown")) {
+		if(PermissionGroupService.hasCharacterSwitchCooldown(p, pd) && pd.getCharacters(Status.ALIVE).size() > 0 && !p.hasPermission("rpcharacters.no_cooldown")) {
 			p.sendMessage("§cYou are on cooldown from switching characters");
 			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 			return;
@@ -43,26 +45,26 @@ public class CreationManager implements Listener{
 		activeCreators.put(p, cc);
 	}
 	
+	@EventHandler
+	public void chatEvent(AsyncPlayerChatEvent event) {
+		Player player = event.getPlayer();
+		if (!activeCreators.containsKey(player)) {
+			return;
+		}
+		event.setCancelled(true);
+		CharacterCreation cc = activeCreators.get(player);
+		if (cc.getCurrentStage() instanceof QuestionStage) {
+			cc.answerQuestion(event.getMessage());
+		} else if (cc.getCurrentStage() instanceof SetterStage setter) {
+			setter.finish(event.getMessage(), player, cc);
+		} else if (cc.getCurrentStage() instanceof ClueStage clue) {
+			clue.finish(event.getMessage(), player, cc);
+		}
+	}
+
 	public static void next(Player p) {
 		if(activeCreators.containsKey(p)) {
 			activeCreators.get(p).runStage();
-		}
-	}
-	
-	@EventHandler
-	public void chatEvent(AsyncPlayerChatEvent e) {
-		Player p = e.getPlayer();
-		if(!activeCreators.containsKey(p)) return;
-		e.setCancelled(true);
-		CharacterCreation cc = activeCreators.get(p);
-		if(cc.getCurrentStage() instanceof QuestionStage) {
-			cc.answerQuestion(e.getMessage());
-		} else if(cc.getCurrentStage() instanceof SetterStage) {
-			SetterStage s = (SetterStage) cc.getCurrentStage();
-			s.finish(e.getMessage(), p, cc);
-		} else if(cc.getCurrentStage() instanceof ClueStage) {
-			ClueStage s = (ClueStage) cc.getCurrentStage();
-			s.finish(e.getMessage(), p, cc);
 		}
 	}
 
@@ -99,9 +101,16 @@ public class CreationManager implements Listener{
 						}
 					}
 					if(s.getMaxSelections() <= s.getSelections()) {
-						p.sendMessage("§cCannot make any more selections");
-						p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
-						return;
+						if (item.getType().equalsIgnoreCase("class") && s.getMaxSelections() == 1) {
+							for (SelectableItem chosen : new ArrayList<>(s.getSelection())) {
+								chosen.setSelected(false);
+								s.unSelect(chosen);
+							}
+						} else {
+							p.sendMessage("§cCannot make any more selections");
+							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+							return;
+						}
 					}
 					if(item.getCost() > s.getPoints()) {
 						p.sendMessage("§cCannot afford this trait");

@@ -24,10 +24,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import net.Indyuce.mmocore.api.event.PlayerChangeClassEvent;
+import net.Indyuce.mmocore.api.event.PlayerLevelUpEvent;
 import net.Indyuce.mmocore.api.event.PlayerExperienceGainEvent;
 import net.Indyuce.mmocore.api.player.attribute.PlayerAttributes.AttributeInstance;
 import net.tfminecraft.RPCharacters.Cache;
-import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Database.Database;
@@ -39,7 +40,10 @@ import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Trait.PotionData;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.RPCharacters;
+import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
+import net.tfminecraft.RPCharacters.mmocore.ClassService;
+import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 import net.tfminecraft.RPCharacters.enums.ConfirmType;
 import net.tfminecraft.RPCharacters.enums.FreezeReason;
 import net.tfminecraft.RPCharacters.enums.Status;
@@ -188,7 +192,6 @@ public class PlayerManager implements Listener{
 		{
 			public void run()
 			{
-				db.tickDownCooldownForOfflinePlayers();
 				for(Player p : Bukkit.getOnlinePlayers()) {
 					if (p.getGameMode() != GameMode.SURVIVAL) {
 						continue;
@@ -203,9 +206,6 @@ public class PlayerManager implements Listener{
 						if (active != null) {
 							active.addPlaytimeSeconds(Cache.playtimeTickSeconds);
 						}
-					}
-					if (pd.hasCooldown()) {
-						pd.tick();
 					}
 				}
 			}
@@ -280,6 +280,11 @@ public class PlayerManager implements Listener{
 			}
 			mpd.setAttributePoints(0);
 			mpd.setAttributeReallocationPoints(0);
+			PermissionGroupService.enforceNameColourOnLogin(p, pd);
+			ClassService.migrateSkillPointsIfNeeded(p);
+			ClassService.trackFromPlayer(p);
+			ClassService.sanitizeForeignSkillLevels(p);
+			ClassService.applyFreeSkillPoints(p);
 		}
 	}
 	public void confirmClick(Player p, RPCharacter c, ConfirmType t) {
@@ -570,23 +575,51 @@ public class PlayerManager implements Listener{
 				e.setExperience(amount);
 			}
 		}
+		ClassService.trackFromPlayer(p);
+	}
+
+	@EventHandler
+	public void levelUp(PlayerLevelUpEvent e) {
+		ClassService.trackFromPlayer(e.getPlayer());
 	}
 
 	@EventHandler
 	public void classChange(PlayerChangeClassEvent e) {
-		PlayerData pd = get(e.getPlayer());
-		if(pd == null) return;
-		if(pd.hasActiveCharacter()) {
+		Player player = e.getPlayer();
+		PlayerData pd = get(player);
+		if (pd == null) {
+			return;
+		}
+
+		CharacterCreation cc = CreationManager.activeCreators.get(player);
+		if (cc != null) {
+			cc.getCharacter().setMMOClass(e.getData().getProfess().getId());
+			if (!ClassService.isApplying(player.getUniqueId())) {
+				ClassService.restoreAccountProgression(player);
+			}
+			return;
+		}
+
+		if (CreationManager.activeCreators.containsKey(player)) {
+			return;
+		}
+
+		if (pd.hasActiveCharacter()) {
 			RPCharacter c = pd.getActiveCharacter();
-			final Map<String, Integer> map = (new Integrator()).get(e.getPlayer(), c);
+			final Map<String, Integer> map = (new Integrator()).get(player, c);
 			c.setMMOClass(e.getData().getProfess().getId());
+			if (!ClassService.isApplying(player.getUniqueId())) {
+				ClassService.restoreAccountProgression(player);
+			}
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					net.Indyuce.mmocore.api.player.PlayerData mpd = net.Indyuce.mmocore.api.player.PlayerData.get(e.getPlayer());
-					for(Map.Entry<String, Integer> entry : map.entrySet()) {
-						for(AttributeInstance a : mpd.getAttributes().getInstances()) {
-							if(a.getId().equalsIgnoreCase(entry.getKey())) a.setBase(entry.getValue());
+					net.Indyuce.mmocore.api.player.PlayerData mpd = net.Indyuce.mmocore.api.player.PlayerData.get(player);
+					for (Map.Entry<String, Integer> entry : map.entrySet()) {
+						for (AttributeInstance a : mpd.getAttributes().getInstances()) {
+							if (a.getId().equalsIgnoreCase(entry.getKey())) {
+								a.setBase(entry.getValue());
+							}
 						}
 					}
 				}

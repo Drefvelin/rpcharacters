@@ -8,15 +8,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import net.Indyuce.mmocore.MMOCore;
-import net.Indyuce.mmocore.api.MMOCoreAPI;
 import net.Indyuce.mmocore.api.player.profess.PlayerClass;
-import net.Indyuce.mmocore.manager.ClassManager;
+import net.tfminecraft.RPCharacters.mmocore.ClassService;
 import net.tfminecraft.RPCharacters.Cache;
-import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Database.Database;
+import net.tfminecraft.RPCharacters.identity.NameColour;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
@@ -47,6 +45,13 @@ public class RPCharacter {
 	private int playtimeSeconds;
 	private Map<String, Integer> conversationCounts = new HashMap<>();
 	private Map<String, Long> conversationLastAtMs = new HashMap<>();
+
+	private String alias;
+	private NameColour nameColour;
+	private boolean nameColourStaffOverride;
+	private String gender;
+	private String personaDescription;
+	private String birthday;
 	
 	private AttributeData attributeData;
 	
@@ -85,7 +90,7 @@ public class RPCharacter {
 			if(mmoClass != null) {
 				PlayerClass newClass = MMOCore.plugin.classManager.get(mmoClass);
 				if(newClass != null) {
-					net.Indyuce.mmocore.api.player.PlayerData.get(owner).setClass(newClass);
+					ClassService.applyClass(owner, mmoClass);
 					owner.sendMessage("§eYour class was changed to "+newClass.getName());
 				}
 			}
@@ -126,12 +131,10 @@ public class RPCharacter {
 		if(mmoClass != null) {
 			PlayerClass newClass = MMOCore.plugin.classManager.get(mmoClass);
 			if(newClass != null) {
-				net.Indyuce.mmocore.api.player.PlayerData.get(owner).setClass(newClass);
+				ClassService.applyClass(owner, mmoClass);
 				owner.sendMessage("§eYour class was changed to "+newClass.getName());
 			}
 		}
-		modify("name", name, false);
-		modify("race", race.getId(), false);
 		Database.log(owner, "Activated the character "+name);
 		active = true;
 		Integrator i = new Integrator();
@@ -139,8 +142,6 @@ public class RPCharacter {
 	}
 	public void deactivate() {
 		if(mmoClass == null) mmoClass = net.Indyuce.mmocore.api.player.PlayerData.get(owner).getProfess().getId();
-		modify("name", "Unknown", false);
-		modify("race", "Human", false);
 		Database.log(owner, "Deactivated the character "+name);
 		active = false;
 		Integrator i = new Integrator();
@@ -197,29 +198,89 @@ public class RPCharacter {
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	public String getAlias() {
+		return alias;
+	}
+
+	public void setAlias(String alias) {
+		if (alias == null || alias.isBlank()) {
+			this.alias = null;
+			return;
+		}
+		this.alias = ClueFormatter.stripColor(alias);
+	}
+
+	public void clearAlias() {
+		this.alias = null;
+	}
+
+	public NameColour getNameColour() {
+		return nameColour;
+	}
+
+	public void setNameColour(NameColour nameColour) {
+		this.nameColour = nameColour;
+	}
+
+	public boolean isNameColourStaffOverride() {
+		return nameColourStaffOverride;
+	}
+
+	public void setNameColourStaffOverride(boolean nameColourStaffOverride) {
+		this.nameColourStaffOverride = nameColourStaffOverride;
+	}
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+
+	public String getPersonaDescription() {
+		return personaDescription;
+	}
+
+	public void setPersonaDescription(String personaDescription) {
+		this.personaDescription = personaDescription;
+	}
+
+	public String getBirthday() {
+		return birthday;
+	}
+
+	public void setBirthday(String birthday) {
+		if (birthday == null || birthday.isBlank()) {
+			this.birthday = null;
+			return;
+		}
+		this.birthday = birthday.trim();
+	}
+
+	public String getEffectiveDisplayPlain() {
+		String effective = alias != null && !alias.isBlank() ? alias : name;
+		if (effective == null) {
+			return "";
+		}
+		return ClueFormatter.stripColor(effective);
+	}
+
 	public void modify(String type, String value) {
 		modify(type, value, true);
 	}
+
 	public void modify(String type, String value, boolean affect) {
-		if(type.equalsIgnoreCase("name")) {
-			if(affect) name = value;
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					Integrator i = new Integrator();
-					i.dispatchCommand(owner, "char set name "+value);
-				}
-			}.runTask(RPCharacters.plugin);
-		} else if(type.equalsIgnoreCase("race")) {
+		if (type.equalsIgnoreCase("name")) {
+			if (affect) {
+				setName(value);
+			}
+		} else if (type.equalsIgnoreCase("race")) {
 			Race newRace = RaceLoader.getByString(value);
-			if(affect && newRace != null) race = newRace;
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					Integrator i = new Integrator();
-					i.dispatchCommand(owner, "char set race "+newRace.getName());
-				}
-			}.runTask(RPCharacters.plugin);
+			if (affect && newRace != null) {
+				race = newRace;
+			}
 		}
 	}
 
@@ -229,6 +290,9 @@ public class RPCharacter {
 	 */
 	public int getCluesNeeded() {
 		int needed = Cache.defaultCluesRequired;
+		if (hasAnyEvilTrait()) {
+			needed = Math.max(needed, Cache.evilCluesRequired);
+		}
 		for (Trait trait : traits) {
 			Integer override = Cache.traitClueOverrides.get(trait.getId().toLowerCase());
 			if (override != null && override > needed) {
@@ -236,6 +300,15 @@ public class RPCharacter {
 			}
 		}
 		return Math.min(needed, Cache.maxClues);
+	}
+
+	private boolean hasAnyEvilTrait() {
+		for (Trait trait : traits) {
+			if (trait.getTraitData() != null && "evil".equalsIgnoreCase(trait.getTraitData().getKey())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** Whether this character has enough player clues to satisfy {@link #getCluesNeeded()}. */

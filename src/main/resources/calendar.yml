@@ -1,0 +1,8 @@
+starting-year: "372 AE"
+base-irl-year: 2025
+
+age:
+  minimum: 18
+  days-per-year: 365.25
+  decimal-places: 1
+  unset-label: Unset

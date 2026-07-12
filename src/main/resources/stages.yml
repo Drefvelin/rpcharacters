@@ -11,18 +11,6 @@ welcome_stage:
         - "subtitle(§eA summary will follow in the chat if you miss anything)"
         - "subtitle(§eTo play on the server you must first make a character)"
         - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-class_stage:
-    type: info
-    repeat: true
-    interval: 60
-    should-summarize: true
-    auto-next: false
-    messages:
-        - "title(§aClass)"
-        - "subtitle(§eTFMC has several classes to choose from)"
-        - "subtitle(§eYour class decides which weapons and skills you can use)"
-        - "subtitle(§eSelect a class with §a/class)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
 creation_info_stage:
     type: info
     repeat: false
@@ -59,6 +47,25 @@ creation_name_set_stage:
     target: name
     repeat: true
     message: subtitle(§eType your character name in chat)
+class_info_stage:
+    type: info
+    repeat: true
+    interval: 60
+    should-summarize: true
+    auto-next: false
+    messages:
+        - "title(§aChoose Your Class)"
+        - "subtitle(§eYour class decides weapons and skills)"
+        - "subtitle(§eLevel and professions are shared across all characters)"
+        - "subtitle(§eUse #32ed73/rpcharacter next§e to open the selector)"
+class_selection_stage:
+    type: selection
+    repeat: true
+    target: class
+    min-select: 1
+    max-select: 1
+    auto-next: true
+    gui-size: 54
 race_selection_stage:
     type: selection
     repeat: true
@@ -67,6 +74,12 @@ race_selection_stage:
     min-select: 1
     max-select: 1
     slots: [10, 11, 12, 13, 14, 15, 16]
+character_age_stage:
+    type: setter
+    target: age
+    repeat: true
+    auto-next: true
+    message: subtitle(§eType your character age in chat e.g. 30 or 33.7)
 cataclysm_selection_stage:
     type: selection
     repeat: true
@@ -166,6 +179,24 @@ evil_selection_stage:
     min-select: 0
     max-select: 4
     slots: [10, 11, 12, 13, 14, 15, 16]
+creation_description_stage:
+    type: info
+    repeat: false
+    interval: 60
+    should-summarize: true
+    auto-next: false
+    messages:
+        - "title(§aCharacter Description)"
+        - "subtitle(§eWrite a paragraph based on your race, class, and traits)"
+        - "subtitle(§eAppearance, mannerisms, background — this helps when writing clues)"
+        - "subtitle(§eBetween 32 and 256 characters)"
+        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
+creation_description_set_stage:
+    type: setter
+    target: description
+    repeat: true
+    auto-next: true
+    message: subtitle(§eType your character description in chat)
 clue_info_stage:
     type: info
     repeat: false
@@ -175,7 +206,7 @@ clue_info_stage:
     messages:
         - "title(§aCharacter Clues)"
         - "subtitle(§eClues describe how others might recognize your character)"
-        - "subtitle(§eAppearance, mannerisms, scent, home, etc.)"
+        - "subtitle(§eUse your description as inspiration for appearance, mannerisms, scent, etc.)"
         - "subtitle(§eEvil archetypes require more clues than most)"
         - "subtitle(§eUse #32ed73/rpcharacter next§e to begin entering clues)"
 clue_entry_stage:

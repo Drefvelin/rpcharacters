@@ -3,6 +3,7 @@ package net.tfminecraft.RPCharacters.Objects;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Dependency;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
@@ -43,6 +44,15 @@ public class SelectableItem {
 		if(t.getTraitData().hasExclusives()) {
 			exclusive = t.getTraitData().getExclusive();
 		}
+	}
+
+	public SelectableItem(PlayerClass playerClass) {
+		this.selected = false;
+		this.name = playerClass.getName();
+		this.type = "class";
+		this.id = playerClass.getId();
+		this.cost = 0;
+		this.data = new AttributeData();
 	}
 	
 	public SelectableItem(SelectableItem another) {
@@ -99,6 +109,10 @@ public class SelectableItem {
 		return selected;
 	}
 	public void click(CharacterCreation cc) {
+		if ("class".equalsIgnoreCase(type)) {
+			this.selected = !this.selected;
+			return;
+		}
 		this.selected = !this.selected;
 		if(this.selected) {
 			cc.getTempData().mergeFrom(data);

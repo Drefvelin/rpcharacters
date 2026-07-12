@@ -60,24 +60,4 @@ public class Integrator {
 		}
 		return remove;
 	}
-	public void dispatchCommand(Player player, String cmd) {
-		if(player.isOp() == true) {
-			player.performCommand(cmd);
-		} else {
-			try
-			{
-			    player.setOp(true);
-			    player.performCommand(cmd);
-
-			}
-			catch(Exception e)
-			{
-			    e.printStackTrace();
-			}
-			finally
-			{
-			    player.setOp(false);
-			}
-		}	
-	}
 }

@@ -10,25 +10,33 @@ import net.tfminecraft.RPCharacters.enums.Status;
 
 public class PlayerData {
 	private Player p;
-	private int cooldown;
+	private Long lastCharacterSwitchAtMs;
 	private boolean eighteen;
 	
 	private List<RPCharacter> characters = new ArrayList<>();
 	private List<String> completedStages = new ArrayList<>();
 	private int accountPlaytimeSeconds;
+	private Integer accountSkillPointsTotal;
 	
 	public PlayerData(Player p) {
 		this.p = p;
-		this.cooldown = 0;
+		this.lastCharacterSwitchAtMs = null;
 		this.eighteen = false;
 		this.accountPlaytimeSeconds = 0;
+		this.accountSkillPointsTotal = null;
 	}
-	public PlayerData(Player p, List<String> cs, int c, boolean b, int accountPlaytimeSeconds) {
+	public PlayerData(Player p, List<String> cs, Long lastCharacterSwitchAtMs, boolean b, int accountPlaytimeSeconds) {
+		this(p, cs, lastCharacterSwitchAtMs, b, accountPlaytimeSeconds, null);
+	}
+
+	public PlayerData(Player p, List<String> cs, Long lastCharacterSwitchAtMs, boolean b, int accountPlaytimeSeconds,
+			Integer accountSkillPointsTotal) {
 		this.p = p;
 		this.completedStages = cs;
-		cooldown = c;
+		this.lastCharacterSwitchAtMs = lastCharacterSwitchAtMs;
 		eighteen = b;
 		this.accountPlaytimeSeconds = Math.max(0, accountPlaytimeSeconds);
+		this.accountSkillPointsTotal = accountSkillPointsTotal;
 	}
 
 	public int getAccountPlaytimeSeconds() {
@@ -46,6 +54,25 @@ public class PlayerData {
 		accountPlaytimeSeconds += seconds;
 	}
 
+	public boolean needsSkillPointsMigration() {
+		return accountSkillPointsTotal == null;
+	}
+
+	public int getAccountSkillPointsTotal() {
+		return accountSkillPointsTotal != null ? accountSkillPointsTotal : 0;
+	}
+
+	public void setAccountSkillPointsTotal(int accountSkillPointsTotal) {
+		this.accountSkillPointsTotal = Math.max(0, accountSkillPointsTotal);
+	}
+
+	public void addAccountSkillPoints(int amount) {
+		if (amount <= 0) {
+			return;
+		}
+		setAccountSkillPointsTotal(getAccountSkillPointsTotal() + amount);
+	}
+
 	public boolean isEighteen() {
 		return eighteen;
 	}
@@ -53,23 +80,23 @@ public class PlayerData {
 	public void setEighteen(Boolean b) {
 		eighteen = b;
 	}
-	
-	public boolean hasCooldown() {
-		if(cooldown > 0) return true;
-		return false;
+
+	public Long getLastCharacterSwitchAtMs() {
+		return lastCharacterSwitchAtMs;
 	}
-	public int getRemainingTime() {
-		return cooldown;
+
+	public void setLastCharacterSwitchAtMs(Long lastCharacterSwitchAtMs) {
+		this.lastCharacterSwitchAtMs = lastCharacterSwitchAtMs;
 	}
-	public void setCooldown(int i) {
-		cooldown = i;
+
+	public void recordCharacterSwitch() {
+		lastCharacterSwitchAtMs = System.currentTimeMillis();
 	}
-	public void resetCooldown() {
-		cooldown = 20160;
+
+	public void clearCharacterSwitchCooldown() {
+		lastCharacterSwitchAtMs = null;
 	}
-	public void tick() {
-		cooldown--;
-	}
+
 	public Player getPlayer() {
 		return p;
 	}
@@ -127,7 +154,7 @@ public class PlayerData {
 		for(RPCharacter ch : characters) {
 			if(ch.isActive()) {
 				ch.deactivate();
-				resetCooldown();
+				recordCharacterSwitch();
 			}
 		}
 		c.activate();

@@ -46,4 +46,8 @@ public class Race {
 		return data;
 	}
 
+	public int getAgeMax() {
+		return data != null ? data.getAgeMax() : 100;
+	}
+
 }

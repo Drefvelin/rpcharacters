@@ -46,8 +46,12 @@ public class ClueInputManager implements Listener {
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
-		if (!pendingCharacterId.containsKey(player)) return;
-		if (CreationManager.activeCreators.containsKey(player)) return;
+		if (!pendingCharacterId.containsKey(player)) {
+			return;
+		}
+		if (CreationManager.activeCreators.containsKey(player)) {
+			return;
+		}
 
 		skipConversationTracking.add(player.getUniqueId());
 		event.setCancelled(true);
@@ -57,7 +61,7 @@ public class ClueInputManager implements Listener {
 		Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> handleClueInput(player, characterId, message));
 	}
 
-	private void handleClueInput(Player player, String characterId, String message) {
+	private static void handleClueInput(Player player, String characterId, String message) {
 		PlayerData pd = PlayerManager.get(player);
 		if (pd == null) return;
 

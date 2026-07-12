@@ -13,7 +13,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import me.Plugins.TLibs.Interface.LoaderInterface;
 import net.tfminecraft.RPCharacters.Cache;
-import net.tfminecraft.RPCharacters.Loaders.ConversationChannelLoader;
 
 public class ConfigLoader implements LoaderInterface{
 
@@ -35,13 +34,22 @@ public class ConfigLoader implements LoaderInterface{
         	Cache.editableTraits = config.getStringList("editable-trait-types");
         }
         Cache.backgroundTraitTypes = config.getStringList("background-trait-types");
+        Cache.continent = config.getString("continent", "Cerrith");
         Cache.requireCharacter = config.getBoolean("require-character", false);
         Cache.noCharacterFreeze = config.getBoolean("no-character-freeze", true);
         Cache.lackingCluesFreeze = config.getBoolean("lacking-clues-freeze", true);
+        Cache.skillPointsAdminDebugMessages = config.getBoolean("skill-points-admin-debug-messages", false);
         Cache.startingProfessionFactor = config.getInt("base-profession-factor", -15);
 
         Cache.defaultCluesRequired = config.getInt("default-clues-required",
-        		config.getInt("required-clues", 3));
+        		config.getInt("required-clues", 2));
+        Cache.evilCluesRequired = config.getInt("evil-clues-required", Cache.evilCluesRequired);
+        if (config.isConfigurationSection("character-description")) {
+            Cache.characterDescriptionMinLength = config.getInt("character-description.length-minimum",
+                    Cache.characterDescriptionMinLength);
+            Cache.characterDescriptionMaxLength = config.getInt("character-description.length-maximum",
+                    Cache.characterDescriptionMaxLength);
+        }
         Cache.clueMinLength = config.getInt("clue-min-length", 12);
         Cache.clueMaxLength = config.getInt("clue-max-length", 120);
         Cache.maxClues = config.getInt("max-clues", 16);
@@ -80,14 +88,16 @@ public class ConfigLoader implements LoaderInterface{
             Cache.conversationReplyTimeoutSeconds = 30;
             Cache.conversationPairCooldownHours = 2;
         }
-        ConversationChannelLoader.load(config);
-
         validateClueConfig();
 	}
 
 	private void validateClueConfig() {
 		if (Cache.defaultCluesRequired > Cache.maxClues) {
 			Bukkit.getLogger().severe("[RPCharacters] default-clues-required (" + Cache.defaultCluesRequired
+					+ ") exceeds max-clues (" + Cache.maxClues + "). Requirement will be capped at max-clues.");
+		}
+		if (Cache.evilCluesRequired > Cache.maxClues) {
+			Bukkit.getLogger().severe("[RPCharacters] evil-clues-required (" + Cache.evilCluesRequired
 					+ ") exceeds max-clues (" + Cache.maxClues + "). Requirement will be capped at max-clues.");
 		}
 		for (Map.Entry<String, Integer> entry : Cache.traitClueOverrides.entrySet()) {

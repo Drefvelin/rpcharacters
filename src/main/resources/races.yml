@@ -2,6 +2,7 @@ human:
     name: "§fHuman"
     shown: true
     key: race
+    age-max: 100
     description:
         - "§7The most common of the Cerrithian races."
         - "§7Can be found in every corner of the world."
@@ -17,6 +18,7 @@ elf:
     name: "§9Elf"
     shown: true
     key: race
+    age-max: 800
     description:
         - "§7Known for their physical beauty and long ears."
         - "§7Live twice as long as humans, often wiser."
@@ -33,6 +35,7 @@ orc:
     name: "§2Orc"
     shown: true
     key: race
+    age-max: 120
     description:
         - "§7Are the result of Arcanum exposure,"
         - "§7created through experiments on humans."
@@ -52,6 +55,7 @@ goblin:
     name: "§2Goblin"
     shown: true
     key: race
+    age-max: 120
     description:
         - "§7Like orcs, have greenish skin from transformation,"
         - "§7though not from experimentation, but harsh environments."
@@ -69,6 +73,7 @@ dwarf:
     name: "§6Dwarf"
     shown: true
     key: race
+    age-max: 400
     description:
         - "§7Known for their short, strong bodies and full beards."
         - "§7Adapted for the mountains of Cerrith, great miners"
@@ -85,6 +90,7 @@ dryad:
     name: "§aDryad"
     shown: true
     key: race
+    age-max: 600
     description:
         - "§7One of the rarer Cerrithian races."
         - "§7Come in many different forms."
@@ -103,6 +109,7 @@ oseni:
     name: "§cOseni"
     shown: true
     key: race
+    age-max: 200
     description:
         - "§7Originally residents of the Fire Plane,"
         - "§7many chose to stay after the invasion of Cerrith."

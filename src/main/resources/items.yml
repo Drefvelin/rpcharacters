@@ -1,0 +1,7 @@
+skill-point-tomes:
+  minor_tome:
+    item: m.items.skill_tome_minor
+    skill-points: 1
+  major_tome:
+    item: m.items.skill_tome_major
+    skill-points: 5

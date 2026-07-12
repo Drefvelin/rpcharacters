@@ -17,6 +17,8 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import me.plugins.tlibs.shaded.lang3.text.WordUtils;
+import net.Indyuce.mmocore.MMOCore;
+import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.RPCharacters;
@@ -35,6 +37,10 @@ import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.PotionData;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
+import net.tfminecraft.RPCharacters.identity.DisplayIdentityService;
+import net.tfminecraft.RPCharacters.identity.PersonaService;
+import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class InventoryManager {
@@ -55,7 +61,7 @@ public class InventoryManager {
 		if(c.getStatus().equals(Status.ALIVE) && c.getOwner().equals(p)) {
 			i.setItem(8, getKillItem());
 		}
-		if(c.getStatus().equals(Status.ALIVE) && !c.isActive() && (!pd.hasCooldown() || Permissions.isAdmin(p)) && c.getOwner().equals(p)) {
+		if(c.getStatus().equals(Status.ALIVE) && !c.isActive() && (!PermissionGroupService.hasCharacterSwitchCooldown(p, pd) || Permissions.isAdmin(p)) && c.getOwner().equals(p)) {
 			i.setItem(6, getSwitchItem());
 		}
 		int slotn = 0;
@@ -247,8 +253,12 @@ public class InventoryManager {
 		p.openInventory(i);
 	}
 	public void selectionView(Player player, SelectionStage s, CharacterCreation cc) {
+		String label = s.getKey();
+		if (label == null || label.isBlank()) {
+			label = s.getTarget() != null ? s.getTarget() : "Selection";
+		}
 		@SuppressWarnings("deprecation")
-		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player, s), s.getSize(), "§7"+WordUtils.capitalize(s.getKey())+ " Selection");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player, s), s.getSize(), "§7"+WordUtils.capitalize(label)+ " Selection");
 		for(int x = 0; x<s.getSlots().size(); x++) {
 			if(x >= s.getOptions().size()) break;
 			i.setItem(s.getSlots().get(x), getSelectableItem(player, s, s.getOptions().get(x), cc));
@@ -473,8 +483,31 @@ public class InventoryManager {
 		meta.setDisplayName("§eCharacter: §7"+c.getName());
 		List<String> lore = new ArrayList<String>();
 		lore.add(" ");
+		if (!click) {
+			String display = DisplayIdentityService.resolveDisplayNoMask(c);
+			if (display != null && !display.isBlank()) {
+				lore.add("§7Display: " + display);
+			}
+			if (c.getAlias() != null && !c.getAlias().isBlank()) {
+				lore.add("§7Name: §e" + c.getName());
+			}
+		}
 		lore.add("§7Race: "+c.getRace().getName());
+		if (!click) {
+			lore.add("§7Gender: §f" + PersonaService.resolveGender(c));
+			lore.add("§7Age: §f" + PersonaService.resolveAge(c));
+		}
 		lore.add("§7Status: §f"+c.getStatus().toString());
+		if (!click) {
+			String description = PersonaService.resolveDescription(c);
+			if (description != null && !description.isBlank()) {
+				lore.add(" ");
+				lore.add("§eDescription:");
+				for (String line : ClueFormatter.wrapLore("§7" + description)) {
+					lore.add(line);
+				}
+			}
+		}
 		lore.add(" ");
 		if(click) {
 			lore.add("§bClick §7for details");
@@ -484,8 +517,8 @@ public class InventoryManager {
 			}
 		}
 		lore.add(" ");
-		if(pd.hasCooldown()) {
-			lore.add("§eYou are on Cooldown: §f"+formatTime(pd.getRemainingTime()));
+		if(PermissionGroupService.hasCharacterSwitchCooldown(c.getOwner(), pd)) {
+			lore.add("§eYou are on Cooldown: §f"+formatTime(PermissionGroupService.getRemainingCooldownMinutes(c.getOwner(), pd)));
 		}
 		NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
 		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, c.getId());
@@ -514,9 +547,9 @@ public class InventoryManager {
 		meta.setDisplayName("§eEmpty Slot");
 		List<String> lore = new ArrayList<String>();
 		lore.add("§7Click to create a new character");
-		if(pd.hasCooldown()) {
+		if(PermissionGroupService.hasCharacterSwitchCooldown(pd.getPlayer(), pd)) {
 			lore.add(" ");
-			lore.add("§eYou are on Cooldown: §f"+formatTime(pd.getRemainingTime()));
+			lore.add("§eYou are on Cooldown: §f"+formatTime(PermissionGroupService.getRemainingCooldownMinutes(pd.getPlayer(), pd)));
 		}
 		meta.setLore(lore);
 		i.setItemMeta(meta);
@@ -611,6 +644,35 @@ public class InventoryManager {
 				lore.add("§eUnspent Points: §7"+stage.getPoints());
 			}
 			meta.setLore(lore);
+		} else if(s.getType().equalsIgnoreCase("class")) {
+			PlayerClass playerClass = MMOCore.plugin.classManager.get(s.getId());
+			if (playerClass != null && playerClass.getIcon() != null && playerClass.getIcon().getType() != Material.AIR) {
+				i = playerClass.getIcon().clone();
+				if (s.isSelected()) {
+					ItemMeta iconMeta = i.getItemMeta();
+					if (iconMeta != null) {
+						iconMeta.setDisplayName("§a" + s.getName());
+						i.setItemMeta(iconMeta);
+					}
+				}
+			}
+			ItemMeta classMeta = i.getItemMeta();
+			if (classMeta != null) {
+				classMeta.setDisplayName((s.isSelected() ? "§a" : "§f") + s.getName());
+				List<String> lore = new ArrayList<>();
+				if (playerClass != null) {
+					for (String line : playerClass.getDescription()) {
+						lore.add(line);
+					}
+				}
+				if (s.isSelected()) {
+					lore.add(" ");
+					lore.add("§aSelected");
+				}
+				classMeta.setLore(lore);
+				i.setItemMeta(classMeta);
+			}
+			return i;
 		}
 		i.setItemMeta(meta);
 		return i;

@@ -1,0 +1,26 @@
+permissions:
+  set: rpchar.persona.set
+  namecolour: rpchar.namecolour
+  description-colors: rpchar.persona.colors
+  override: rpchar.persona.override
+  bypass-cooldown: rpchar.persona.bypasscooldown
+
+no-character-fallback: '§f§oUnknown'
+
+display-name:
+  length-minimum: 3
+  length-maximum: 24
+
+alias:
+  allowed-chars: "abcdefghijklmnopqrstuvwxyz.-'' áéíóú"
+  cooldown-seconds: 10
+
+gender:
+  values: [Male, Female, Other]
+  default: Unset
+  cooldown-seconds: 10
+
+description:
+  length-minimum: 3
+  cooldown-seconds: 10
+  default-template: "A{n} {race} in {continent}."

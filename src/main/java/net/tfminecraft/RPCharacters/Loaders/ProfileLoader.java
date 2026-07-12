@@ -20,7 +20,6 @@ public class ProfileLoader implements LoaderInterface{
             e.printStackTrace();
         }
         Cache.maxAlive = config.getInt("max-alive-characters");
-        Cache.switchCooldown = config.getInt("character-switch-cooldown");
         Cache.characterSlots = config.getIntegerList("character-slots");
         Cache.deadSlot = config.getInt("dead-slot");
 	}

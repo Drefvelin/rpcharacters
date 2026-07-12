@@ -1,5 +1,7 @@
 package net.tfminecraft.RPCharacters.Managers;
 
+import java.util.Locale;
+
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.command.Command;
@@ -13,6 +15,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import net.Indyuce.mmocore.MMOCore;
 import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.Loaders.ChatLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
@@ -20,7 +23,9 @@ import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
+import net.tfminecraft.RPCharacters.mmocore.ClassService;
 import net.tfminecraft.RPCharacters.Utils.ClueGiver;
+import net.tfminecraft.RPCharacters.command.CharCommand;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class CommandManager implements Listener, CommandExecutor{
@@ -28,10 +33,20 @@ public class CommandManager implements Listener, CommandExecutor{
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		
-		if(sender instanceof Player) {
-			Player p = (Player) sender;
-			if(cmd.getName().equalsIgnoreCase(cmd1) && args.length == 0) return true;
+
+		if (!cmd.getName().equalsIgnoreCase(cmd1)) {
+			return true;
+		}
+		if (args.length >= 1 && CharCommand.isPersonaSubcommand(args[0])) {
+			return CharCommand.handle(sender, label, args);
+		}
+		if (!(sender instanceof Player)) {
+			sender.sendMessage("§cOnly players can use this command.");
+			return true;
+		}
+
+		Player p = (Player) sender;
+		if(args.length == 0) return true;
 			if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("create") && args.length == 1) {
 				if(CreationManager.activeCreators.containsKey(p)) {
 					p.sendMessage("§cYou are already creating a character");
@@ -107,8 +122,12 @@ public class CommandManager implements Listener, CommandExecutor{
 					p.sendMessage("§a[RPCharacters] §cNo class by the id "+newClass);
 					return true;
 				}
-				if(CreationManager.activeCreators.containsKey(argPlayer)) {
-					p.sendMessage("§c"+argPlayer.getName()+" is busy creating a character");
+				if(argPlayer != null && CreationManager.activeCreators.containsKey(argPlayer)) {
+					CreationManager.activeCreators.get(argPlayer).getCharacter().setMMOClass(newClass);
+					argPlayer.sendMessage("§eDraft class set to "+mmoClass.getName()+" (applies when creation finishes)");
+					if(sender != argPlayer) {
+						p.sendMessage("§eDraft class for "+argPlayer.getName()+" set to "+mmoClass.getName());
+					}
 					return true;
 				}
 				PlayerData pd = PlayerManager.get(argPlayer);
@@ -117,7 +136,7 @@ public class CommandManager implements Listener, CommandExecutor{
 					return true;
 				}
 				pd.getActiveCharacter().setMMOClass(newClass);
-				net.Indyuce.mmocore.api.player.PlayerData.get(argPlayer).setClass(mmoClass);
+				ClassService.applyClass(argPlayer, newClass);
 				argPlayer.sendMessage("§eYour class was changed to "+mmoClass.getName());
 				return true;
 			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("seteighteen") && args.length == 3) {
@@ -147,7 +166,7 @@ public class CommandManager implements Listener, CommandExecutor{
 					return true;
 				}
 				PlayerData pd = PlayerManager.get(argPlayer);
-				pd.setCooldown(0);
+				pd.clearCharacterSwitchCooldown();
 				p.sendMessage("§eRemoved cooldown for "+argPlayer);
 				argPlayer.sendMessage("§eCharacter Cooldown has been skipped");
 				return true;
@@ -310,9 +329,7 @@ public class CommandManager implements Listener, CommandExecutor{
 						+ radius + " §7blocks. Chest clue items were not affected.");
 				return true;
 			}
-			p.sendMessage("§a[RPCharacters] §cError with command format");
-			return true;
-		}
+		p.sendMessage("§a[RPCharacters] §cError with command format");
 		return true;
 	}
 
@@ -323,13 +340,25 @@ public class CommandManager implements Listener, CommandExecutor{
 		if(PlayerManager.get(p).hasActiveCharacter() || !Cache.requireCharacter || !p.getGameMode().equals(GameMode.SURVIVAL)) return;
         String message = event.getMessage().toLowerCase();
 
+        String raw = event.getMessage().stripLeading();
+        if (raw.startsWith("/")) {
+        	String withoutSlash = raw.substring(1);
+        	int space = withoutSlash.indexOf(' ');
+        	String label = (space < 0 ? withoutSlash : withoutSlash.substring(0, space)).toLowerCase(Locale.ROOT);
+        	if (ChatLoader.getChannelCommands().contains(label)) {
+        		return;
+        	}
+        }
+
         if (message.startsWith("/rpcharacter clues")
         		|| message.startsWith("/rpcharacter")
-        		|| message.startsWith("/class")) {
+        		|| message.equals("/roll")
+        		|| message.startsWith("/roll ")
+        		|| message.startsWith("/tfmc roll")) {
         	return;
         }
 
         event.setCancelled(true);
-        event.getPlayer().sendMessage("§cYou cannot use other commands when you have no character, only §e/rpcharacter §cor §e/class");
+        event.getPlayer().sendMessage("§cYou cannot use other commands when you have no character, only §e/rpcharacter");
     }
 }

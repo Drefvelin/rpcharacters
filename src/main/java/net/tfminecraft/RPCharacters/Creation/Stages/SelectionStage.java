@@ -1,12 +1,15 @@
 package net.tfminecraft.RPCharacters.Creation.Stages;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import net.Indyuce.mmocore.MMOCore;
+import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
@@ -69,6 +72,13 @@ public class SelectionStage extends Stage{
 					options.add(new SelectableItem(t));
 				}
 			}
+		} else if(this.target.equalsIgnoreCase("class")) {
+			List<PlayerClass> classes = new ArrayList<>(MMOCore.plugin.classManager.getAll());
+			classes.sort(Comparator.comparingInt(PlayerClass::getDisplayOrder));
+			for (PlayerClass playerClass : classes) {
+				options.add(new SelectableItem(playerClass));
+			}
+			this.slots = assignClassSlots(options.size(), this.size);
 		}
 	}
 	public SelectionStage(SelectionStage another) {
@@ -174,6 +184,9 @@ public class SelectionStage extends Stage{
 						Trait t = TraitLoader.getByString(item.getId());
 						cc.getCharacter().addTrait(t);
 						p.sendMessage("§aAdded trait "+t.getName());
+					} else if(item.getType().equalsIgnoreCase("class")) {
+						cc.getCharacter().setMMOClass(item.getId());
+						p.sendMessage("§aClass set to "+item.getName());
 					}
 				}
 			}
@@ -209,5 +222,21 @@ public class SelectionStage extends Stage{
 		active = true;
 		InventoryManager inv = new InventoryManager();
 		inv.selectionView(p, this, cc);
+	}
+
+	private static List<Integer> assignClassSlots(int count, int guiSize) {
+		List<Integer> result = new ArrayList<>();
+		int[] preferred = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25,
+				28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
+		int maxUsable = Math.max(0, guiSize - 10);
+		for (int slot : preferred) {
+			if (result.size() >= count) {
+				break;
+			}
+			if (slot < maxUsable) {
+				result.add(slot);
+			}
+		}
+		return result;
 	}
 }

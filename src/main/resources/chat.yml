@@ -1,0 +1,93 @@
+bypass-cooldown-perm: rpchar.chat.bypasscooldown
+default: rp
+no-character-message: '&cYou must have an active character to use this channel. Use &e/rpcharacter &cto create one, or &e/ooc &cfor out-of-character chat.'
+
+channels:
+  rp:
+    commands: [rp]
+    use-perm: rpchar.chat.use
+    read-perm: rpchar.chat.use
+    color-code-perm: rpchar.chat.colors
+    format: '&f{display}&e: &f"&e{message}&f"'
+    range: 15
+    cooldown: 0
+
+  shout:
+    commands: [shout]
+    use-perm: rpchar.chat.use
+    read-perm: rpchar.chat.use
+    color-code-perm: rpchar.chat.colors
+    format: '&f{display}&6 shouts: &f"&6{message}&f"'
+    range: 24
+    cooldown: 0
+
+  yell:
+    commands: [yell, y]
+    use-perm: rpchar.chat.use
+    read-perm: rpchar.chat.use
+    color-code-perm: rpchar.chat.colors
+    format: '&f{display}&c yells: &f"&c&l{message}&f"'
+    range: 48
+    cooldown: 0
+
+  whisper:
+    commands: [whisper, wh]
+    use-perm: rpchar.chat.use
+    read-perm: rpchar.chat.use
+    color-code-perm: rpchar.chat.colors
+    format: '&f{display}#55aaff whispers: &f&o"#55aaff&o{message}&f&o"'
+    range: 2
+    cooldown: 0
+
+  looc:
+    commands: [looc]
+    use-perm: rpchar.chat.use
+    read-perm: rpchar.chat.use
+    color-code-perm: rpchar.chat.colors
+    format: '&f[&2LOOC&f] &f{player}: &7{message}'
+    range: 20
+    cooldown: 0
+
+  ooc:
+    commands: [ooc]
+    require-character: false
+    use-perm: rpchar.chat.use
+    read-perm: rpchar.chat.use
+    color-code-perm: rpchar.chat.colors
+    format: '&f[&9OOC&f] &f{player}: &7{message}'
+    cooldown: 0
+
+  action:
+    commands: [me]
+    use-perm: rpchar.chat.use
+    read-perm: rpchar.chat.use
+    color-code-perm: rpchar.chat.colors
+    format: '&e* &f{display} &d{message}'
+    range: 20
+    cooldown: 0
+
+  admin:
+    commands: [admin, a]
+    require-character: false
+    use-perm: rpchar.chat.admin
+    read-perm: rpchar.chat.admin
+    color-code-perm: rpchar.chat.colors
+    format: '&f[&cAdmin&f] &e{player}: &f{message}'
+
+  helper:
+    commands: [helper, h]
+    require-character: false
+    use-perm: rpchar.chat.helper
+    read-perm: rpchar.chat.helper
+    color-code-perm: rpchar.chat.colors
+    format: '&f[&dHelper&f] &e{player}: &f{message}'
+
+  dm:
+    commands: [dm, narrate]
+    require-character: false
+    use-perm: rpchar.chat.admin
+    read-perm: rpchar.chat.admin
+    color-code-perm: rpchar.chat.colors
+    format: '&7{message}'
+    range: 64
+    cooldown: 0

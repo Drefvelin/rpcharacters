@@ -1,0 +1,5 @@
+masked-label: "Masked"
+
+masks:
+  ghost_mask:
+    item: m.masks.ghost_mask

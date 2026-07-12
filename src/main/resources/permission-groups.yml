@@ -1,0 +1,17 @@
+defaults:
+  name-colour-stops: 0
+  character-switch-cooldown-days: 14
+
+groups:
+  noble:
+    permission: rpchar.group.noble
+    name-colour-stops: 1
+    character-switch-cooldown-days: 10
+  gilded:
+    permission: rpchar.group.gilded
+    name-colour-stops: 2
+    character-switch-cooldown-days: 7
+  ascended:
+    permission: rpchar.group.ascended
+    name-colour-stops: 20
+    character-switch-cooldown-days: 5

@@ -14,50 +14,40 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import net.tfminecraft.RPCharacters.Cache;
-import net.tfminecraft.RPCharacters.Loaders.ConversationChannelLoader;
-import net.tfminecraft.RPCharacters.Managers.ClueInputManager;
-import net.tfminecraft.RPCharacters.Managers.CreationManager;
+import net.tfminecraft.RPCharacters.Loaders.ChatLoader;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
-import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
-
-import net.tfminecraft.RPCharacters.Utils.MaskChecker;
+import net.tfminecraft.RPCharacters.chat.CharacterChatEvent;
+import net.tfminecraft.RPCharacters.chat.ChatChannel;
+import net.tfminecraft.RPCharacters.identity.MaskService;
 
 public class ConversationManager implements Listener {
 
 	private static final Map<String, PendingConversation> pending = new HashMap<>();
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onCommand(PlayerCommandPreprocessEvent event) {
-		Player player = event.getPlayer();
-		if (player.getGameMode() != GameMode.SURVIVAL) {
+	public void onCharacterChat(CharacterChatEvent event) {
+		String channelId = event.getChannel();
+		if (channelId == null) {
+			return;
+		}
+		String normalized = channelId.toLowerCase(Locale.ROOT);
+		if (normalized.equals("looc") || normalized.equals("ooc")) {
+			return;
+		}
+		if (event.isMasked()) {
 			return;
 		}
 
-		String raw = event.getMessage().stripLeading();
-		if (!raw.startsWith("/")) {
+		Player player = event.getSender();
+		if (player == null || player.getGameMode() != GameMode.SURVIVAL) {
 			return;
 		}
 
-		String withoutSlash = raw.substring(1);
-		int space = withoutSlash.indexOf(' ');
-		String label = (space < 0 ? withoutSlash : withoutSlash.substring(0, space)).toLowerCase(Locale.ROOT);
-		String message = space < 0 ? "" : withoutSlash.substring(space + 1).stripLeading();
-		if (message.isEmpty()) {
-			return;
-		}
-
-		String channelKey = ConversationChannelLoader.resolveChannelFromCommand(label);
-		if (channelKey == null) {
-			return;
-		}
-
-		ConversationChannel channel = ConversationChannelLoader.getChannel(channelKey);
+		ChatChannel channel = ChatLoader.getChannel(channelId);
 		if (channel == null) {
 			return;
 		}
@@ -65,47 +55,8 @@ public class ConversationManager implements Listener {
 		recordChannelMessage(player, channel);
 	}
 
-	/**
-	 * Plain chat (no command) is the default rp channel in OpenRP.
-	 * ignoreCancelled=false so we still count when OpenRP cancels and re-broadcasts.
-	 */
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
-	public void onChat(AsyncPlayerChatEvent event) {
-		Player player = event.getPlayer();
-		if (player.getGameMode() != GameMode.SURVIVAL) {
-			return;
-		}
-		if (CreationManager.activeCreators.containsKey(player)) {
-			return;
-		}
-		if (ClueInputManager.consumeConversationSkip(player.getUniqueId())) {
-			return;
-		}
-		if (MaskChecker.isWearingMask(player)) {
-			return;
-		}
-
-		String message = event.getMessage();
-		if (message == null || message.isBlank()) {
-			return;
-		}
-		if (message.stripLeading().startsWith("/")) {
-			return;
-		}
-
-		ConversationChannel channel = ConversationChannelLoader.getDefaultChannel();
-		if (channel == null) {
-			return;
-		}
-
-		Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> recordChannelMessage(player, channel));
-	}
-
-	public static void recordChannelMessage(Player speaker, ConversationChannel channel) {
+	public static void recordChannelMessage(Player speaker, ChatChannel channel) {
 		if (speaker == null || channel == null) {
-			return;
-		}
-		if (MaskChecker.isWearingMask(speaker)) {
 			return;
 		}
 
@@ -128,6 +79,9 @@ public class ConversationManager implements Listener {
 		processReplies(speaker, speakerCharacter, origin, replyRange, now);
 
 		int outboundRange = channel.getRange();
+		if (outboundRange <= 0) {
+			return;
+		}
 		double rangeSq = (double) outboundRange * outboundRange;
 		long expiresAt = now + (Cache.conversationReplyTimeoutSeconds * 1000L);
 
@@ -135,7 +89,7 @@ public class ConversationManager implements Listener {
 			if (target.equals(speaker) || target.getGameMode() != GameMode.SURVIVAL) {
 				continue;
 			}
-			if (MaskChecker.isWearingMask(target)) {
+			if (MaskService.isMasked(target)) {
 				continue;
 			}
 			if (target.getLocation().distanceSquared(origin) > rangeSq) {
@@ -162,6 +116,9 @@ public class ConversationManager implements Listener {
 
 	private static void processReplies(Player replier, RPCharacter replierCharacter, Location replyOrigin,
 			int replyRange, long now) {
+		if (replyRange <= 0) {
+			return;
+		}
 		double rangeSq = (double) replyRange * replyRange;
 		Iterator<Map.Entry<String, PendingConversation>> iterator = pending.entrySet().iterator();
 
@@ -181,7 +138,7 @@ public class ConversationManager implements Listener {
 			if (speakerPlayer == null || !speakerPlayer.isOnline()) {
 				continue;
 			}
-			if (MaskChecker.isWearingMask(speakerPlayer)) {
+			if (MaskService.isMasked(speakerPlayer)) {
 				continue;
 			}
 			if (!speakerPlayer.getWorld().equals(replyOrigin.getWorld())) {

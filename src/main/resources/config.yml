@@ -1,3 +1,5 @@
+continent: Cerrith
+
 attributes:
     - strength
     - dexterity
@@ -30,16 +32,20 @@ base-profession-factor: -10
 
 require-character: true
 
-default-clues-required: 3
+# Verbose RPCharacters feedback when /mmocore admin skill-points give|set runs (sync breakdown, stripped skills).
+skill-points-admin-debug-messages: false
+
+default-clues-required: 2
+evil-clues-required: 4
 clue-min-length: 12
 clue-max-length: 48
 max-clues: 10
 
-trait-clue-overrides:
-    bandit: 8
-    thief: 8
-    assassin: 6
-    mercenary: 4
+character-description:
+  length-minimum: 32
+  length-maximum: 256
+
+trait-clue-overrides: {}
 
 no-character-freeze: true
 lacking-clues-freeze: true
@@ -61,20 +67,3 @@ playtime:
 conversation:
   reply-timeout-seconds: 30
   pair-cooldown-hours: 2
-  # Plain chat (no command) counts as the rp channel (OpenRP default).
-  channels:
-    rp:
-      commands: [rp]
-      range: 15
-    shout:
-      commands: [shout]
-      range: 24
-    yell:
-      commands: [yell, y]
-      range: 48
-    whisper:
-      commands: [whisper, wh]
-      range: 2
-    action:
-      commands: [me]
-      range: 20

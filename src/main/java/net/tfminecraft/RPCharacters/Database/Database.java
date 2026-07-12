@@ -22,12 +22,13 @@ import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.identity.NameColour;
+import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -89,7 +90,13 @@ public class Database {
 						integrator.remove(p, a);
 					}
 				}
-				int cooldown = (int) Math.round(((Double) json.get("cooldown")));
+				Long lastCharacterSwitchAtMs = null;
+				if (json.containsKey("last-character-switch-ms")) {
+					lastCharacterSwitchAtMs = ((Number) json.get("last-character-switch-ms")).longValue();
+				} else if (json.containsKey("cooldown")) {
+					int remainingMinutes = (int) Math.round(((Number) json.get("cooldown")).doubleValue());
+					lastCharacterSwitchAtMs = PermissionGroupService.migrateLegacyCooldownMinutes(remainingMinutes);
+				}
 				boolean eighteen = json.containsKey("eighteen") ? Boolean.parseBoolean((String) json.get("eighteen")) : false;
 				List<String> completedStages = new ArrayList<>();
 				int i = 0;
@@ -102,7 +109,12 @@ public class Database {
 				if (json.containsKey("account-playtime-seconds")) {
 					accountPlaytimeSeconds = ((Number) json.get("account-playtime-seconds")).intValue();
 				}
-				PlayerData pd = new PlayerData(p, completedStages, cooldown, eighteen, accountPlaytimeSeconds);
+				Integer accountSkillPointsTotal = null;
+				if (json.containsKey("account-skill-points-total")) {
+					accountSkillPointsTotal = ((Number) json.get("account-skill-points-total")).intValue();
+				}
+				PlayerData pd = new PlayerData(p, completedStages, lastCharacterSwitchAtMs, eighteen, accountPlaytimeSeconds,
+						accountSkillPointsTotal);
 				loadCharacters(pd);
 				return pd;
 			} catch (Exception ex) {
@@ -110,41 +122,6 @@ public class Database {
 			}
         }
 		return null;
-	}
-	@SuppressWarnings("unchecked")
-	public void tickDownCooldownForOfflinePlayers() {
-		File folder = new File("plugins/RPCharacters/data/playerdata");
-		if (!folder.exists() || !folder.isDirectory()) return;
-
-		File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
-		if (files == null) return;
-
-		for (File file : files) {
-			try {
-				String uuidString = file.getName().replace(".json", "");
-				OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(java.util.UUID.fromString(uuidString));
-
-				if (offlinePlayer.isOnline()) continue; // Skip online players
-
-				JSONObject json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
-
-				// Ensure the cooldown exists and is a number
-				if (json.containsKey("cooldown")) {
-					double cooldown = ((Number) json.get("cooldown")).doubleValue();
-					if (cooldown > 0) {
-						json.put("cooldown", cooldown - 1);
-						
-						// Write the updated JSON back to file
-						try (FileWriter writer = new FileWriter(file)) {
-							Gson gson = new GsonBuilder().setPrettyPrinting().create();
-							gson.toJson(json, writer);
-						}
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace(); // Log per-file issues
-			}
-		}
 	}
 	public void loadCharacters(PlayerData pd) {
 		File folder = new File("plugins/RPCharacters/data/characterdata", pd.getPlayer().getUniqueId().toString());
@@ -193,6 +170,7 @@ public class Database {
     				}
     				c.setConversationCounts(loadConversationCounts(json));
     				c.setConversationLastAtMs(loadConversationLastAt(json));
+    				loadPersonaFields(c, json);
     				if(c.isActive()) {
     					Integrator integrator = new Integrator();
     					integrator.integrate(pd.getPlayer(), c);
@@ -218,8 +196,10 @@ public class Database {
         	pw.close();
             HashMap<String, Object> defaults = new HashMap<String, Object>();
         	json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
-        	defaults.put("cooldown", pd.getRemainingTime());
-			defaults.put("eighteen", String.valueOf(pd.isEighteen()));
+        	defaults.put("eighteen", String.valueOf(pd.isEighteen()));
+			if (pd.getLastCharacterSwitchAtMs() != null) {
+				defaults.put("last-character-switch-ms", pd.getLastCharacterSwitchAtMs());
+			}
         	int i = 0;
         	JSONArray stageArray = new JSONArray();
         	while(i < pd.getCompletedStages().size()) {
@@ -228,6 +208,9 @@ public class Database {
         	}
         	defaults.put("completed stages", stageArray);
 			defaults.put("account-playtime-seconds", pd.getAccountPlaytimeSeconds());
+			if (!pd.needsSkillPointsMigration()) {
+				defaults.put("account-skill-points-total", pd.getAccountSkillPointsTotal());
+			}
         	for(RPCharacter c : pd.getCharacters()) {
         		saveCharacter(pd, c);
         		if(c.isActive()) {
@@ -283,6 +266,7 @@ public class Database {
 			defaults.put("playtime-seconds", c.getPlaytimeSeconds());
 			defaults.put("conversations", toConversationCountsJson(c.getConversationCounts()));
 			defaults.put("conversation-last-at", toConversationLastAtJson(c.getConversationLastAtMs()));
+			savePersonaFields(defaults, c);
         	save(file, defaults);
         } catch (Throwable ex) {
 			ex.printStackTrace();
@@ -421,5 +405,51 @@ public class Database {
 			conversationLastAt.put(entry.getKey(), entry.getValue());
 		}
 		return conversationLastAt;
+	}
+
+	private void loadPersonaFields(RPCharacter character, JSONObject characterJson) {
+		if (characterJson.containsKey("alias")) {
+			character.setAlias((String) characterJson.get("alias"));
+		}
+		if (characterJson.containsKey("gender")) {
+			character.setGender((String) characterJson.get("gender"));
+		}
+		if (characterJson.containsKey("description")) {
+			character.setPersonaDescription((String) characterJson.get("description"));
+		}
+		if (characterJson.containsKey("name-colour")) {
+			Object raw = characterJson.get("name-colour");
+			if (raw instanceof JSONObject colourJson) {
+				character.setNameColour(NameColour.fromJson(colourJson));
+			}
+		}
+		if (characterJson.containsKey("name-colour-staff")) {
+			character.setNameColourStaffOverride(Boolean.parseBoolean(characterJson.get("name-colour-staff").toString()));
+		}
+		if (characterJson.containsKey("birthday")) {
+			character.setBirthday((String) characterJson.get("birthday"));
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void savePersonaFields(HashMap<String, Object> defaults, RPCharacter character) {
+		if (character.getAlias() != null && !character.getAlias().isBlank()) {
+			defaults.put("alias", character.getAlias());
+		}
+		if (character.getGender() != null && !character.getGender().isBlank()) {
+			defaults.put("gender", character.getGender());
+		}
+		if (character.getPersonaDescription() != null && !character.getPersonaDescription().isBlank()) {
+			defaults.put("description", character.getPersonaDescription());
+		}
+		if (character.getNameColour() != null) {
+			defaults.put("name-colour", character.getNameColour().toJsonObject());
+		}
+		if (character.isNameColourStaffOverride()) {
+			defaults.put("name-colour-staff", "true");
+		}
+		if (character.getBirthday() != null && !character.getBirthday().isBlank()) {
+			defaults.put("birthday", character.getBirthday());
+		}
 	}
 }

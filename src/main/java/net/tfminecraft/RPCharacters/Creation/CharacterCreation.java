@@ -2,14 +2,11 @@ package net.tfminecraft.RPCharacters.Creation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import org.bukkit.Bukkit;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-import net.Indyuce.mmocore.api.MMOCoreAPI;
 import net.Indyuce.mmocore.api.player.profess.PlayerClass;
+import net.tfminecraft.RPCharacters.mmocore.ClassService;
 import net.tfminecraft.RPCharacters.Creation.Stages.ClueStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.InfoStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
@@ -55,9 +52,6 @@ public class CharacterCreation {
 	public CharacterCreation(Player p) {
 		this.p = p;
 		oldclass = net.Indyuce.mmocore.api.player.PlayerData.get(p).getProfess();
-		ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
-		String command = "mmocore admin class-points set " + p.getName() + " " + 1;
-		Bukkit.dispatchCommand(console, command);
 		stages = StageLoader.getNew();
 		character = new RPCharacter(p);
 		currentStage = 0;
@@ -130,14 +124,12 @@ public class CharacterCreation {
 			p.sendMessage("§cYou must enter all required clues before finishing character creation.");
 			return;
 		}
-		ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
-		String command = "mmocore admin class-points set " + p.getName() + " " + 0;
-		Bukkit.dispatchCommand(console, command);
 		PlayerData pd = PlayerManager.get(p);
 		character.update();
 		pd.addCharacter(character);
 		pd.setActiveCharacter(character);
 		RPCharacters.getPlayerManager().reevaluateFreeze(p);
+		RPCharacters.getPlayerManager().savePlayer(p);
 		p.sendTitle("§aFinished!", "§eCharacter §7"+character.getName()+"§e created!", 5, 50, 5);
 	}
 
@@ -146,14 +138,11 @@ public class CharacterCreation {
 	}
 
 	public void cancel() {
-		ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
-		String command = "mmocore admin class-points set " + p.getName() + " " + 0;
-		Bukkit.dispatchCommand(console, command);
 		CreationManager.activeCreators.remove(p);
 		Stage s = stages.get(currentStage);
 		cancelled = true;
 		if(oldclass != null) {
-			net.Indyuce.mmocore.api.player.PlayerData.get(p).setClass(oldclass);
+			ClassService.applyClass(p, oldclass.getId());
 			p.sendMessage("§cYour class was set back to "+oldclass.getName());
 		}
 		p.sendTitle("§cCancelled!", "§eCharacter creation cancelled", 5, 50, 5);
