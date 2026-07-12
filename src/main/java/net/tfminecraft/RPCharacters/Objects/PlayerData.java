@@ -15,17 +15,35 @@ public class PlayerData {
 	
 	private List<RPCharacter> characters = new ArrayList<>();
 	private List<String> completedStages = new ArrayList<>();
+	private int accountPlaytimeSeconds;
 	
 	public PlayerData(Player p) {
 		this.p = p;
 		this.cooldown = 0;
 		this.eighteen = false;
+		this.accountPlaytimeSeconds = 0;
 	}
-	public PlayerData(Player p, List<String> cs, int c, boolean b) {
+	public PlayerData(Player p, List<String> cs, int c, boolean b, int accountPlaytimeSeconds) {
 		this.p = p;
 		this.completedStages = cs;
 		cooldown = c;
 		eighteen = b;
+		this.accountPlaytimeSeconds = Math.max(0, accountPlaytimeSeconds);
+	}
+
+	public int getAccountPlaytimeSeconds() {
+		return accountPlaytimeSeconds;
+	}
+
+	public void setAccountPlaytimeSeconds(int accountPlaytimeSeconds) {
+		this.accountPlaytimeSeconds = Math.max(0, accountPlaytimeSeconds);
+	}
+
+	public void addAccountPlaytimeSeconds(int seconds) {
+		if (seconds <= 0) {
+			return;
+		}
+		accountPlaytimeSeconds += seconds;
 	}
 
 	public boolean isEighteen() {

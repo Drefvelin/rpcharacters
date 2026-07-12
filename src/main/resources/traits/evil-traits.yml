@@ -1,6 +1,7 @@
 bandit:
     name: "§4Bandit"
     key: evil
+    required-account-playtime: 24
     dependency:
         type: trait
         mode: one-or-more
@@ -20,6 +21,7 @@ bandit:
 assassin:
     name: "§8Assassin"
     key: evil
+    required-account-playtime: 24
     dependency:
         type: trait
         mode: one-or-more
@@ -41,6 +43,7 @@ assassin:
 thief:
     name: "§cThief"
     key: evil
+    required-account-playtime: 24
     dependency:
         type: trait
         mode: one-or-more
@@ -59,6 +62,7 @@ thief:
 mercenary:
     name: "§eMercenary"
     key: evil
+    required-account-playtime: 24
     dependency:
         type: trait
         mode: one-or-more

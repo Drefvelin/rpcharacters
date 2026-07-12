@@ -54,3 +54,27 @@ spawned-clue-scale: 0.6
 spawned-clue-particle-interval: 10
 spawned-clue-line-length: 18
 clue-spawn-radius: 3
+
+playtime:
+  tick-seconds: 60
+
+conversation:
+  reply-timeout-seconds: 30
+  pair-cooldown-hours: 2
+  # Plain chat (no command) counts as the rp channel (OpenRP default).
+  channels:
+    rp:
+      commands: [rp]
+      range: 15
+    shout:
+      commands: [shout]
+      range: 24
+    yell:
+      commands: [yell, y]
+      range: 48
+    whisper:
+      commands: [whisper, wh]
+      range: 2
+    action:
+      commands: [me]
+      range: 20

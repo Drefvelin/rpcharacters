@@ -16,6 +16,7 @@ public class TraitData {
 	
 	private Dependency dependency;
 	private AttributeData data;
+	private int requiredAccountPlaytimeSeconds;
 	
 	public TraitData(ConfigurationSection config) {
 		key = config.getString("key");
@@ -39,6 +40,12 @@ public class TraitData {
 			}
 		}
 		data = new AttributeData(config);
+		if (config.contains("required-account-playtime")) {
+			double hours = config.getDouble("required-account-playtime");
+			if (hours > 0) {
+				requiredAccountPlaytimeSeconds = (int) Math.round(hours * 3600.0);
+			}
+		}
 	}
 	
 	public boolean hasDependency() {
@@ -91,6 +98,10 @@ public class TraitData {
 
 	public List<PotionData> getPotionEffects() {
 		return potionEffects;
+	}
+
+	public int getRequiredAccountPlaytimeSeconds() {
+		return requiredAccountPlaytimeSeconds;
 	}
 	
 	

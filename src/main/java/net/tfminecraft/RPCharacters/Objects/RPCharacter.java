@@ -2,7 +2,9 @@ package net.tfminecraft.RPCharacters.Objects;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
@@ -41,6 +43,10 @@ public class RPCharacter {
 	private List<Trait> traits = new ArrayList<Trait>();
 
 	private List<String> playerClues = new ArrayList<>();
+
+	private int playtimeSeconds;
+	private Map<String, Integer> conversationCounts = new HashMap<>();
+	private Map<String, Long> conversationLastAtMs = new HashMap<>();
 	
 	private AttributeData attributeData;
 	
@@ -283,5 +289,64 @@ public class RPCharacter {
 			default:
 				return null;
 		}
+	}
+
+	public int getPlaytimeSeconds() {
+		return playtimeSeconds;
+	}
+
+	public void setPlaytimeSeconds(int playtimeSeconds) {
+		this.playtimeSeconds = Math.max(0, playtimeSeconds);
+	}
+
+	public void addPlaytimeSeconds(int seconds) {
+		if (seconds <= 0) {
+			return;
+		}
+		playtimeSeconds += seconds;
+	}
+
+	public Map<String, Integer> getConversationCounts() {
+		return conversationCounts;
+	}
+
+	public void setConversationCounts(Map<String, Integer> conversationCounts) {
+		this.conversationCounts = conversationCounts != null ? new HashMap<>(conversationCounts) : new HashMap<>();
+	}
+
+	public Map<String, Long> getConversationLastAtMs() {
+		return conversationLastAtMs;
+	}
+
+	public void setConversationLastAtMs(Map<String, Long> conversationLastAtMs) {
+		this.conversationLastAtMs = conversationLastAtMs != null ? new HashMap<>(conversationLastAtMs) : new HashMap<>();
+	}
+
+	public int getConversationCount(String otherCharacterId) {
+		if (otherCharacterId == null) {
+			return 0;
+		}
+		return conversationCounts.getOrDefault(otherCharacterId, 0);
+	}
+
+	public boolean canCountConversationWith(RPCharacter other, long nowMs) {
+		if (other == null) {
+			return false;
+		}
+		Long lastAt = conversationLastAtMs.get(other.getId());
+		if (lastAt == null) {
+			return true;
+		}
+		long cooldownMs = Cache.conversationPairCooldownHours * 60L * 60L * 1000L;
+		return nowMs - lastAt >= cooldownMs;
+	}
+
+	public void recordConversationWith(RPCharacter other, long nowMs) {
+		if (other == null) {
+			return;
+		}
+		String otherId = other.getId();
+		conversationCounts.put(otherId, getConversationCount(otherId) + 1);
+		conversationLastAtMs.put(otherId, nowMs);
 	}
 }

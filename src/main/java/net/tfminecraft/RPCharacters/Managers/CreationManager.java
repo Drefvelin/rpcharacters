@@ -20,10 +20,12 @@ import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
 import net.tfminecraft.RPCharacters.Holder.RPCHolder;
+import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Utils.PlaytimeGate;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class CreationManager implements Listener{
@@ -109,6 +111,14 @@ public class CreationManager implements Listener{
 					if(item.hasDependency()) {
 						if(!item.getDependency().check(c)) {
 							p.sendMessage("§cLacking requirements");
+							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+							return;
+						}
+					}
+					if (item.getType().equalsIgnoreCase("trait")) {
+						Trait trait = TraitLoader.getByString(item.getId());
+						if (trait != null && !PlaytimeGate.canSelectTrait(p, trait)) {
+							p.sendMessage(PlaytimeGate.denialMessage(p, trait));
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
 						}

@@ -1,6 +1,8 @@
 package net.tfminecraft.RPCharacters;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,6 +20,9 @@ import net.tfminecraft.RPCharacters.Managers.CommandManager;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Managers.SpawnedClueManager;
+import net.tfminecraft.RPCharacters.conversation.ConversationManager;
+import net.tfminecraft.RPCharacters.Objects.PlayerData;
+import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Utils.CommandTabCompleter;
 
 public class RPCharacters extends JavaPlugin{
@@ -29,6 +34,7 @@ public class RPCharacters extends JavaPlugin{
 	private final ClueInputManager clueInputManager = new ClueInputManager();
 	private final SpawnedClueManager spawnedClueManager = SpawnedClueManager.get();
 	private final ClueItemListener clueItemListener = new ClueItemListener();
+	private final ConversationManager conversationManager = new ConversationManager();
 	
 	private final ConfigLoader configLoader = new ConfigLoader();
 	private final StageLoader stageLoader = new StageLoader();
@@ -73,6 +79,7 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(clueItemListener, this);
 		getServer().getPluginManager().registerEvents(commandManager, this);
 		getServer().getPluginManager().registerEvents(spawnedClueManager, this);
+		getServer().getPluginManager().registerEvents(conversationManager, this);
 		
 	}
 	public void startManagers() {
@@ -135,5 +142,25 @@ public class RPCharacters extends JavaPlugin{
 
 	public static SpawnedClueManager getSpawnedClueManager() {
 		return SpawnedClueManager.get();
+	}
+
+	public static int getAccountPlaytimeSeconds(Player player) {
+		if (player == null) {
+			return 0;
+		}
+		PlayerData data = PlayerManager.get(player);
+		return data != null ? data.getAccountPlaytimeSeconds() : 0;
+	}
+
+	public static int getCharacterPlaytimeSeconds(RPCharacter character) {
+		return character != null ? character.getPlaytimeSeconds() : 0;
+	}
+
+	public static int getConversationCount(RPCharacter character, String otherCharacterId) {
+		return character != null ? character.getConversationCount(otherCharacterId) : 0;
+	}
+
+	public static List<Map.Entry<String, Integer>> getTopConversationPartners(RPCharacter character, int limit) {
+		return ConversationManager.getTopPartners(character, limit);
 	}
 }

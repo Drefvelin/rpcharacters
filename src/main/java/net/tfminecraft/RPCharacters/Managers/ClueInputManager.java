@@ -2,6 +2,9 @@ package net.tfminecraft.RPCharacters.Managers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -19,6 +22,11 @@ import net.tfminecraft.RPCharacters.enums.ClueAddResult;
 public class ClueInputManager implements Listener {
 
 	private static final Map<Player, String> pendingCharacterId = new HashMap<>();
+	private static final Set<UUID> skipConversationTracking = ConcurrentHashMap.newKeySet();
+
+	public static boolean consumeConversationSkip(UUID playerId) {
+		return skipConversationTracking.remove(playerId);
+	}
 
 	public static void beginInput(Player player, String characterId) {
 		pendingCharacterId.put(player, characterId);
@@ -41,6 +49,7 @@ public class ClueInputManager implements Listener {
 		if (!pendingCharacterId.containsKey(player)) return;
 		if (CreationManager.activeCreators.containsKey(player)) return;
 
+		skipConversationTracking.add(player.getUniqueId());
 		event.setCancelled(true);
 		String message = event.getMessage();
 		String characterId = pendingCharacterId.remove(player);

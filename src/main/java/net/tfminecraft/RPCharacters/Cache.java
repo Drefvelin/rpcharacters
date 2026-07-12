@@ -41,4 +41,7 @@ public class Cache {
 	public static int spawnedClueParticleInterval;
 	public static int clueSpawnRadius;
 	public static int spawnedClueLineLength;
+	public static int playtimeTickSeconds = 60;
+	public static int conversationReplyTimeoutSeconds = 30;
+	public static int conversationPairCooldownHours = 2;
 }

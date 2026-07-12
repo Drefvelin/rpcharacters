@@ -27,6 +27,7 @@ import net.Indyuce.mmocore.api.event.PlayerChangeClassEvent;
 import net.Indyuce.mmocore.api.event.PlayerExperienceGainEvent;
 import net.Indyuce.mmocore.api.player.attribute.PlayerAttributes.AttributeInstance;
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Database.Database;
@@ -189,9 +190,23 @@ public class PlayerManager implements Listener{
 			{
 				db.tickDownCooldownForOfflinePlayers();
 				for(Player p : Bukkit.getOnlinePlayers()) {
+					if (p.getGameMode() != GameMode.SURVIVAL) {
+						continue;
+					}
 					PlayerData pd = get(p);
-					if(!pd.hasCooldown()) continue;
-					pd.tick();
+					if (pd == null) {
+						continue;
+					}
+					pd.addAccountPlaytimeSeconds(Cache.playtimeTickSeconds);
+					if (pd.hasActiveCharacter()) {
+						RPCharacter active = pd.getActiveCharacter();
+						if (active != null) {
+							active.addPlaytimeSeconds(Cache.playtimeTickSeconds);
+						}
+					}
+					if (pd.hasCooldown()) {
+						pd.tick();
+					}
 				}
 			}
 		}.runTaskTimer(RPCharacters.plugin, 0L, 1200L);

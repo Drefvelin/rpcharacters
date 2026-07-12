@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -97,7 +98,11 @@ public class Database {
 					completedStages.add(stageArray.get(i).toString());
 					i++;
 				}
-				PlayerData pd = new PlayerData(p, completedStages, cooldown, eighteen);
+				int accountPlaytimeSeconds = 0;
+				if (json.containsKey("account-playtime-seconds")) {
+					accountPlaytimeSeconds = ((Number) json.get("account-playtime-seconds")).intValue();
+				}
+				PlayerData pd = new PlayerData(p, completedStages, cooldown, eighteen, accountPlaytimeSeconds);
 				loadCharacters(pd);
 				return pd;
 			} catch (Exception ex) {
@@ -143,7 +148,14 @@ public class Database {
 	}
 	public void loadCharacters(PlayerData pd) {
 		File folder = new File("plugins/RPCharacters/data/characterdata", pd.getPlayer().getUniqueId().toString());
-    	for (final File file : folder.listFiles()) {
+		if (!folder.exists() || !folder.isDirectory()) {
+			return;
+		}
+		File[] files = folder.listFiles();
+		if (files == null) {
+			return;
+		}
+    	for (final File file : files) {
             if (!file.isDirectory()) {
             	try {
     				json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
@@ -176,6 +188,11 @@ public class Database {
     					}
     				}
     				RPCharacter c = new RPCharacter(pd.getPlayer(), id, name, active, status, r, traits, mmoClass, clues);
+    				if (json.containsKey("playtime-seconds")) {
+    					c.setPlaytimeSeconds(((Number) json.get("playtime-seconds")).intValue());
+    				}
+    				c.setConversationCounts(loadConversationCounts(json));
+    				c.setConversationLastAtMs(loadConversationLastAt(json));
     				if(c.isActive()) {
     					Integrator integrator = new Integrator();
     					integrator.integrate(pd.getPlayer(), c);
@@ -210,6 +227,7 @@ public class Database {
         		i++;
         	}
         	defaults.put("completed stages", stageArray);
+			defaults.put("account-playtime-seconds", pd.getAccountPlaytimeSeconds());
         	for(RPCharacter c : pd.getCharacters()) {
         		saveCharacter(pd, c);
         		if(c.isActive()) {
@@ -262,6 +280,9 @@ public class Database {
         		i++;
         	}
         	defaults.put("clues", clueArray);
+			defaults.put("playtime-seconds", c.getPlaytimeSeconds());
+			defaults.put("conversations", toConversationCountsJson(c.getConversationCounts()));
+			defaults.put("conversation-last-at", toConversationLastAtJson(c.getConversationLastAtMs()));
         	save(file, defaults);
         } catch (Throwable ex) {
 			ex.printStackTrace();
@@ -341,4 +362,64 @@ public class Database {
 		     return json.containsKey(key) ? (JSONArray) json.get(key)
 		       : (defaults.containsKey(key) ? (JSONArray) defaults.get(key) : new JSONArray());
 	  }
+
+	private Map<String, Integer> loadConversationCounts(JSONObject characterJson) {
+		Map<String, Integer> counts = new HashMap<>();
+		if (!characterJson.containsKey("conversations")) {
+			return counts;
+		}
+		Object raw = characterJson.get("conversations");
+		if (!(raw instanceof JSONObject)) {
+			return counts;
+		}
+		JSONObject conversations = (JSONObject) raw;
+		for (Object key : conversations.keySet()) {
+			Object value = conversations.get(key);
+			if (value instanceof Number) {
+				counts.put(key.toString(), ((Number) value).intValue());
+			}
+		}
+		return counts;
+	}
+
+	private Map<String, Long> loadConversationLastAt(JSONObject characterJson) {
+		Map<String, Long> lastAt = new HashMap<>();
+		if (!characterJson.containsKey("conversation-last-at")) {
+			return lastAt;
+		}
+		Object raw = characterJson.get("conversation-last-at");
+		if (!(raw instanceof JSONObject)) {
+			return lastAt;
+		}
+		JSONObject conversationLastAt = (JSONObject) raw;
+		for (Object key : conversationLastAt.keySet()) {
+			Object value = conversationLastAt.get(key);
+			if (value instanceof Number) {
+				lastAt.put(key.toString(), ((Number) value).longValue());
+			}
+		}
+		return lastAt;
+	}
+
+	private JSONObject toConversationCountsJson(Map<String, Integer> counts) {
+		JSONObject conversations = new JSONObject();
+		if (counts == null) {
+			return conversations;
+		}
+		for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+			conversations.put(entry.getKey(), entry.getValue());
+		}
+		return conversations;
+	}
+
+	private JSONObject toConversationLastAtJson(Map<String, Long> lastAt) {
+		JSONObject conversationLastAt = new JSONObject();
+		if (lastAt == null) {
+			return conversationLastAt;
+		}
+		for (Map.Entry<String, Long> entry : lastAt.entrySet()) {
+			conversationLastAt.put(entry.getKey(), entry.getValue());
+		}
+		return conversationLastAt;
+	}
 }

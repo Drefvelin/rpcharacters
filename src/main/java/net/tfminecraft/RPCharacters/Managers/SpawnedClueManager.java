@@ -132,6 +132,34 @@ public class SpawnedClueManager implements Listener {
 		return toRemove.size();
 	}
 
+	/**
+	 * Removes spawned world clue markers linked to the given block via target block coords.
+	 * Does not affect clue paper items in inventories or chests.
+	 */
+	public int clearLinkedToBlock(Location block) {
+		if (block == null || block.getWorld() == null) return 0;
+
+		String worldName = block.getWorld().getName();
+		int blockX = block.getBlockX();
+		int blockY = block.getBlockY();
+		int blockZ = block.getBlockZ();
+
+		List<SpawnedClue> toRemove = new ArrayList<>();
+		for (SpawnedClue clue : byId.values()) {
+			if (!clue.hasTargetBlock()) continue;
+			if (!worldName.equals(clue.getWorldName())) continue;
+			if (blockX == clue.getTargetBlockX()
+					&& blockY == clue.getTargetBlockY()
+					&& blockZ == clue.getTargetBlockZ()) {
+				toRemove.add(clue);
+			}
+		}
+		for (SpawnedClue clue : toRemove) {
+			remove(clue);
+		}
+		return toRemove.size();
+	}
+
 	public void spawnVisuals(SpawnedClue clue) {
 		if (clue == null || clue.isExpired()) return;
 		runSync(() -> ClueHologram.refresh(clue));
