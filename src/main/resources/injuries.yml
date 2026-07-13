@@ -1,0 +1,9 @@
+injuries:
+  one_handed:
+    weight: 25
+  one_legged:
+    weight: 25
+  blind:
+    weight: 20
+  half_blind:
+    weight: 30

@@ -1,0 +1,69 @@
+enabled: true
+debug-messages: true
+generic-muffle: true
+sender-hears-self: true
+fade-start-percent: 0.6
+min-audible: 0.05
+full-clarity: 0.85
+low-intelligibility-threshold: 0.15
+low-intelligibility-placeholder: '&7*muffled voices*'
+ray-step: 0.5
+# Max summed block opacity along the ray (soft cap for very long solid paths).
+occlusion-max-weight: 3.0
+# Higher = steeper falloff through walls. Exponential curve: exp(-weight * curve).
+occlusion-curve: 2.2
+
+listener-anchor-search:
+  enabled: true
+  diagonals: true
+  early-exit-clear-los: true
+
+# Which blocks block sound and how strongly. Most materials use blast-resistance tiers automatically.
+sound-occlusion:
+  # Blocks with less than this collision fill are treated as permeable (fences, pots, etc.).
+  collision-fill-threshold: 0.30
+
+# Optional per-material overrides. Unlisted solids use blast-resistance tiers via sound-occlusion.
+block-attenuation:
+  default: 0.35
+  GLASS: 0.06
+  TINTED_GLASS: 0.10
+  LEAVES: 0.10
+  OBSIDIAN: 0.62
+
+muffle-rules:
+  - replace: th
+    to: th...
+    min-intelligibility: 0.0
+    max-intelligibility: 0.7
+    percentage: 70
+  - replace: sh
+    to: sh...
+    min-intelligibility: 0.0
+    max-intelligibility: 0.6
+    percentage: 60
+  - replace: "-end-"
+    to: ...
+    min-intelligibility: 0.0
+    max-intelligibility: 0.5
+    percentage: 40
+
+# Listener Charisma partially recovers muffled intelligibility (linear charisma/scale, capped at max-boost).
+# Does not affect range, occlusion, or channels with range 0 (OOC/global).
+charisma-hearing:
+  enabled: true
+  attribute: charisma
+  max-boost: 0.20
+  scale: 40
+  placeholder-boost-multiplier: 0.5
+
+# Hide speaker name when speech is muffled and the listener has no line of sight.
+anonymous-muffled-voice:
+  enabled: true
+  # Intelligibility below this (after charisma boost) is too muffled to recognise the voice.
+  max-intelligibility: 0.65
+  anonymous-display: "???"
+
+# Suppress *muffled voices* while listener is in an active IC conversation (see conversation.reply-timeout-seconds).
+placeholder-suppression:
+  enabled: true

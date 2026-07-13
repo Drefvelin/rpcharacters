@@ -1,15 +1,12 @@
 package net.tfminecraft.RPCharacters.Creation.Stages;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import net.Indyuce.mmocore.MMOCore;
-import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
@@ -18,8 +15,11 @@ import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.InventoryManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
+import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
+import net.tfminecraft.RPCharacters.mmocore.MmoCoreClassGuiHelper;
 
 public class SelectionStage extends Stage{
 	private String target;
@@ -27,6 +27,7 @@ public class SelectionStage extends Stage{
 	private int maxSelect;
 	private int selections;
 	private int points;
+	private int initialPoints;
 	private boolean hasPoints;
 	private int size;
 	private boolean active;
@@ -37,11 +38,7 @@ public class SelectionStage extends Stage{
 	private List<Integer> slots = new ArrayList<>();
 	
 	public SelectionStage(Stage s, ConfigurationSection config) {
-		setId(s.getId());
-		setRepeat(s.shouldRepeat());
-		setAutoNext(s.autoNext());
-		setCancelled(s.isCancelled());
-		if(s.hasDependency()) setDependency(s.getDependency());
+		copyBaseFields(s);
 		this.key = config.getString("key");
 		this.active = false;
 		this.target = config.getString("target");
@@ -51,9 +48,11 @@ public class SelectionStage extends Stage{
 		this.selections = 0;
 		if(config.contains("points")) {
 			this.points = config.getInt("points");
+			this.initialPoints = this.points;
 			this.hasPoints = true;
 		} else {
 			this.points = 0;
+			this.initialPoints = 0;
 		}
 		if(config.contains("gui-size")) {
 			this.size = config.getInt("gui-size");
@@ -73,20 +72,13 @@ public class SelectionStage extends Stage{
 				}
 			}
 		} else if(this.target.equalsIgnoreCase("class")) {
-			List<PlayerClass> classes = new ArrayList<>(MMOCore.plugin.classManager.getAll());
-			classes.sort(Comparator.comparingInt(PlayerClass::getDisplayOrder));
-			for (PlayerClass playerClass : classes) {
-				options.add(new SelectableItem(playerClass));
-			}
-			this.slots = assignClassSlots(options.size(), this.size);
+			MmoCoreClassGuiHelper.ClassGuiData classData = MmoCoreClassGuiHelper.buildClassOptions(this.size);
+			options.addAll(classData.getOptions());
+			this.slots = classData.getSlots();
 		}
 	}
 	public SelectionStage(SelectionStage another) {
-		setId(another.getId());
-		setRepeat(another.shouldRepeat());
-		setAutoNext(another.autoNext());
-		if(another.hasDependency()) setDependency(another.getDependency());
-		setCancelled(another.isCancelled());
+		copyBaseFields(another);
 		this.active = false;
 		this.target = another.getTarget();
 		this.options = another.getNewOptions();
@@ -95,6 +87,7 @@ public class SelectionStage extends Stage{
 		this.slots = another.getSlots();
 		this.selections = 0;
 		this.points = another.getPoints();
+		this.initialPoints = another.getInitialPoints();
 		this.hasPoints = another.hasPoints();
 		this.size = another.getSize();
 		this.key = another.getKey();
@@ -166,27 +159,85 @@ public class SelectionStage extends Stage{
 		return options;
 	}
 	
+	public int getInitialPoints() {
+		return initialPoints;
+	}
+
+	public void hydrateFromCharacter(RPCharacter character) {
+		selected.clear();
+		selections = 0;
+		if (hasPoints) {
+			points = initialPoints;
+		}
+		for (SelectableItem item : options) {
+			item.setSelected(false);
+		}
+		if (character == null) {
+			return;
+		}
+		if (target.equalsIgnoreCase("class") && character.hasMMOClass()) {
+			for (SelectableItem item : options) {
+				if (item.getId().equalsIgnoreCase(character.getMMOClass())) {
+					item.setSelected(true);
+					select(item);
+					break;
+				}
+			}
+		} else if (target.equalsIgnoreCase("race") && character.getRace() != null) {
+			for (SelectableItem item : options) {
+				if (item.getId().equalsIgnoreCase(character.getRace().getId())) {
+					item.setSelected(true);
+					select(item);
+					break;
+				}
+			}
+		} else if (target.equalsIgnoreCase("trait") && key != null) {
+			for (Trait trait : character.getTraits()) {
+				if (!trait.getTraitData().getKey().equalsIgnoreCase(key)) {
+					continue;
+				}
+				for (SelectableItem item : options) {
+					if (item.getId().equalsIgnoreCase(trait.getId())) {
+						item.setSelected(true);
+						select(item);
+					}
+				}
+			}
+		}
+	}
+
 	public void confirm(Player p, CharacterCreation cc) {
 		if(selections < minSelect) {
-			p.sendMessage("§cYou need to select at least "+minSelect+ " options!");
+			RPTexts.send(p, RPTexts.ERROR + "Need at least " + minSelect + ".");
 			return;
 		}
 		active = false;
 		p.closeInventory();
 		if(cc != null) {
+			if (target.equalsIgnoreCase("trait") && key != null) {
+				List<Trait> toRemove = new ArrayList<>();
+				for (Trait trait : cc.getCharacter().getTraits()) {
+					if (trait.getTraitData().getKey().equalsIgnoreCase(key)) {
+						toRemove.add(trait);
+					}
+				}
+				for (Trait trait : toRemove) {
+					cc.getCharacter().removeTrait(trait);
+				}
+			}
 			for(SelectableItem item : options) {
 				if(item.isSelected()) {
 					if(item.getType().equalsIgnoreCase("race")) {
 						Race r = RaceLoader.getByString(item.getId());
 						cc.getCharacter().setRace(r);
-						p.sendMessage("§aRace set to "+r.getName());
+						RPTexts.send(p, RPTexts.SUCCESS + "Race set to " + r.getName());
 					} else if(item.getType().equalsIgnoreCase("trait")) {
 						Trait t = TraitLoader.getByString(item.getId());
 						cc.getCharacter().addTrait(t);
-						p.sendMessage("§aAdded trait "+t.getName());
+						RPTexts.send(p, RPTexts.SUCCESS + "Added trait " + t.getName());
 					} else if(item.getType().equalsIgnoreCase("class")) {
 						cc.getCharacter().setMMOClass(item.getId());
-						p.sendMessage("§aClass set to "+item.getName());
+						RPTexts.send(p, RPTexts.SUCCESS + "Class set to " + item.getName());
 					}
 				}
 			}
@@ -194,7 +245,9 @@ public class SelectionStage extends Stage{
 			{
 				public void run()
 				{
-					if(autoNext()) {
+					if (cc.isEditingFromSummary()) {
+						cc.returnToSummary();
+					} else if(autoNext()) {
 						cc.runStage();
 					} else {
 						cc.setCanNext(true);
@@ -222,21 +275,5 @@ public class SelectionStage extends Stage{
 		active = true;
 		InventoryManager inv = new InventoryManager();
 		inv.selectionView(p, this, cc);
-	}
-
-	private static List<Integer> assignClassSlots(int count, int guiSize) {
-		List<Integer> result = new ArrayList<>();
-		int[] preferred = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25,
-				28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
-		int maxUsable = Math.max(0, guiSize - 10);
-		for (int slot : preferred) {
-			if (result.size() >= count) {
-				break;
-			}
-			if (slot < maxUsable) {
-				result.add(slot);
-			}
-		}
-		return result;
 	}
 }

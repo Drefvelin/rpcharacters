@@ -24,6 +24,15 @@ public class StageLoader implements LoaderInterface{
 		}
 		return newList;
 	}
+
+	public static Stage getById(String id) {
+		for (Stage stage : oList) {
+			if (stage.getId().equals(id)) {
+				return stage;
+			}
+		}
+		return null;
+	}
 	
 	@Override
 	public void load(File configFile) {

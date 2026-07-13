@@ -27,6 +27,7 @@ import net.tfminecraft.RPCharacters.identity.MaskService;
 public class ConversationManager implements Listener {
 
 	private static final Map<String, PendingConversation> pending = new HashMap<>();
+	private static final Map<String, Long> activeSessions = new HashMap<>();
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onCharacterChat(CharacterChatEvent event) {
@@ -105,6 +106,10 @@ public class ConversationManager implements Listener {
 				continue;
 			}
 
+			if (hasActiveSession(speakerCharacter, listenerCharacter, now)) {
+				refreshActiveSession(speakerCharacter, listenerCharacter, now);
+			}
+
 			String key = PendingConversation.key(listenerCharacter.getId(), speakerCharacter.getId());
 			pending.put(key, new PendingConversation(
 					speakerCharacter.getId(),
@@ -158,18 +163,101 @@ public class ConversationManager implements Listener {
 				continue;
 			}
 
-			if (!speakerCharacter.canCountConversationWith(replierCharacter, now)) {
+			refreshActiveSession(speakerCharacter, replierCharacter, now);
+			iterator.remove();
+
+			if (speakerCharacter.canCountConversationWith(replierCharacter, now)) {
+				speakerCharacter.recordConversationWith(replierCharacter, now);
+				replierCharacter.recordConversationWith(speakerCharacter, now);
+			}
+		}
+	}
+
+	public static boolean isInActiveConversation(RPCharacter character, long nowMs) {
+		if (character == null) {
+			return false;
+		}
+		String characterId = character.getId();
+		if (characterId == null || characterId.isBlank()) {
+			return false;
+		}
+		for (Map.Entry<String, Long> entry : activeSessions.entrySet()) {
+			if (entry.getValue() <= nowMs) {
 				continue;
 			}
-
-			speakerCharacter.recordConversationWith(replierCharacter, now);
-			replierCharacter.recordConversationWith(speakerCharacter, now);
-			iterator.remove();
+			if (pairInvolvesCharacter(entry.getKey(), characterId)) {
+				return true;
+			}
 		}
+		return false;
+	}
+
+	public static int countActiveSessions(RPCharacter character, long nowMs) {
+		if (character == null) {
+			return 0;
+		}
+		String characterId = character.getId();
+		if (characterId == null || characterId.isBlank()) {
+			return 0;
+		}
+		int count = 0;
+		for (Map.Entry<String, Long> entry : activeSessions.entrySet()) {
+			if (entry.getValue() <= nowMs) {
+				continue;
+			}
+			if (pairInvolvesCharacter(entry.getKey(), characterId)) {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	public static void refreshActiveSession(RPCharacter first, RPCharacter second, long nowMs) {
+		if (first == null || second == null) {
+			return;
+		}
+		String firstId = first.getId();
+		String secondId = second.getId();
+		if (firstId == null || secondId == null || firstId.isBlank() || secondId.isBlank()) {
+			return;
+		}
+		long expiresAt = nowMs + (Cache.conversationReplyTimeoutSeconds * 1000L);
+		activeSessions.put(pairKey(firstId, secondId), expiresAt);
+	}
+
+	private static boolean hasActiveSession(RPCharacter first, RPCharacter second, long nowMs) {
+		if (first == null || second == null) {
+			return false;
+		}
+		String firstId = first.getId();
+		String secondId = second.getId();
+		if (firstId == null || secondId == null) {
+			return false;
+		}
+		Long expiresAt = activeSessions.get(pairKey(firstId, secondId));
+		return expiresAt != null && expiresAt > nowMs;
+	}
+
+	static String pairKey(String idA, String idB) {
+		if (idA.compareTo(idB) <= 0) {
+			return idA + ":" + idB;
+		}
+		return idB + ":" + idA;
+	}
+
+	private static boolean pairInvolvesCharacter(String pairKey, String characterId) {
+		int separator = pairKey.indexOf(':');
+		if (separator < 0) {
+			return false;
+		}
+		String left = pairKey.substring(0, separator);
+		String right = pairKey.substring(separator + 1);
+		return characterId.equals(left) || characterId.equals(right);
 	}
 
 	private static void pruneExpired(long now) {
 		pending.entrySet().removeIf(entry -> entry.getValue().isExpired(now));
+		activeSessions.entrySet().removeIf(entry -> entry.getValue() <= now);
 	}
 
 	public static List<Map.Entry<String, Integer>> getTopPartners(RPCharacter character, int limit) {

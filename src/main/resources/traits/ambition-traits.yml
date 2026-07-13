@@ -1,5 +1,5 @@
 str:
-    name: "§aAspirations of Power"
+    name: "#87d65cAspirations of Power"
     key: ambition
     description:
         - "§7This character aspires to be stronger than any other;"
@@ -18,7 +18,7 @@ str:
             modifier: 5
         
 dex:
-    name: "§aAspirations of Precision"
+    name: "#87d65cAspirations of Precision"
     key: ambition
     description:
         - "§7This character aspires to be a terrifying ranger,"
@@ -37,7 +37,7 @@ dex:
             modifier: 5
         
 con:
-    name: "§aAspirations of Longevity"
+    name: "#87d65cAspirations of Longevity"
     key: ambition
     description:
         - "§7This character aspires to live a long and healthy"
@@ -56,7 +56,7 @@ con:
             modifier: 5
 
 int:
-    name: "§aAspirations of Mastery"
+    name: "#87d65cAspirations of Mastery"
     key: ambition
     description:
         - "§7This character aspires to mastery of their craft and"
@@ -75,7 +75,7 @@ int:
             modifier: 5
 
 wis:
-    name: "§aAspirations of Growth"
+    name: "#87d65cAspirations of Growth"
     key: ambition
     description:
         - "§7This character aspires to develop as a person or a"
@@ -94,7 +94,7 @@ wis:
             modifier: 5
         
 cha:
-    name: "§aAspirations of Respect"
+    name: "#87d65cAspirations of Respect"
     key: ambition
     description:
         - "§7This character aspires to be known, loved, feared, or"

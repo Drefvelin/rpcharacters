@@ -1,8 +1,9 @@
 package net.tfminecraft.RPCharacters.calendar;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.temporal.ChronoUnit;
-import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 
 import net.tfminecraft.RPCharacters.Cache;
 
@@ -10,60 +11,38 @@ public final class AgeCalculator {
 
 	private AgeCalculator() {}
 
-	public static double computeAgeYears(String birthdayIso, LocalDate now) {
+	public static int computeAgeYears(String birthdayIso, LocalDate now) {
 		LocalDate birthday = FantasyCalendar.fromIso(birthdayIso);
 		if (birthday == null || now == null) {
 			return 0;
 		}
-		long days = ChronoUnit.DAYS.between(birthday, now);
-		if (days < 0) {
-			days = 0;
-		}
-		double daysPerYear = Cache.calendarDaysPerYear > 0 ? Cache.calendarDaysPerYear : 365.25;
-		return days / daysPerYear;
+		int years = Period.between(birthday, now).getYears();
+		return Math.max(0, years);
 	}
 
 	public static String formatAge(String birthdayIso) {
 		if (birthdayIso == null || birthdayIso.isBlank()) {
 			return Cache.calendarAgeUnsetLabel;
 		}
-		double age = computeAgeYears(birthdayIso, FantasyCalendar.getCurrentDate());
-		return formatAgeValue(age);
+		int age = computeAgeYears(birthdayIso, FantasyCalendar.getCurrentDate());
+		return Integer.toString(age);
 	}
 
-	public static String birthdayFromAge(double ageYears, LocalDate now) {
+	public static String birthdayFromAge(int ageYears, LocalDate now) {
+		if (ageYears < 0) {
+			return null;
+		}
 		if (now == null) {
 			now = FantasyCalendar.getCurrentDate();
 		}
-		double daysPerYear = Cache.calendarDaysPerYear > 0 ? Cache.calendarDaysPerYear : 365.25;
-		long daysToSubtract = Math.round(ageYears * daysPerYear);
-		LocalDate birthday = now.minusDays(daysToSubtract);
+		LocalDate earliest = now.minusYears(ageYears + 1L).plusDays(1);
+		LocalDate latest = now.minusYears(ageYears);
+		long daySpan = ChronoUnit.DAYS.between(earliest, latest);
+		if (daySpan < 0) {
+			return FantasyCalendar.toIso(latest);
+		}
+		int offset = daySpan == 0 ? 0 : ThreadLocalRandom.current().nextInt((int) daySpan + 1);
+		LocalDate birthday = earliest.plusDays(offset);
 		return FantasyCalendar.toIso(birthday);
-	}
-
-	private static String formatAgeValue(double age) {
-		int decimals = Math.max(0, Cache.calendarAgeDecimalPlaces);
-		if (decimals == 0) {
-			return Integer.toString((int) Math.round(age));
-		}
-		String pattern = "%." + decimals + "f";
-		String formatted = String.format(Locale.US, pattern, age);
-		if (decimals > 0) {
-			formatted = stripTrailingZeros(formatted);
-		}
-		return formatted;
-	}
-
-	private static String stripTrailingZeros(String value) {
-		if (!value.contains(".")) {
-			return value;
-		}
-		while (value.endsWith("0")) {
-			value = value.substring(0, value.length() - 1);
-		}
-		if (value.endsWith(".")) {
-			value = value.substring(0, value.length() - 1);
-		}
-		return value;
 	}
 }

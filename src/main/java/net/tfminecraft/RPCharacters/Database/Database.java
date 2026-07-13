@@ -24,6 +24,7 @@ import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.identity.NameColour;
 import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
+import net.tfminecraft.RPCharacters.Utils.DurationParser;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.enums.Status;
 
@@ -105,16 +106,26 @@ public class Database {
 					completedStages.add(stageArray.get(i).toString());
 					i++;
 				}
-				int accountPlaytimeSeconds = 0;
-				if (json.containsKey("account-playtime-seconds")) {
-					accountPlaytimeSeconds = ((Number) json.get("account-playtime-seconds")).intValue();
-				}
+				int createdAtEpochSeconds = DurationParser.resolveCreatedAtEpochSeconds(
+						json.containsKey("created-at"),
+						json.containsKey("created-at") ? ((Number) json.get("created-at")).intValue() : 0,
+						json.containsKey("account-playtime-seconds"),
+						json.containsKey("account-playtime-seconds") ? ((Number) json.get("account-playtime-seconds")).intValue() : 0,
+						file);
 				Integer accountSkillPointsTotal = null;
 				if (json.containsKey("account-skill-points-total")) {
 					accountSkillPointsTotal = ((Number) json.get("account-skill-points-total")).intValue();
 				}
-				PlayerData pd = new PlayerData(p, completedStages, lastCharacterSwitchAtMs, eighteen, accountPlaytimeSeconds,
+				PlayerData pd = new PlayerData(p, completedStages, lastCharacterSwitchAtMs, eighteen, createdAtEpochSeconds,
 						accountSkillPointsTotal);
+				if (json.containsKey("account-attribute-points-total")) {
+					pd.setAccountAttributePointsTotal(((Number) json.get("account-attribute-points-total")).intValue());
+				}
+				loadAccountProfessionPoints(pd, json);
+				loadInvestigationPoints(pd, json);
+				if (json.containsKey("permadeath-tutorial-dismissed")) {
+					pd.setPermadeathTutorialDismissed(Boolean.parseBoolean((String) json.get("permadeath-tutorial-dismissed")));
+				}
 				loadCharacters(pd);
 				return pd;
 			} catch (Exception ex) {
@@ -165,15 +176,20 @@ public class Database {
     					}
     				}
     				RPCharacter c = new RPCharacter(pd.getPlayer(), id, name, active, status, r, traits, mmoClass, clues);
-    				if (json.containsKey("playtime-seconds")) {
-    					c.setPlaytimeSeconds(((Number) json.get("playtime-seconds")).intValue());
-    				}
+    				int createdAtEpochSeconds = DurationParser.resolveCreatedAtEpochSeconds(
+    						json.containsKey("created-at"),
+    						json.containsKey("created-at") ? ((Number) json.get("created-at")).intValue() : 0,
+    						json.containsKey("playtime-seconds"),
+    						json.containsKey("playtime-seconds") ? ((Number) json.get("playtime-seconds")).intValue() : 0,
+    						file);
+    				c.setCreatedAtEpochSeconds(createdAtEpochSeconds);
     				c.setConversationCounts(loadConversationCounts(json));
     				c.setConversationLastAtMs(loadConversationLastAt(json));
     				loadPersonaFields(c, json);
-    				if(c.isActive()) {
-    					Integrator integrator = new Integrator();
-    					integrator.integrate(pd.getPlayer(), c);
+    				loadProfessionFields(c, json);
+    				loadExtraAttributeAllocation(c, json);
+    				if (c.getSlug() == null || c.getSlug().isBlank()) {
+    					pd.assignSlug(c);
     				}
     				pd.addCharacter(c);
     			} catch (Exception ex) {
@@ -207,9 +223,27 @@ public class Database {
         		i++;
         	}
         	defaults.put("completed stages", stageArray);
-			defaults.put("account-playtime-seconds", pd.getAccountPlaytimeSeconds());
+			if (pd.getCreatedAtEpochSeconds() > 0) {
+				defaults.put("created-at", pd.getCreatedAtEpochSeconds());
+			}
 			if (!pd.needsSkillPointsMigration()) {
 				defaults.put("account-skill-points-total", pd.getAccountSkillPointsTotal());
+			}
+			if (!pd.needsAttributePointsMigration()) {
+				defaults.put("account-attribute-points-total", pd.getAccountAttributePointsTotal());
+			}
+			if (pd.isProfessionPointsInitialized()) {
+				defaults.put("account-profession-points", toAccountProfessionPointsJson(pd.getAccountProfessionPointsMap()));
+				defaults.put("profession-points-initialized", "true");
+			}
+			if (!pd.needsInvestigationPointsInit()) {
+				defaults.put("investigation-points", pd.getInvestigationPoints());
+			}
+			if (pd.getLastInvestigationRegenMs() != null) {
+				defaults.put("investigation-regen-ms", pd.getLastInvestigationRegenMs());
+			}
+			if (pd.hasDismissedPermadeathTutorial()) {
+				defaults.put("permadeath-tutorial-dismissed", "true");
 			}
         	for(RPCharacter c : pd.getCharacters()) {
         		saveCharacter(pd, c);
@@ -263,10 +297,14 @@ public class Database {
         		i++;
         	}
         	defaults.put("clues", clueArray);
-			defaults.put("playtime-seconds", c.getPlaytimeSeconds());
+			if (c.getCreatedAtEpochSeconds() > 0) {
+				defaults.put("created-at", c.getCreatedAtEpochSeconds());
+			}
 			defaults.put("conversations", toConversationCountsJson(c.getConversationCounts()));
 			defaults.put("conversation-last-at", toConversationLastAtJson(c.getConversationLastAtMs()));
 			savePersonaFields(defaults, c);
+			saveProfessionFields(defaults, c);
+			saveExtraAttributeAllocation(defaults, c);
         	save(file, defaults);
         } catch (Throwable ex) {
 			ex.printStackTrace();
@@ -429,6 +467,12 @@ public class Database {
 		if (characterJson.containsKey("birthday")) {
 			character.setBirthday((String) characterJson.get("birthday"));
 		}
+		if (characterJson.containsKey("slug")) {
+			character.setSlug((String) characterJson.get("slug"));
+		}
+		if (characterJson.containsKey("hidden")) {
+			character.setHidden(Boolean.parseBoolean(characterJson.get("hidden").toString()));
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -451,5 +495,99 @@ public class Database {
 		if (character.getBirthday() != null && !character.getBirthday().isBlank()) {
 			defaults.put("birthday", character.getBirthday());
 		}
+		if (character.getSlug() != null && !character.getSlug().isBlank()) {
+			defaults.put("slug", character.getSlug());
+		}
+		if (character.isHidden()) {
+			defaults.put("hidden", "true");
+		}
+	}
+
+	private void loadInvestigationPoints(PlayerData pd, JSONObject playerJson) {
+		if (playerJson.containsKey("investigation-points")) {
+			pd.setInvestigationPoints(((Number) playerJson.get("investigation-points")).intValue());
+		}
+		if (playerJson.containsKey("investigation-regen-ms")) {
+			pd.setLastInvestigationRegenMs(((Number) playerJson.get("investigation-regen-ms")).longValue());
+		}
+	}
+
+	private void loadAccountProfessionPoints(PlayerData pd, JSONObject playerJson) {
+		if (playerJson.containsKey("profession-points-initialized")) {
+			pd.setProfessionPointsInitialized(Boolean.parseBoolean(playerJson.get("profession-points-initialized").toString()));
+		}
+		if (playerJson.containsKey("account-profession-points")) {
+			JSONObject pointsJson = (JSONObject) playerJson.get("account-profession-points");
+			for (Object key : pointsJson.keySet()) {
+				pd.setAccountProfessionPoints(key.toString(), ((Number) pointsJson.get(key)).intValue());
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private JSONObject toAccountProfessionPointsJson(Map<String, Integer> points) {
+		JSONObject object = new JSONObject();
+		for (Map.Entry<String, Integer> entry : points.entrySet()) {
+			object.put(entry.getKey(), entry.getValue());
+		}
+		return object;
+	}
+
+	private void loadProfessionFields(RPCharacter character, JSONObject characterJson) {
+		if (!characterJson.containsKey("profession-upgrades")) {
+			return;
+		}
+		JSONArray upgradeArray = (JSONArray) characterJson.get("profession-upgrades");
+		List<String> upgrades = new ArrayList<>();
+		for (int i = 0; i < upgradeArray.size(); i++) {
+			upgrades.add(upgradeArray.get(i).toString());
+		}
+		character.setProfessionUpgrades(upgrades);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void saveProfessionFields(HashMap<String, Object> defaults, RPCharacter character) {
+		if (character.getProfessionUpgrades().isEmpty()) {
+			return;
+		}
+		JSONArray upgradeArray = new JSONArray();
+		for (String upgradeId : character.getProfessionUpgrades()) {
+			upgradeArray.add(upgradeId);
+		}
+		defaults.put("profession-upgrades", upgradeArray);
+	}
+
+	private void loadExtraAttributeAllocation(RPCharacter character, JSONObject characterJson) {
+		if (!characterJson.containsKey("extra-attribute-allocation")) {
+			return;
+		}
+		Object raw = characterJson.get("extra-attribute-allocation");
+		if (!(raw instanceof JSONObject)) {
+			return;
+		}
+		JSONObject allocationJson = (JSONObject) raw;
+		Map<String, Integer> allocation = new HashMap<>();
+		for (Object key : allocationJson.keySet()) {
+			Object value = allocationJson.get(key);
+			if (value instanceof Number) {
+				int amount = ((Number) value).intValue();
+				if (amount > 0) {
+					allocation.put(key.toString(), amount);
+				}
+			}
+		}
+		character.setExtraAttributeAllocation(allocation);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void saveExtraAttributeAllocation(HashMap<String, Object> defaults, RPCharacter character) {
+		if (character.getSpentExtraAttributePoints() <= 0) {
+			return;
+		}
+		JSONObject allocationJson = new JSONObject();
+		for (Map.Entry<String, Integer> entry : character.getExtraAttributeAllocation().entrySet()) {
+			allocationJson.put(entry.getKey(), entry.getValue());
+		}
+		defaults.put("extra-attribute-allocation", allocationJson);
 	}
 }

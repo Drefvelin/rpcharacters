@@ -38,7 +38,9 @@ public class ConfigLoader implements LoaderInterface{
         Cache.requireCharacter = config.getBoolean("require-character", false);
         Cache.noCharacterFreeze = config.getBoolean("no-character-freeze", true);
         Cache.lackingCluesFreeze = config.getBoolean("lacking-clues-freeze", true);
+        Cache.excessCharactersFreeze = config.getBoolean("excess-characters-freeze", true);
         Cache.skillPointsAdminDebugMessages = config.getBoolean("skill-points-admin-debug-messages", false);
+        Cache.attributePointsAdminDebugMessages = config.getBoolean("attribute-points-admin-debug-messages", false);
         Cache.startingProfessionFactor = config.getInt("base-profession-factor", -15);
 
         Cache.defaultCluesRequired = config.getInt("default-clues-required",
@@ -74,11 +76,6 @@ public class ConfigLoader implements LoaderInterface{
         Cache.clueSpawnRadius = config.getInt("clue-spawn-radius", 3);
         Cache.spawnedClueLineLength = config.getInt("spawned-clue-line-length", 12);
 
-        if (config.isConfigurationSection("playtime")) {
-            Cache.playtimeTickSeconds = Math.max(1, config.getInt("playtime.tick-seconds", 60));
-        } else {
-            Cache.playtimeTickSeconds = 60;
-        }
         if (config.isConfigurationSection("conversation")) {
             Cache.conversationReplyTimeoutSeconds = Math.max(1,
                     config.getInt("conversation.reply-timeout-seconds", 30));

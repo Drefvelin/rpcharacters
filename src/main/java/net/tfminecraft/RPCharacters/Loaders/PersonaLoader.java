@@ -31,6 +31,9 @@ public class PersonaLoader implements LoaderInterface {
 			Cache.personaOverridePermission = config.getString("permissions.override", Cache.personaOverridePermission);
 			Cache.personaBypassCooldownPermission = config.getString("permissions.bypass-cooldown",
 					Cache.personaBypassCooldownPermission);
+			Cache.personaTempaliasPermission = config.getString("permissions.tempalias", Cache.personaTempaliasPermission);
+			Cache.personaCharacterHiddenPermission = config.getString("permissions.character-hidden",
+					Cache.personaCharacterHiddenPermission);
 		}
 
 		Cache.personaNoCharacterFallback = config.getString("no-character-fallback", "");

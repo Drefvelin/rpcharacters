@@ -9,26 +9,19 @@ import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.enums.ClueAddResult;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public class ClueStage extends Stage {
 
 	private String message;
 
 	public ClueStage(Stage s, ConfigurationSection config) {
-		setId(s.getId());
-		setRepeat(s.shouldRepeat());
-		setAutoNext(s.autoNext());
-		setCancelled(s.isCancelled());
-		if (s.hasDependency()) setDependency(s.getDependency());
+		copyBaseFields(s);
 		this.message = config.getString("message", "subtitle(§eType clue {current}/{needed} in chat)");
 	}
 
 	public ClueStage(ClueStage another) {
-		setId(another.getId());
-		setRepeat(another.shouldRepeat());
-		setAutoNext(another.autoNext());
-		setCancelled(another.isCancelled());
-		if (another.hasDependency()) setDependency(another.getDependency());
+		copyBaseFields(another);
 		this.message = another.getMessage();
 	}
 
@@ -52,7 +45,7 @@ public class ClueStage extends Stage {
 
 	public void runMessage(Player p, String message) {
 		String type = message.split("\\(")[0];
-		String info = message.split("\\(")[1].replace(")", "");
+		String info = RPTexts.format(message.split("\\(")[1].replace(")", ""));
 		if (type.equalsIgnoreCase("title")) {
 			p.sendTitle(info, " ", 5, 50, 5);
 		} else if (type.equalsIgnoreCase("subtitle")) {
@@ -74,8 +67,10 @@ public class ClueStage extends Stage {
 
 		int count = character.getPlayerClues().size();
 		int needed = character.getCluesNeeded();
-		p.sendTitle(" ", "§7Clue §e" + count + "§7/§e" + needed + " §7saved", 5, 50, 5);
-		p.sendMessage("§7Clue §e" + count + "§7/§e" + needed + " §7saved.");
+		RPTexts.title(p, " ", RPTexts.MUTED + "Clue " + RPTexts.WARN + count + RPTexts.MUTED + "/"
+				+ RPTexts.WARN + needed + " " + RPTexts.MUTED + "saved", 5, 50, 5);
+		RPTexts.send(p, RPTexts.MUTED + "Clue " + RPTexts.WARN + count + RPTexts.MUTED + "/"
+				+ RPTexts.WARN + needed + " " + RPTexts.MUTED + "saved.");
 
 		if (!character.hasEnoughClues()) {
 			runMessage(p, formatMessage(message, character));

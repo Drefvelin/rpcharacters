@@ -25,6 +25,7 @@ import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.SpawnedClue;
 import net.tfminecraft.RPCharacters.RPCharacters;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 /**
  * API for other plugins (e.g. Thievery) to obtain leave-behind clues from a character.
@@ -33,8 +34,8 @@ import net.tfminecraft.RPCharacters.RPCharacters;
 public final class ClueGiver {
 
 	private static final String CLUE_ITEM_PDC_KEY = "clue_item";
-	public static final String CLUE_ITEM_DISPLAY_NAME = "§fYou find a clue...";
-	public static final String CLUE_ITEM_FOOTER = "§eClick to remove";
+	public static final String CLUE_ITEM_DISPLAY_NAME = RPTexts.format(RPTexts.WHITE + "You find a clue.");
+	public static final String CLUE_ITEM_FOOTER = RPTexts.format(RPTexts.WARN + "Click to remove");
 
 	private ClueGiver() {}
 
@@ -104,26 +105,15 @@ public final class ClueGiver {
 	}
 
 	public static ItemStack getClueItem(Player p, Collection<String> excluded) {
-		PlayerData pd = PlayerManager.get(p);
-		if (pd == null || !pd.hasActiveCharacter()) {
-			return new ItemStack(Material.AIR);
-		}
-		return getClueItem(pd.getActiveCharacter(), excluded);
+		return new ItemStack(Material.AIR);
 	}
 
-	/**
-	 * Returns a paper item with a random clue from the character's pool, or air if none available.
-	 */
 	public static ItemStack getClueItem(RPCharacter character, Collection<String> excluded) {
-		if (character == null) return new ItemStack(Material.AIR);
-		String clue = getRandomClueExcluding(character, excluded);
-		if (clue == null) return new ItemStack(Material.AIR);
-		return createClueItem(clue);
+		return new ItemStack(Material.AIR);
 	}
 
-	/**
-	 * Builds a paper item for an already-chosen clue text (same format as {@link #getClueItem}).
-	 */
+	/** @deprecated Chest clue items retired; kept for legacy inventory cleanup only. */
+	@Deprecated
 	public static ItemStack createClueItem(String clueText) {
 		if (clueText == null || clueText.isEmpty()) return new ItemStack(Material.AIR);
 		ItemStack item = new ItemStack(Material.PAPER, 1);
@@ -223,6 +213,8 @@ public final class ClueGiver {
 
 		long expiresAt = System.currentTimeMillis()
 				+ (Cache.spawnedClueTimerHours * 60L * 60L * 1000L);
+		long spawnedAt = System.currentTimeMillis();
+		double potency = net.tfminecraft.RPCharacters.Loaders.ClueDiscoveryLoader.getSettings().getPotencyInitial();
 		SpawnedClue spawned = new SpawnedClue(
 				java.util.UUID.randomUUID(),
 				spawnLocation.getWorld().getName(),
@@ -234,7 +226,13 @@ public final class ClueGiver {
 				owner.getUniqueId(),
 				targetBlockX,
 				targetBlockY,
-				targetBlockZ);
+				targetBlockZ,
+				null,
+				potency,
+				spawnedAt,
+				null,
+				0,
+				0L);
 
 		SpawnedClueManager.get().register(spawned);
 		String logMessage = "Spawned clue at "

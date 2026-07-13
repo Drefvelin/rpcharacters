@@ -21,20 +21,10 @@ public final class CalendarLoader implements LoaderInterface {
 			e.printStackTrace();
 		}
 
-		String startingYear = config.getString("starting-year", "372 AE");
-		String[] parts = startingYear.trim().split("\\s+", 2);
-		try {
-			Cache.calendarBaseFantasyYear = Integer.parseInt(parts[0]);
-		} catch (NumberFormatException ex) {
-			Cache.calendarBaseFantasyYear = 372;
-		}
-		Cache.calendarEra = parts.length > 1 ? parts[1] : "";
-
-		Cache.calendarBaseIrlYear = config.getInt("base-irl-year", Cache.calendarBaseIrlYear);
+		Cache.calendarYearOffset = config.getInt("year-offset", Cache.calendarYearOffset);
+		Cache.calendarEraSuffix = config.getString("era-suffix", Cache.calendarEraSuffix);
 
 		if (config.isConfigurationSection("age")) {
-			Cache.calendarDaysPerYear = config.getDouble("age.days-per-year", Cache.calendarDaysPerYear);
-			Cache.calendarAgeDecimalPlaces = Math.max(0, config.getInt("age.decimal-places", Cache.calendarAgeDecimalPlaces));
 			Cache.calendarAgeMinimum = Math.max(0, config.getInt("age.minimum", Cache.calendarAgeMinimum));
 			Cache.calendarAgeUnsetLabel = config.getString("age.unset-label", Cache.calendarAgeUnsetLabel);
 		}

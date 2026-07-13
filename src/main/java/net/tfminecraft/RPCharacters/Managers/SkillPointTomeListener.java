@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import net.tfminecraft.RPCharacters.Loaders.SkillPointTomeLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.SkillPointTomeDefinition;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.mmocore.ClassService;
 
 public class SkillPointTomeListener implements Listener {
@@ -36,7 +37,7 @@ public class SkillPointTomeListener implements Listener {
 
 		PlayerData pd = PlayerManager.get(player);
 		if (pd == null || !pd.hasActiveCharacter()) {
-			player.sendMessage("§cYou need an active character to use skill point tomes.");
+			RPTexts.send(player, RPTexts.ERROR + "You need an active character to use skill point tomes.");
 			return;
 		}
 
@@ -45,7 +46,7 @@ public class SkillPointTomeListener implements Listener {
 
 		int points = tome.getSkillPoints();
 		String label = points == 1 ? "skill point" : "skill points";
-		player.sendMessage("§a+" + points + " " + label);
+		RPTexts.send(player, RPTexts.SUCCESS + "+" + points + " " + label);
 		player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.4f);
 
 		if (item.getAmount() <= 1) {

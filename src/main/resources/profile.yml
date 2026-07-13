@@ -1,6 +1,14 @@
-max-alive-characters: 3
 # character-switch-cooldown moved to permission-groups.yml
+# max-alive-characters moved to permission-groups.yml
 
-character-slots: [11, 12, 13]
+# Hard UX cap — permission groups cannot grant more than this many alive characters.
+max-character-slots: 10
+
+# First row of the character menu (27-slot chest GUI).
+character-slots: [10, 11, 12, 13, 14]
+
+# Second row used when max-character-slots > 5 (avoids dead-slot at 16).
+# Omitted entries default to [19, 20, 21, 22, 23].
+extended-character-slots: [19, 20, 21, 22, 23]
 
 dead-slot: 16

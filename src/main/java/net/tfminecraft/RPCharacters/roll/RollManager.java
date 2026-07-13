@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public final class RollManager implements Listener, CommandExecutor {
 
@@ -79,7 +80,7 @@ public final class RollManager implements Listener, CommandExecutor {
 			return;
 		}
 		if (parts.length < 2) {
-			player.sendMessage("§eUsage: /tfmc roll <max>|<attribute> [<+/-modifier>]");
+			RPTexts.send(player, RPTexts.WARN + "Usage: /tfmc roll <max>|<attribute> [<+/-modifier>]");
 			return;
 		}
 
@@ -91,7 +92,7 @@ public final class RollManager implements Listener, CommandExecutor {
 
 		Integer max = parsePositiveInt(firstArg);
 		if (max == null) {
-			player.sendMessage("§cInvalid roll maximum: §e" + firstArg);
+			RPTexts.send(player, RPTexts.ERROR + "Invalid roll maximum: " + RPTexts.WARN + firstArg);
 			return;
 		}
 
@@ -99,7 +100,7 @@ public final class RollManager implements Listener, CommandExecutor {
 		if (parts.length >= 3) {
 			Integer parsedModifier = parseSignedInt(parts[2]);
 			if (parsedModifier == null) {
-				player.sendMessage("§cInvalid modifier: §e" + parts[2]);
+				RPTexts.send(player, RPTexts.ERROR + "Invalid modifier: " + RPTexts.WARN + parts[2]);
 				return;
 			}
 			modifier = parsedModifier;
@@ -112,7 +113,7 @@ public final class RollManager implements Listener, CommandExecutor {
 		if (player.hasPermission(Cache.rollPermission)) {
 			return true;
 		}
-		player.sendMessage("§cYou do not have permission to roll dice.");
+		RPTexts.send(player, RPTexts.ERROR + "You do not have permission to roll dice.");
 		return false;
 	}
 
@@ -123,7 +124,7 @@ public final class RollManager implements Listener, CommandExecutor {
 		int low = Math.min(min, max);
 		int high = Math.max(min, max);
 		if (high < 1) {
-			player.sendMessage("§cInvalid roll range.");
+			RPTexts.send(player, RPTexts.ERROR + "Invalid roll range.");
 			return;
 		}
 		if (low < 1) {
@@ -149,7 +150,7 @@ public final class RollManager implements Listener, CommandExecutor {
 		double rangeSq = (double) range * range;
 		for (Player target : origin.getWorld().getPlayers()) {
 			if (target.getLocation().distanceSquared(origin.getLocation()) <= rangeSq) {
-				target.sendMessage(message);
+				RPTexts.send(target, message);
 			}
 		}
 	}

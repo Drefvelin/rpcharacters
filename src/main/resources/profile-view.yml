@@ -6,10 +6,11 @@ view:
   cooldown-seconds: 0
 
 format:
-  - "&e{display_no_mask}'s &7Character Description:"
-  - "&fName: &e{display_no_mask}"
+  - "&e{display_tab}'s &7Character Description:"
+  - "&fName: &e{display_tab}"
   - "&fGender: &e{gender}"
   - "&fAge: &e{age}"
+  - "&fBirthday: &e{birthday}"
   - "&fRace: &e{race}"
   - ""
   - "&fDescription:"

@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.calendar.AgeCalculator;
+import net.tfminecraft.RPCharacters.calendar.FantasyCalendar;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
@@ -67,6 +68,17 @@ public final class PersonaService {
 			return Cache.calendarAgeUnsetLabel;
 		}
 		return AgeCalculator.formatAge(character.getBirthday());
+	}
+
+	public static String resolveBirthday(Player player) {
+		return resolveBirthday(getActiveCharacter(player));
+	}
+
+	public static String resolveBirthday(RPCharacter character) {
+		if (character == null) {
+			return Cache.calendarAgeUnsetLabel;
+		}
+		return FantasyCalendar.formatBirthday(character.getBirthday());
 	}
 
 	public static String resolveDescription(Player player) {

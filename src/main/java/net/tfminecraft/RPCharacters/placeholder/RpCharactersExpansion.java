@@ -47,12 +47,15 @@ public final class RpCharactersExpansion extends PlaceholderExpansion {
 		switch (params.toLowerCase()) {
 			case "name":
 			case "display":
-			case "display_no_mask":
+			case "display_tab":
+			case "display_safe":
 				return Cache.personaNoCharacterFallback;
 			case "gender":
 				return Cache.personaGenderDefault;
 			case "race":
 			case "age":
+				return Cache.calendarAgeUnsetLabel;
+			case "birthday":
 				return Cache.calendarAgeUnsetLabel;
 			case "description":
 			default:
@@ -68,14 +71,18 @@ public final class RpCharactersExpansion extends PlaceholderExpansion {
 			}
 			case "display":
 				return DisplayIdentityService.resolveDisplay(player);
-			case "display_no_mask":
-				return DisplayIdentityService.resolveDisplayNoMask(player);
+			case "display_tab":
+				return DisplayIdentityService.resolveDisplayTab(player);
+			case "display_safe":
+				return DisplayIdentityService.resolveDisplaySafe(player);
 			case "race":
 				return PersonaService.resolveRace(player);
 			case "gender":
 				return PersonaService.resolveGender(player);
 			case "age":
 				return PersonaService.resolveAge(player);
+			case "birthday":
+				return PersonaService.resolveBirthday(player);
 			case "description":
 				return PersonaService.resolveDescription(player);
 			default:

@@ -1,6 +1,38 @@
 bypass-cooldown-perm: rpchar.chat.bypasscooldown
 default: rp
-no-character-message: '&cYou must have an active character to use this channel. Use &e/rpcharacter &cto create one, or &e/ooc &cfor out-of-character chat.'
+no-character-message: '&cNo active character. &e/rpcharacter &cto create one, or &e/ooc &cfor OOC.'
+
+channel-switcher:
+  enabled: true
+  switchable-channels:
+    - rp
+    - ooc
+    - looc
+    - whisper
+    - shout
+    - yell
+    - action
+
+channel-toggler:
+  enabled: true
+  toggleable-channels:
+    - looc
+    - ooc
+    - helper
+    - admin
+
+messages:
+  run-as-player: '&cPlayers only.'
+  channel-switch-disabled: '&cChannel switching is disabled.'
+  channel-toggle-disabled: '&cChannel toggling is disabled.'
+  invalid-use: '&cBad syntax. Try /{usage}.'
+  invalid-channel: '&cYou cannot target that channel. Allowed channels: {channels}.'
+  already-switched: '&cYou are already using that channel.'
+  switched: '&aSwitched to {channel}.'
+  current-channel: '&7Your default chat channel is &e{channel}&7.'
+  toggled-on: '&aToggled {channel} visibility ON.'
+  toggled-off: '&eToggled {channel} visibility OFF.'
+  cant-use-when-toggled-off: '&cChannel is toggled off. Toggle it back on.'
 
 channels:
   rp:
@@ -9,6 +41,8 @@ channels:
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
     format: '&f{display}&e: &f"&e{message}&f"'
+    bubble: true
+    smart-messages: true
     range: 15
     cooldown: 0
 
@@ -18,6 +52,8 @@ channels:
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
     format: '&f{display}&6 shouts: &f"&6{message}&f"'
+    bubble: true
+    smart-messages: true
     range: 24
     cooldown: 0
 
@@ -27,6 +63,8 @@ channels:
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
     format: '&f{display}&c yells: &f"&c&l{message}&f"'
+    bubble: true
+    smart-messages: true
     range: 48
     cooldown: 0
 
@@ -36,6 +74,7 @@ channels:
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
     format: '&f{display}#55aaff whispers: &f&o"#55aaff&o{message}&f&o"'
+    smart-messages: true
     range: 2
     cooldown: 0
 
@@ -90,4 +129,14 @@ channels:
     color-code-perm: rpchar.chat.colors
     format: '&7{message}'
     range: 64
+    cooldown: 0
+
+  scene:
+    commands: [scene]
+    use-perm: rpchar.chat.use
+    read-perm: rpchar.chat.use
+    format: '&7&o*{message}*'
+    range: 20
+    bubble: false
+    smart-messages: false
     cooldown: 0

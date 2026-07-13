@@ -5,7 +5,7 @@ version: 1.0
 author: Drefvelin
 
 depend: [TLibs, MMOCore]
-softdepend: [PlaceholderAPI]
+softdepend: [ProtocolLib, PlaceholderAPI, LuckPerms, WorldGuard]
 
 commands:
   rpcharacter:
@@ -13,3 +13,18 @@ commands:
     description: RPCharacters Command
   roll:
     description: Roll dice
+  profession:
+    usage: /<command>
+    description: Profession menu and admin tools
+    permission: rpchar.profession.use
+  channel:
+    usage: /<command> [channel]
+    description: Switch your default chat channel for plain typing
+  channeltoggle:
+    usage: /<command> <channel>
+    description: Toggle visibility of a chat channel
+permissions:
+  rpchar.profession.use:
+    default: true
+  professions.admin:
+    default: op

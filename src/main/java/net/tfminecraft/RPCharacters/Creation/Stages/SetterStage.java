@@ -16,6 +16,7 @@ import net.tfminecraft.RPCharacters.calendar.FantasyCalendar;
 import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
 import net.tfminecraft.RPCharacters.persona.AliasValidator;
 import net.tfminecraft.RPCharacters.persona.DescriptionValidator;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public class SetterStage extends Stage{
 	private String target;
@@ -23,20 +24,12 @@ public class SetterStage extends Stage{
 	private String message;
 	
 	public SetterStage(Stage s, ConfigurationSection config) {
-		setId(s.getId());
-		setRepeat(s.shouldRepeat());
-		setAutoNext(s.autoNext());
-		setCancelled(s.isCancelled());
-		if(s.hasDependency()) setDependency(s.getDependency());
+		copyBaseFields(s);
 		this.target = config.getString("target");
 		this.message = config.getString("message");
 	}
 	public SetterStage(SetterStage another) {
-		setId(another.getId());
-		setRepeat(another.shouldRepeat());
-		setAutoNext(another.autoNext());
-		setCancelled(another.isCancelled());
-		if(another.hasDependency()) setDependency(another.getDependency());
+		copyBaseFields(another);
 		this.target = another.getTarget();
 		this.message = another.getMessage();
 	}
@@ -50,7 +43,7 @@ public class SetterStage extends Stage{
 
 	public void runMessage(Player p, String message) {
 		String type = message.split("\\(")[0];
-		String info = message.split("\\(")[1].replace(")", "");
+		String info = RPTexts.format(message.split("\\(")[1].replace(")", ""));
 		if(type.equalsIgnoreCase("title")) {
 			p.sendTitle(info, " ", 5, 50, 5);
 		} else if(type.equalsIgnoreCase("subtitle")) {
@@ -100,12 +93,12 @@ public class SetterStage extends Stage{
 		if (target != null && target.equalsIgnoreCase("real_age")) {
 			if(n.equalsIgnoreCase("yes")) {
 				PlayerManager.get(p).setEighteen(true);
-				p.sendTitle(" ", "§7Real age set to §e18+", 5, 50, 5);
+				RPTexts.title(p, " ", RPTexts.MUTED + "Real age set to " + RPTexts.WARN + "18+", 5, 50, 5);
 			} else if(n.equalsIgnoreCase("no")) {
 				PlayerManager.get(p).setEighteen(false);
-				p.sendTitle(" ", "§7Real age set to §ebelow 18", 5, 50, 5);
+				RPTexts.title(p, " ", RPTexts.MUTED + "Real age set to " + RPTexts.WARN + "below 18", 5, 50, 5);
 			} else {
-				p.sendMessage("§cInvalid input! write either §eyes §cor §eno");
+				RPTexts.send(p, RPTexts.ERROR + "Write " + RPTexts.WARN + "yes " + RPTexts.MUTED + "or " + RPTexts.WARN + "no.");
 				return;
 			}
 			scheduleAdvance(cc);
@@ -113,7 +106,7 @@ public class SetterStage extends Stage{
 		}
 
 		if (!isAlphabetic(n)) {
-			p.sendMessage("§cInvalid input! Only letters are allowed.");
+			RPTexts.send(p, RPTexts.ERROR + "Letters only.");
 			return;
 		}
 
@@ -125,8 +118,8 @@ public class SetterStage extends Stage{
 				return;
 			}
 		}
-		p.sendTitle(" ", "§7"+WordUtils.capitalize(target)+" set to §e"+n, 5, 50, 5);
-		p.sendMessage("§7"+WordUtils.capitalize(target)+" set to §e"+n);
+		RPTexts.title(p, " ", RPTexts.MUTED + WordUtils.capitalize(target) + " set to " + RPTexts.WARN + n, 5, 50, 5);
+		RPTexts.send(p, RPTexts.MUTED + WordUtils.capitalize(target) + " set to " + RPTexts.WARN + n);
 		cc.getCharacter().modify(target, n);
 		scheduleAdvance(cc);
 	}
@@ -139,50 +132,55 @@ public class SetterStage extends Stage{
 			return;
 		}
 		cc.getCharacter().setPersonaDescription(text);
-		p.sendTitle(" ", "§7Description saved", 5, 50, 5);
-		p.sendMessage("§7Description saved (§e" + text.length() + "§7 characters).");
+		RPTexts.title(p, " ", RPTexts.MUTED + "Description saved", 5, 50, 5);
+		RPTexts.send(p, RPTexts.MUTED + "Description saved (" + RPTexts.WARN + text.length() + RPTexts.MUTED + " characters).");
 		scheduleAdvance(cc);
 	}
 
 	private void handleAge(String input, Player p, CharacterCreation cc) {
-		Double age = parseAge(input);
+		Integer age = parseAge(input);
 		if (age == null) {
-			p.sendMessage("§cInvalid age. Enter a number such as §e30 §cor §e33.7§c.");
+			RPTexts.send(p, RPTexts.ERROR + "Whole number only. e.g. " + RPTexts.WARN + "30" + RPTexts.ERROR + ".");
 			return;
 		}
 		if (age <= 0) {
-			p.sendMessage("§cAge must be greater than 0.");
+			RPTexts.send(p, RPTexts.ERROR + "Age must be greater than 0.");
 			return;
 		}
 
 		Race race = cc.getCharacter().getRace();
 		if (race == null) {
-			p.sendMessage("§cSelect a race before setting age.");
+			RPTexts.send(p, RPTexts.ERROR + "Pick a race first.");
 			return;
 		}
 
 		int ageMin = Cache.calendarAgeMinimum;
 		int ageMax = race.getAgeMax();
 		if (age < ageMin || age > ageMax) {
-			p.sendMessage("§cAge must be between §e" + ageMin + " §cand §e" + ageMax
-					+ " §cfor your race.");
+			RPTexts.send(p, RPTexts.ERROR + "Age must be between " + RPTexts.WARN + ageMin + " " + RPTexts.ERROR + "and "
+					+ RPTexts.WARN + ageMax + " " + RPTexts.ERROR + "for your race.");
 			return;
 		}
 
 		String birthday = AgeCalculator.birthdayFromAge(age, FantasyCalendar.getCurrentDate());
 		cc.getCharacter().setBirthday(birthday);
-		String formattedAge = AgeCalculator.formatAge(birthday);
-		p.sendTitle(" ", "§7Age set to §e" + formattedAge, 5, 50, 5);
-		p.sendMessage("§7Age set to §e" + formattedAge + "§7.");
+		String formattedBirthday = FantasyCalendar.formatBirthday(birthday);
+		RPTexts.title(p, " ", RPTexts.MUTED + "Age set to " + RPTexts.WARN + age, 5, 50, 5);
+		RPTexts.send(p, RPTexts.MUTED + "Age set to " + RPTexts.WARN + age + RPTexts.MUTED + " (born "
+				+ RPTexts.WARN + formattedBirthday + RPTexts.MUTED + ").");
 		scheduleAdvance(cc);
 	}
 
-	private static Double parseAge(String input) {
+	private static Integer parseAge(String input) {
 		if (input == null || input.isBlank()) {
 			return null;
 		}
+		String trimmed = input.trim().replace(',', '.');
+		if (trimmed.contains(".")) {
+			return null;
+		}
 		try {
-			return Double.parseDouble(input.trim().replace(',', '.'));
+			return Integer.parseInt(trimmed);
 		} catch (NumberFormatException ex) {
 			return null;
 		}
@@ -193,7 +191,9 @@ public class SetterStage extends Stage{
 		{
 			public void run()
 			{
-				if(autoNext()) {
+				if (cc.isEditingFromSummary()) {
+					cc.returnToSummary();
+				} else if(autoNext()) {
 					cc.runStage();
 				} else {
 					cc.setCanNext(true);

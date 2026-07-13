@@ -1,0 +1,118 @@
+package net.tfminecraft.RPCharacters.permadeath;
+
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import net.tfminecraft.RPCharacters.Managers.PlayerManager;
+import net.tfminecraft.RPCharacters.Objects.PlayerData;
+import net.tfminecraft.RPCharacters.Objects.RPCharacter;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
+import net.tfminecraft.RPCharacters.enums.Status;
+
+public final class PermadeathAdminCommands {
+
+	private PermadeathAdminCommands() {
+	}
+
+	public static boolean handleInjure(CommandSender sender, String[] args) {
+		ResolvedTarget target = resolveTarget(sender, args, 1, "injure");
+		if (target == null) {
+			return true;
+		}
+		if (!target.character.getStatus().equals(Status.ALIVE)) {
+			RPTexts.send(sender, RPTexts.ERROR + "That character is not alive.");
+			return true;
+		}
+		if (!PermadeathService.applyRandomInjury(target.player, target.character)) {
+			RPTexts.send(sender, RPTexts.ERROR + target.character.getName() + " has no injuries left to receive.");
+			return true;
+		}
+		RPTexts.send(sender, RPTexts.SUCCESS + "Applied a random injury to " + RPTexts.WARN + target.character.getName()
+				+ RPTexts.SUCCESS + " (" + RPTexts.WARN + target.player.getName() + RPTexts.SUCCESS + ").");
+		return true;
+	}
+
+	public static boolean handlePermakill(CommandSender sender, String[] args) {
+		ResolvedTarget target = resolveTarget(sender, args, 1, "permakill");
+		if (target == null) {
+			return true;
+		}
+		if (!target.character.getStatus().equals(Status.ALIVE)) {
+			RPTexts.send(sender, RPTexts.ERROR + "That character is already dead.");
+			return true;
+		}
+		if (!PermadeathService.killCharacter(target.player, target.character, PermakillCause.COMMAND)) {
+			RPTexts.send(sender, RPTexts.ERROR + "Permakill was cancelled.");
+			return true;
+		}
+		RPTexts.send(sender, RPTexts.SUCCESS + "Permanently killed " + RPTexts.WARN + target.character.getName()
+				+ RPTexts.SUCCESS + " (" + RPTexts.WARN + target.player.getName() + RPTexts.SUCCESS + ").");
+		return true;
+	}
+
+	private static ResolvedTarget resolveTarget(CommandSender sender, String[] args, int playerArgIndex,
+			String commandName) {
+		if (args.length <= playerArgIndex) {
+			RPTexts.send(sender, RPTexts.ERROR + "Usage: /rpcharacter " + commandName + " <player> [character]");
+			return null;
+		}
+
+		Player player = Bukkit.getPlayerExact(args[playerArgIndex]);
+		if (player == null) {
+			RPTexts.send(sender, RPTexts.ERROR + "No player found.");
+			return null;
+		}
+
+		PlayerData pd = PlayerManager.get(player);
+		if (pd == null) {
+			RPTexts.send(sender, RPTexts.ERROR + "Player data not loaded for " + RPTexts.WARN + player.getName() + RPTexts.ERROR + ".");
+			return null;
+		}
+
+		RPCharacter character;
+		if (args.length > playerArgIndex + 1) {
+			character = findCharacter(pd, args[playerArgIndex + 1]);
+			if (character == null) {
+				RPTexts.send(sender, RPTexts.ERROR + "No character found matching " + RPTexts.WARN + args[playerArgIndex + 1]
+						+ RPTexts.ERROR + " for " + RPTexts.WARN + player.getName() + RPTexts.ERROR + ".");
+				return null;
+			}
+		} else {
+			if (!pd.hasActiveCharacter()) {
+				RPTexts.send(sender, RPTexts.ERROR + player.getName() + " has no active character.");
+				return null;
+			}
+			character = pd.getActiveCharacter();
+		}
+
+		return new ResolvedTarget(player, character);
+	}
+
+	private static RPCharacter findCharacter(PlayerData pd, String query) {
+		RPCharacter bySlug = pd.getCharacterBySlug(query);
+		if (bySlug != null) {
+			return bySlug;
+		}
+		RPCharacter byId = pd.getCharacterById(query);
+		if (byId != null) {
+			return byId;
+		}
+		for (RPCharacter character : pd.getCharacters()) {
+			if (character.getName() != null && character.getName().equalsIgnoreCase(query)) {
+				return character;
+			}
+		}
+		return null;
+	}
+
+	private static final class ResolvedTarget {
+		private final Player player;
+		private final RPCharacter character;
+
+		private ResolvedTarget(Player player, RPCharacter character) {
+			this.player = player;
+			this.character = character;
+		}
+	}
+}

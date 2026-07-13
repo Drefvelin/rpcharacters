@@ -14,6 +14,7 @@ import net.tfminecraft.RPCharacters.Objects.PermissionGroupDefinition;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.identity.NameColour;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public final class PermissionGroupService {
 
@@ -27,6 +28,10 @@ public final class PermissionGroupService {
 
 	public static int getCharacterSwitchCooldownDays(Player player) {
 		return resolvePerk(player, PermissionGroupDefinition.KEY_CHARACTER_SWITCH_COOLDOWN_DAYS, Aggregation.MIN);
+	}
+
+	public static int getMaxAliveCharacters(Player player) {
+		return resolvePerk(player, PermissionGroupDefinition.KEY_MAX_ALIVE_CHARACTERS, Aggregation.MAX);
 	}
 
 	public static boolean canUseNameColour(Player player) {
@@ -71,15 +76,16 @@ public final class PermissionGroupService {
 
 	public static Optional<String> validateNameColourHexes(Player player, List<String> hexArgs, boolean staffOverride) {
 		if (hexArgs == null || hexArgs.isEmpty()) {
-			return Optional.of("§cProvide at least one hex colour.");
+			return Optional.of(RPTexts.format(RPTexts.ERROR + "Provide at least one hex colour."));
 		}
 		if (!staffOverride) {
 			int maxStops = getNameColourStops(player);
 			if (maxStops <= 0) {
-				return Optional.of("§cYou do not have permission to change your name colour.");
+				return Optional.of(RPTexts.format(RPTexts.ERROR + "You do not have permission to change your name colour."));
 			}
 			if (hexArgs.size() > maxStops) {
-				return Optional.of("§cYou can use up to §e" + maxStops + " §ccolour(s) with your rank.");
+				return Optional.of(RPTexts.format(RPTexts.ERROR + "You can use up to " + RPTexts.WARN + maxStops
+						+ " " + RPTexts.ERROR + "colour(s) with your rank."));
 			}
 		}
 		return Optional.empty();

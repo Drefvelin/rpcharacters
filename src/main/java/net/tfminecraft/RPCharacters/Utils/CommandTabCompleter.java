@@ -14,6 +14,9 @@ import org.bukkit.entity.Player;
 
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
+import net.tfminecraft.RPCharacters.Managers.PlayerManager;
+import net.tfminecraft.RPCharacters.Objects.PlayerData;
+import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.command.CharCommand;
@@ -22,10 +25,10 @@ import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 public class CommandTabCompleter implements TabCompleter {
 
 	private static final List<String> PERSONA_SUBCOMMANDS = List.of(
-			"alias", "namecolour", "gender", "description", "profile", "override");
+			"alias", "namecolour", "gender", "description", "profile", "override", "birthday");
 	private static final List<String> CLEAR = List.of("clear");
 	private static final List<String> OVERRIDE_FIELDS = List.of(
-			"alias", "gender", "description", "namecolour", "birthday");
+			"alias", "gender", "description", "namecolour", "birthday", "playtime");
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
@@ -43,11 +46,24 @@ public class CommandTabCompleter implements TabCompleter {
 			completions.add("clues");
 			completions.addAll(PERSONA_SUBCOMMANDS);
 			if (Permissions.isAdmin(sender)) {
+				completions.add("reload");
 				completions.add("setclass");
 				completions.add("skipcooldown");
 				completions.add("addtrait");
 				completions.add("removetrait");
 				completions.add("clearclues");
+				completions.add("placeclue");
+				completions.add("adminmode");
+				completions.add("setworldspawn");
+				completions.add("injure");
+				completions.add("permakill");
+			}
+			completions.add("dismisspdwarning");
+			if (sender.hasPermission(Cache.personaTempaliasPermission)) {
+				completions.add("tempalias");
+			}
+			if (sender.hasPermission(Cache.personaCharacterHiddenPermission) && sender instanceof Player) {
+				completions.add("sethidden");
 			}
 			return filter(completions, args[0]);
 		}
@@ -69,7 +85,7 @@ public class CommandTabCompleter implements TabCompleter {
 					completions.add(online.getName());
 				}
 			} else if (args[0].equalsIgnoreCase("edit")) {
-				completions.addAll(Cache.editableTraits);
+				completions.addAll(net.tfminecraft.RPCharacters.Creation.SummaryEditSupport.getEditEntryKeys());
 			} else if (args[0].equalsIgnoreCase("setclass")) {
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					completions.add(online.getName());
@@ -78,7 +94,8 @@ public class CommandTabCompleter implements TabCompleter {
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					completions.add(online.getName());
 				}
-			} else if (args[0].equalsIgnoreCase("addtrait") || args[0].equalsIgnoreCase("removetrait")) {
+			} else if (args[0].equalsIgnoreCase("addtrait") || args[0].equalsIgnoreCase("removetrait")
+					|| args[0].equalsIgnoreCase("injure") || args[0].equalsIgnoreCase("permakill")) {
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					completions.add(online.getName());
 				}
@@ -87,17 +104,49 @@ public class CommandTabCompleter implements TabCompleter {
 				completions.add("10");
 				completions.add("25");
 				completions.add("50");
+			} else if (args[0].equalsIgnoreCase("placeclue") && Permissions.isAdmin(sender)) {
+				// text is free-form; no tab completions
+			} else if (args[0].equalsIgnoreCase("adminmode") && Permissions.isAdmin(sender)) {
+				completions.add("on");
+				completions.add("off");
+			} else if (args[0].equalsIgnoreCase("tempalias") && sender.hasPermission(Cache.personaTempaliasPermission)) {
+				completions.addAll(CLEAR);
+			} else if (args[0].equalsIgnoreCase("sethidden") && sender.hasPermission(Cache.personaCharacterHiddenPermission)
+					&& sender instanceof Player player) {
+				for (RPCharacter character : PlayerManager.get(player).getCharacters()) {
+					if (character.getSlug() != null) {
+						completions.add(character.getSlug());
+					}
+				}
 			}
 
 			return filter(completions, args[1]);
 		}
 
 		if (args.length == 3) {
-			if (args[0].equalsIgnoreCase("setclass")) {
+			if (args[0].equalsIgnoreCase("sethidden") && sender.hasPermission(Cache.personaCharacterHiddenPermission)) {
+				completions.addAll(CLEAR);
+			} else if (args[0].equalsIgnoreCase("setclass")) {
 				completions.add("className");
 			} else if (args[0].equalsIgnoreCase("addtrait") || args[0].equalsIgnoreCase("removetrait")) {
 				for (Trait trait : TraitLoader.get()) {
 					completions.add(trait.getId());
+				}
+			} else if ((args[0].equalsIgnoreCase("injure") || args[0].equalsIgnoreCase("permakill"))
+					&& Permissions.isAdmin(sender)) {
+				Player target = Bukkit.getPlayerExact(args[1]);
+				if (target != null) {
+					PlayerData pd = PlayerManager.get(target);
+					if (pd != null) {
+						for (RPCharacter character : pd.getCharacters()) {
+							if (character.getSlug() != null) {
+								completions.add(character.getSlug());
+							}
+							if (character.getName() != null) {
+								completions.add(character.getName());
+							}
+						}
+					}
 				}
 			}
 
@@ -150,6 +199,11 @@ public class CommandTabCompleter implements TabCompleter {
 					return filter(Cache.personaGenders, args[1]);
 				}
 				return Collections.emptyList();
+			case "birthday":
+				if (args.length == 2) {
+					return filter(CLEAR, args[1]);
+				}
+				return Collections.emptyList();
 			default:
 				return Collections.emptyList();
 		}
@@ -172,7 +226,7 @@ public class CommandTabCompleter implements TabCompleter {
 		if (args.length == 4) {
 			String field = args[2].toLowerCase(Locale.ROOT);
 			if (field.equals("alias") || field.equals("description") || field.equals("namecolour")
-					|| field.equals("birthday")) {
+					|| field.equals("birthday") || field.equals("playtime")) {
 				return filter(CLEAR, args[3]);
 			}
 			if (field.equals("gender")) {

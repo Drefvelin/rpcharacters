@@ -16,6 +16,7 @@ import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.identity.MaskService;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public final class ProfileManager implements Listener {
 
@@ -63,19 +64,19 @@ public final class ProfileManager implements Listener {
 		}
 
 		if (!viewer.hasPermission(Cache.profilePermission)) {
-			viewer.sendMessage("§cYou do not have permission to view character profiles.");
+			RPTexts.send(viewer, RPTexts.ERROR + "You do not have permission to view character profiles.");
 			event.setCancelled(true);
 			return;
 		}
 
 		if (event.getTargetCharacter() == null) {
-			viewer.sendMessage("§cThat player has no active character.");
+			RPTexts.send(viewer, RPTexts.ERROR + "That player has no active character.");
 			event.setCancelled(true);
 			return;
 		}
 
 		if (event.isMasked()) {
-			viewer.sendMessage("§cThat player's identity is concealed.");
+			RPTexts.send(viewer, RPTexts.ERROR + "That player's identity is concealed.");
 			event.setCancelled(true);
 			return;
 		}
@@ -96,7 +97,7 @@ public final class ProfileManager implements Listener {
 
 		if (ProfileViewCooldownManager.get().isOnCooldown(viewer, Cache.profileViewCooldownSeconds)) {
 			int remaining = ProfileViewCooldownManager.get().getRemainingSeconds(viewer);
-			viewer.sendMessage("§cPlease wait §e" + remaining + "§c more second(s) before viewing another profile.");
+			RPTexts.send(viewer, RPTexts.ERROR + "Wait " + RPTexts.WARN + remaining + RPTexts.ERROR + "s.");
 			event.setCancelled(true);
 		}
 	}
@@ -111,7 +112,7 @@ public final class ProfileManager implements Listener {
 
 		List<String> lines = ProfileFormatter.format(target, event.getTargetCharacter());
 		for (String line : lines) {
-			viewer.sendMessage(line);
+			RPTexts.send(viewer, line);
 		}
 
 		ProfileViewCooldownManager.get().applyCooldown(viewer, Cache.profileViewCooldownSeconds);

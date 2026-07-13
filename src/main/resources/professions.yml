@@ -1,0 +1,76 @@
+max_spending_points: 40
+types:
+  tool:
+    mmoitem_types:
+    - tool
+  fishing_rod:
+    mmoitem_types:
+    - fishing_rod
+  bows:
+    mmoitem_types:
+    - bow
+    - longbow
+  shield:
+    mmoitem_types:
+    - shield
+    - small_shield
+  weapons:
+    mmoitem_types:
+    - spear
+    - sword
+    - warhammer
+    - greathammer
+    - long_sword
+    - dagger
+    - greataxe
+    - axe
+    - polearm
+  helmet:
+    mmoitem_types:
+    - helmet
+  gun:
+    mmoitem_types:
+    - musket
+breeding_exp:
+- generic.10
+- goat.12
+- frog.12
+- wolf.12
+- cat.12
+- parrot.12
+- panda.12
+- bee.12
+- fox.12
+- turtle.12
+- axolotl.12
+- horse.16
+- donkey.16
+- camel.16
+- llama.16
+- rabbit.20
+- pig.20
+- sheep.20
+- cow.20
+- chicken.20
+lock_breeding:
+- goat
+- frog
+- wolf
+- cat
+- parrot
+- panda
+- bee
+- fox
+- turtle
+- axolotl
+- horse
+- donkey
+- camel
+- llama
+- rabbit
+- pig
+- sheep
+- cow
+- chicken
+perm_context: dev
+admin-debug-messages: false

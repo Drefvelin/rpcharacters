@@ -4,8 +4,10 @@ permissions:
   description-colors: rpchar.persona.colors
   override: rpchar.persona.override
   bypass-cooldown: rpchar.persona.bypasscooldown
+  tempalias: rpchar.tempalias
+  character-hidden: rpchar.character.hidden
 
-no-character-fallback: '§f§oUnknown'
+no-character-fallback: '#ffffff§oUnknown'
 
 display-name:
   length-minimum: 3

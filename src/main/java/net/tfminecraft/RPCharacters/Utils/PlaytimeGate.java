@@ -22,15 +22,16 @@ public final class PlaytimeGate {
 		if (data == null) {
 			return false;
 		}
-		return data.getAccountPlaytimeSeconds() >= required;
+		return data.getAgeSeconds() >= required;
 	}
 
 	public static String denialMessage(Player player, Trait trait) {
 		int required = trait.getTraitData().getRequiredAccountPlaytimeSeconds();
 		PlayerData data = PlayerManager.get(player);
-		int have = data != null ? data.getAccountPlaytimeSeconds() : 0;
+		int have = data != null ? data.getAgeSeconds() : 0;
 		int remaining = Math.max(0, required - have);
-		return "§cYou need §e" + PlaytimeFormatter.formatHoursRemaining(remaining)
-				+ " §cmore playtime to select this trait.";
+		return RPTexts.format(RPTexts.ERROR + "Need " + RPTexts.WARN + AgeFormatter.formatAge(required)
+				+ RPTexts.ERROR + " playtime. " + RPTexts.WARN + AgeFormatter.formatAge(remaining)
+				+ RPTexts.ERROR + " left.");
 	}
 }

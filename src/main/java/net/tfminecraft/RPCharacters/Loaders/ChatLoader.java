@@ -41,6 +41,10 @@ public final class ChatLoader implements LoaderInterface {
 		Cache.chatDefaultChannel = config.getString("default", Cache.chatDefaultChannel);
 		Cache.chatNoCharacterMessage = config.getString("no-character-message", Cache.chatNoCharacterMessage);
 
+		loadChannelSwitcher(config);
+		loadChannelToggler(config);
+		loadMessages(config);
+
 		if (!config.isConfigurationSection("channels")) {
 			syncCommands();
 			return;
@@ -63,6 +67,80 @@ public final class ChatLoader implements LoaderInterface {
 		}
 
 		syncCommands();
+	}
+
+	private static void loadChannelSwitcher(FileConfiguration config) {
+		ConfigurationSection section = config.getConfigurationSection("channel-switcher");
+		if (section == null) {
+			if (Cache.chatSwitchableChannels.isEmpty()) {
+				Cache.chatSwitchableChannels = List.of("rp", "ooc", "looc", "whisper", "shout", "yell", "action");
+			}
+			return;
+		}
+		Cache.chatChannelSwitcherEnabled = section.getBoolean("enabled", true);
+		List<String> channels = normalizeChannelIds(section.getStringList("switchable-channels"));
+		if (!channels.isEmpty()) {
+			Cache.chatSwitchableChannels = channels;
+		} else if (Cache.chatSwitchableChannels.isEmpty()) {
+			Cache.chatSwitchableChannels = List.of("rp", "ooc", "looc", "whisper", "shout", "yell", "action");
+		}
+	}
+
+	private static void loadChannelToggler(FileConfiguration config) {
+		ConfigurationSection section = config.getConfigurationSection("channel-toggler");
+		if (section == null) {
+			if (Cache.chatToggleableChannels.isEmpty()) {
+				Cache.chatToggleableChannels = List.of("looc", "ooc", "helper", "admin");
+			}
+			return;
+		}
+		Cache.chatChannelTogglerEnabled = section.getBoolean("enabled", true);
+		List<String> channels = normalizeChannelIds(section.getStringList("toggleable-channels"));
+		if (!channels.isEmpty()) {
+			Cache.chatToggleableChannels = channels;
+		} else if (Cache.chatToggleableChannels.isEmpty()) {
+			Cache.chatToggleableChannels = List.of("looc", "ooc", "helper", "admin");
+		}
+	}
+
+	private static void loadMessages(FileConfiguration config) {
+		ConfigurationSection section = config.getConfigurationSection("messages");
+		if (section == null) {
+			return;
+		}
+		Cache.chatRunAsPlayerMessage = section.getString("run-as-player", Cache.chatRunAsPlayerMessage);
+		Cache.chatChannelSwitchDisabledMessage = section.getString("channel-switch-disabled",
+				Cache.chatChannelSwitchDisabledMessage);
+		Cache.chatChannelToggleDisabledMessage = section.getString("channel-toggle-disabled",
+				Cache.chatChannelToggleDisabledMessage);
+		Cache.chatChannelInvalidUseMessage = section.getString("invalid-use", Cache.chatChannelInvalidUseMessage);
+		Cache.chatChannelInvalidChannelMessage = section.getString("invalid-channel",
+				Cache.chatChannelInvalidChannelMessage);
+		Cache.chatChannelAlreadySwitchedMessage = section.getString("already-switched",
+				Cache.chatChannelAlreadySwitchedMessage);
+		Cache.chatChannelSwitchedMessage = section.getString("switched", Cache.chatChannelSwitchedMessage);
+		Cache.chatChannelCurrentMessage = section.getString("current-channel", Cache.chatChannelCurrentMessage);
+		Cache.chatChannelToggledOnMessage = section.getString("toggled-on", Cache.chatChannelToggledOnMessage);
+		Cache.chatChannelToggledOffMessage = section.getString("toggled-off", Cache.chatChannelToggledOffMessage);
+		Cache.chatChannelCantUseWhenToggledOffMessage = section.getString("cant-use-when-toggled-off",
+				Cache.chatChannelCantUseWhenToggledOffMessage);
+	}
+
+	private static List<String> normalizeChannelIds(List<String> channelIds) {
+		List<String> normalized = new ArrayList<>();
+		if (channelIds == null) {
+			return normalized;
+		}
+		for (String channelId : channelIds) {
+			if (channelId == null || channelId.isBlank()) {
+				continue;
+			}
+			String lower = channelId.toLowerCase(Locale.ROOT);
+			if (!normalized.contains(lower)) {
+				normalized.add(lower);
+			}
+		}
+		return List.copyOf(normalized);
 	}
 
 	private static void syncCommands() {

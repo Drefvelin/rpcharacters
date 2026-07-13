@@ -1,5 +1,5 @@
 aspect1:
-    name: "§aAspect of Osenis"
+    name: "#87d65cAspect of Osenis"
     key: celestial
     description:
         - "§7This character embodies the might of the Oseni."
@@ -7,7 +7,7 @@ aspect1:
         - strength.1
 
 aspect2:
-    name: "§aAspect of Varden"
+    name: "#87d65cAspect of Varden"
     key: celestial
     description:
         - "§7This character embodies the agility of the Vardir."
@@ -15,7 +15,7 @@ aspect2:
         - dexterity.1
 
 aspect3:
-    name: "§aAspect of Metora"
+    name: "#87d65cAspect of Metora"
     key: celestial
     description:
         - "§7This character embodies the resilience of the Metorans."
@@ -23,7 +23,7 @@ aspect3:
         - constitution.1
 
 aspect4:
-    name: "§aAspect of Seithrin"
+    name: "#87d65cAspect of Seithrin"
     key: celestial
     description:
         - "§7This character embodies the intellect of the Seithr."
@@ -31,7 +31,7 @@ aspect4:
         - intelligence.1
 
 aspect5:
-    name: "§aAspect of Mitlan"
+    name: "#87d65cAspect of Mitlan"
     key: celestial
     description:
         - "§7This character embodies the insight of the Mitlani."
@@ -39,7 +39,7 @@ aspect5:
         - wisdom.1
 
 aspect6:
-    name: "§aAspect of Cerrith"
+    name: "#87d65cAspect of Cerrith"
     key: celestial
     description:
         - "§7This character embodies the spirit of the Cerrith."

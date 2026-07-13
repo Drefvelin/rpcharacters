@@ -1,26 +1,34 @@
 package net.tfminecraft.RPCharacters.Objects;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
 import net.Indyuce.mmocore.MMOCore;
 import net.Indyuce.mmocore.api.player.profess.PlayerClass;
+import net.tfminecraft.RPCharacters.mmocore.AttributePointService;
 import net.tfminecraft.RPCharacters.mmocore.ClassService;
+import net.tfminecraft.RPCharacters.professions.ProfessionIntegrator;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
+import net.tfminecraft.RPCharacters.professions.ProfessionRegistry;
+import net.tfminecraft.RPCharacters.professions.ProfessionUpgradeDefinition;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Database.Database;
 import net.tfminecraft.RPCharacters.identity.NameColour;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
+import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeModifier;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
-import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.enums.ClueAddResult;
 import net.tfminecraft.RPCharacters.enums.Status;
 
@@ -42,16 +50,21 @@ public class RPCharacter {
 
 	private List<String> playerClues = new ArrayList<>();
 
-	private int playtimeSeconds;
+	private int createdAtEpochSeconds;
 	private Map<String, Integer> conversationCounts = new HashMap<>();
 	private Map<String, Long> conversationLastAtMs = new HashMap<>();
 
 	private String alias;
+	private String slug;
+	private boolean hidden;
 	private NameColour nameColour;
 	private boolean nameColourStaffOverride;
 	private String gender;
 	private String personaDescription;
 	private String birthday;
+
+	private final Set<String> professionUpgrades = new LinkedHashSet<>();
+	private final Map<String, Integer> extraAttributeAllocation = new HashMap<>();
 	
 	private AttributeData attributeData;
 	
@@ -87,13 +100,7 @@ public class RPCharacter {
 	
 	public void update() {
 		if(active) {
-			if(mmoClass != null) {
-				PlayerClass newClass = MMOCore.plugin.classManager.get(mmoClass);
-				if(newClass != null) {
-					ClassService.applyClass(owner, mmoClass);
-					owner.sendMessage("§eYour class was changed to "+newClass.getName());
-				}
-			}
+			syncMMOClass(false);
 		}
 		attributeData = new AttributeData();
 		attributeData.mergeFrom(race.getRaceData().getAttributeData());
@@ -128,24 +135,33 @@ public class RPCharacter {
 		return mmoClass;
 	}
 	public void activate() {
-		if(mmoClass != null) {
-			PlayerClass newClass = MMOCore.plugin.classManager.get(mmoClass);
-			if(newClass != null) {
-				ClassService.applyClass(owner, mmoClass);
-				owner.sendMessage("§eYour class was changed to "+newClass.getName());
-			}
-		}
+		syncMMOClass(true);
 		Database.log(owner, "Activated the character "+name);
 		active = true;
-		Integrator i = new Integrator();
-		i.integrate(owner, this);
+		AttributePointService.syncOnActivate(this);
+		ProfessionIntegrator.apply(owner, this);
 	}
 	public void deactivate() {
 		if(mmoClass == null) mmoClass = net.Indyuce.mmocore.api.player.PlayerData.get(owner).getProfess().getId();
 		Database.log(owner, "Deactivated the character "+name);
 		active = false;
-		Integrator i = new Integrator();
-		i.remove(owner, this, true);
+		ProfessionIntegrator.remove(owner, this);
+		AttributePointService.syncOnDeactivate(this);
+	}
+
+	private void syncMMOClass(boolean notifyOnChange) {
+		if (mmoClass == null) {
+			return;
+		}
+		PlayerClass playerClass = MMOCore.plugin.classManager.get(mmoClass);
+		if (playerClass == null) {
+			return;
+		}
+		boolean alreadyOnClass = ClassService.isOnClass(owner, mmoClass);
+		ClassService.applyClass(owner, mmoClass);
+		if (notifyOnChange && !alreadyOnClass) {
+			RPTexts.send(owner, RPTexts.WARN + "Your class was changed to " + playerClass.getName());
+		}
 	}
 	public Status getStatus() {
 		return status;
@@ -196,7 +212,27 @@ public class RPCharacter {
 		return name;
 	}
 	public void setName(String name) {
-		this.name = name;
+		if (name == null || name.isBlank()) {
+			this.name = null;
+			return;
+		}
+		this.name = ClueFormatter.stripColor(name).trim();
+	}
+
+	public String getSlug() {
+		return slug;
+	}
+
+	public void setSlug(String slug) {
+		this.slug = slug;
+	}
+
+	public boolean isHidden() {
+		return hidden;
+	}
+
+	public void setHidden(boolean hidden) {
+		this.hidden = hidden;
 	}
 
 	public String getAlias() {
@@ -353,30 +389,31 @@ public class RPCharacter {
 	public String getClueAddErrorMessage(ClueAddResult result) {
 		switch (result) {
 			case AT_MAX:
-				return "§cYou cannot have more than " + Cache.maxClues + " clues.";
+				return RPTexts.format(RPTexts.ERROR + "You cannot have more than " + Cache.maxClues + " clues.");
 			case TOO_SHORT:
 			case TOO_LONG:
 				return ClueFormatter.lengthRangeMessage();
 			case DUPLICATE:
-				return "§cYou already have a clue like that.";
+				return RPTexts.format(RPTexts.ERROR + "You already have a clue like that.");
 			default:
 				return null;
 		}
 	}
 
-	public int getPlaytimeSeconds() {
-		return playtimeSeconds;
+	public int getCreatedAtEpochSeconds() {
+		return createdAtEpochSeconds;
 	}
 
-	public void setPlaytimeSeconds(int playtimeSeconds) {
-		this.playtimeSeconds = Math.max(0, playtimeSeconds);
+	public void setCreatedAtEpochSeconds(int createdAtEpochSeconds) {
+		this.createdAtEpochSeconds = Math.max(0, createdAtEpochSeconds);
 	}
 
-	public void addPlaytimeSeconds(int seconds) {
-		if (seconds <= 0) {
-			return;
+	public int getAgeSeconds() {
+		if (createdAtEpochSeconds <= 0) {
+			return 0;
 		}
-		playtimeSeconds += seconds;
+		long age = Instant.now().getEpochSecond() - createdAtEpochSeconds;
+		return (int) Math.max(0L, age);
 	}
 
 	public Map<String, Integer> getConversationCounts() {
@@ -421,5 +458,97 @@ public class RPCharacter {
 		String otherId = other.getId();
 		conversationCounts.put(otherId, getConversationCount(otherId) + 1);
 		conversationLastAtMs.put(otherId, nowMs);
+	}
+
+	public List<String> getProfessionUpgrades() {
+		return Collections.unmodifiableList(new ArrayList<>(professionUpgrades));
+	}
+
+	public void setProfessionUpgrades(List<String> upgradeIds) {
+		professionUpgrades.clear();
+		if (upgradeIds != null) {
+			for (String upgradeId : upgradeIds) {
+				if (upgradeId != null && !upgradeId.isBlank()) {
+					professionUpgrades.add(upgradeId);
+				}
+			}
+		}
+	}
+
+	public boolean hasProfessionUpgrade(String upgradeId) {
+		return upgradeId != null && professionUpgrades.contains(upgradeId);
+	}
+
+	public void addProfessionUpgrade(String upgradeId) {
+		if (upgradeId != null && !upgradeId.isBlank()) {
+			professionUpgrades.add(upgradeId);
+		}
+	}
+
+	public void removeProfessionUpgrade(String upgradeId) {
+		professionUpgrades.remove(upgradeId);
+	}
+
+	public void clearProfessionUpgrades() {
+		professionUpgrades.clear();
+	}
+
+	public List<ProfessionUpgradeDefinition> resolveProfessionUpgrades() {
+		List<ProfessionUpgradeDefinition> resolved = new ArrayList<>();
+		for (String upgradeId : professionUpgrades) {
+			ProfessionUpgradeDefinition upgrade = ProfessionRegistry.getUpgrade(upgradeId);
+			if (upgrade != null) {
+				resolved.add(upgrade);
+			}
+		}
+		return resolved;
+	}
+
+	public int getSpentPointsOnProfession(String professionId) {
+		int spent = 0;
+		for (ProfessionUpgradeDefinition upgrade : resolveProfessionUpgrades()) {
+			if (upgrade.getProfessionId().equalsIgnoreCase(professionId)) {
+				spent += upgrade.getCost();
+			}
+		}
+		return spent;
+	}
+
+	public int getTotalSpentPoints() {
+		int spent = 0;
+		for (ProfessionUpgradeDefinition upgrade : resolveProfessionUpgrades()) {
+			spent += upgrade.getCost();
+		}
+		return spent;
+	}
+
+	public Map<String, Integer> getExtraAttributeAllocation() {
+		return Collections.unmodifiableMap(extraAttributeAllocation);
+	}
+
+	public void setExtraAttributeAllocation(Map<String, Integer> allocation) {
+		extraAttributeAllocation.clear();
+		if (allocation != null) {
+			for (Map.Entry<String, Integer> entry : allocation.entrySet()) {
+				if (entry.getKey() != null && entry.getValue() != null && entry.getValue() > 0) {
+					extraAttributeAllocation.put(entry.getKey().toLowerCase(), entry.getValue());
+				}
+			}
+		}
+	}
+
+	public int getCreationBaseAmount(String attributeId) {
+		if (attributeId == null || attributeData == null) {
+			return 0;
+		}
+		return attributeData.getAmount(new AttributeModifier(attributeId, 0));
+	}
+
+	public int getSpentExtraAttributePoints() {
+		int spent = 0;
+		for (int amount : extraAttributeAllocation.values()) {
+			spent += amount;
+		}
+		return spent;
 	}
 }

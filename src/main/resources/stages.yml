@@ -2,64 +2,48 @@ welcome_stage:
     type: info
     repeat: false
     interval: 60
-    should-summarize: true
     auto-next: false
     messages:
-        - "title(§aWelcome to TFMC)"
-        - "subtitle(§ePlease pay attention to the screen)"
-        - "subtitle(§eIf you cannot see the full text your GUI scale is too big)"
-        - "subtitle(§eA summary will follow in the chat if you miss anything)"
-        - "subtitle(§eTo play on the server you must first make a character)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
+        - "title(#c9a24fWelcome to TFMC)"
+        - "subtitle(§7Create a character to play.)"
+        - "subtitle(§7#32ed73/rpcharacter next)"
 creation_info_stage:
     type: info
     repeat: false
     interval: 60
-    should-summarize: true
     auto-next: false
     messages:
-        - "title(§aCharacter Creation)"
-        - "subtitle(§eYou will now make a new character)"
-        - "subtitle(§eConsult the lore documents if you are confused)"
-        - "subtitle(§eAny choices made can be changed later in case of mistakes)"
-        - "subtitle(§eYou can also edit your traits later to fit changes in rp)"
-        - "subtitle(§eThe only unchangeable choices are your race and background)"
-        - "subtitle(§eYou are expected to roleplay your traits)"
-        - "subtitle(§eNot following your traits is FailRP)"
-        - "subtitle(§eRemember to edit your traits when it makes sense)"
-        - "subtitle(§eYou can always make a new character if you are unhappy)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
+        - "title(#c9a24fCharacter Creation)"
+        - "subtitle(§7Race, class, and background lock later.)"
+        - "subtitle(§7Ignore your traits and that's FailRP.)"
+        - "subtitle(§7#32ed73/rpcharacter next)"
 creation_name_stage:
     type: info
     repeat: false
     interval: 60
-    should-summarize: true
     auto-next: false
     messages:
-        - "title(§aCharacter Name)"
-        - "subtitle(§eA character needs a name)"
-        - "subtitle(§eIn the next stage you will type the name in chat)"
-        - "subtitle(§eMake a good name - your IGN is not permitted)"
-        - "subtitle(§eNo characters from other franchises/real life)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
+        - "title(#c9a24fCharacter Name)"
+        - "subtitle(§7Type the name in chat next.)"
+        - "subtitle(§7No IGNs or copyrighted names.)"
+        - "subtitle(§7#32ed73/rpcharacter next)"
 creation_name_set_stage:
     type: setter
     target: name
     repeat: true
-    message: subtitle(§eType your character name in chat)
+    message: subtitle(§7Type your character name in chat)
 class_info_stage:
     type: info
     repeat: true
     interval: 60
-    should-summarize: true
     auto-next: false
     messages:
-        - "title(§aChoose Your Class)"
-        - "subtitle(§eYour class decides weapons and skills)"
-        - "subtitle(§eLevel and professions are shared across all characters)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to open the selector)"
+        - "title(#c9a24fChoose Your Class)"
+        - "subtitle(§7Class sets weapons and skills.)"
+        - "subtitle(§7#32ed73/rpcharacter next)"
 class_selection_stage:
     type: selection
+    lock-time: 5d
     repeat: true
     target: class
     min-select: 1
@@ -68,6 +52,7 @@ class_selection_stage:
     gui-size: 54
 race_selection_stage:
     type: selection
+    lock-time: 24h
     repeat: true
     target: race
     key: race
@@ -76,12 +61,14 @@ race_selection_stage:
     slots: [10, 11, 12, 13, 14, 15, 16]
 character_age_stage:
     type: setter
+    lock-time: 5d
     target: age
     repeat: true
     auto-next: true
-    message: subtitle(§eType your character age in chat e.g. 30 or 33.7)
+    message: subtitle(§7Type your character age in chat)
 cataclysm_selection_stage:
     type: selection
+    lock-time: 5d
     repeat: true
     target: trait
     key: cataclysm
@@ -90,6 +77,7 @@ cataclysm_selection_stage:
     slots: [10, 11, 12, 13, 14, 15, 16]
 reclamation_selection_stage:
     type: selection
+    lock-time: 5d
     repeat: true
     target: trait
     key: reclamation
@@ -98,6 +86,7 @@ reclamation_selection_stage:
     slots: [10, 11, 12, 13, 14, 15, 16]
 expedition_selection_stage:
     type: selection
+    lock-time: 5d
     repeat: true
     target: trait
     key: expedition
@@ -106,6 +95,7 @@ expedition_selection_stage:
     slots: [10, 11, 12, 13, 14, 15, 16]
 ambition_selection_stage:
     type: selection
+    lock-time: 5d
     repeat: true
     target: trait
     key: ambition
@@ -114,6 +104,7 @@ ambition_selection_stage:
     slots: [10, 11, 12, 13, 14, 15, 16]
 physical_selection_stage:
     type: selection
+    lock-time: 5d
     repeat: true
     target: trait
     key: physical
@@ -124,6 +115,7 @@ physical_selection_stage:
     slots: [10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43]
 celestial_selection_stage:
     type: selection
+    lock-time: 5d
     repeat: true
     target: trait
     key: celestial
@@ -144,7 +136,6 @@ evil_info_stage:
     type: info
     repeat: true
     interval: 60
-    should-summarize: true
     auto-next: false
     dependency:
         type: trait
@@ -156,61 +147,55 @@ evil_info_stage:
             - deceitful
             - cynical
     messages:
-        - "title(§aEvil RP)"
-        - "subtitle(§eYour character has traits compatible with Evil RP)"
-        - "subtitle(§eOn the next stage you may select up to 2 Evil archetypes)"
-        - "subtitle(§eYou can select nothing and click confirm to skip)"
-        - "subtitle(§eMake sure you read the Evil RP rules if you are Evil)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-evil_selection_stage:
-    type: selection
-    repeat: true
-    target: trait
-    dependency:
-        type: trait
-        mode: one-or-more
-        depends-on:
-            - callous
-            - spiteful
-            - greedy
-            - deceitful
-            - cynical
-    key: evil
-    min-select: 0
-    max-select: 4
-    slots: [10, 11, 12, 13, 14, 15, 16]
+        - "title(#c9a24fEvil RP)"
+        - "subtitle(§7Pick up to 2 evil archetypes, or skip.)"
+        - "subtitle(§7#32ed73/rpcharacter next)"
 creation_description_stage:
     type: info
     repeat: false
     interval: 60
-    should-summarize: true
     auto-next: false
     messages:
-        - "title(§aCharacter Description)"
-        - "subtitle(§eWrite a paragraph based on your race, class, and traits)"
-        - "subtitle(§eAppearance, mannerisms, background — this helps when writing clues)"
-        - "subtitle(§eBetween 32 and 256 characters)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
+        - "title(#c9a24fCharacter Description)"
+        - "subtitle(§732 to 256 characters.)"
+        - "subtitle(§7#32ed73/rpcharacter next)"
 creation_description_set_stage:
     type: setter
     target: description
     repeat: true
     auto-next: true
-    message: subtitle(§eType your character description in chat)
+    message: subtitle(§7Type your character description in chat)
 clue_info_stage:
     type: info
     repeat: false
     interval: 60
-    should-summarize: true
     auto-next: false
     messages:
-        - "title(§aCharacter Clues)"
-        - "subtitle(§eClues describe how others might recognize your character)"
-        - "subtitle(§eUse your description as inspiration for appearance, mannerisms, scent, etc.)"
-        - "subtitle(§eEvil archetypes require more clues than most)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to begin entering clues)"
+        - "title(#c9a24fCharacter Clues)"
+        - "subtitle(§7How others spot your character.)"
+        - "subtitle(§7Evil needs more clues.)"
+        - "subtitle(§7#32ed73/rpcharacter next)"
 clue_entry_stage:
     type: clue
     repeat: true
     auto-next: true
-    message: subtitle(§eType clue {current}/{needed} in chat)
+    message: subtitle(§7Type clue {current}/{needed} in chat)
+creation_summary_stage:
+    type: summary
+    repeat: true
+    auto-next: false
+    entries:
+        name: creation_name_set_stage
+        class: class_selection_stage
+        race: race_selection_stage
+        age: character_age_stage
+        description: creation_description_set_stage
+        cataclysm: cataclysm_selection_stage
+        reclamation: reclamation_selection_stage
+        expedition: expedition_selection_stage
+        ambition: ambition_selection_stage
+        physical: physical_selection_stage
+        celestial: celestial_selection_stage
+        personality: personality_selection_stage
+        evil: evil_selection_stage
+        clues: clues

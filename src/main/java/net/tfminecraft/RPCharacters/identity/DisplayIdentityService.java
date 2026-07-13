@@ -37,47 +37,90 @@ public final class DisplayIdentityService {
 		return character.getEffectiveDisplayPlain();
 	}
 
-	public static String resolveDisplayNoMask(Player player) {
+	public static String resolveDisplayTab(Player player) {
 		RPCharacter character = getActiveCharacter(player);
-		return resolveDisplayNoMask(character);
+		return resolveDisplayTab(character);
 	}
 
-	public static String resolveDisplayNoMask(RPCharacter character) {
+	/** Alias or name with colour; never mask or temp alias. */
+	public static String resolveDisplayTab(RPCharacter character) {
 		if (character == null) {
 			return Cache.personaNoCharacterFallback;
 		}
-		String plain = character.getEffectiveDisplayPlain();
-		if (plain.isEmpty()) {
-			return "";
+		return formatColouredDisplay(character);
+	}
+
+	public static String resolveDisplaySafe(Player player) {
+		PlayerData data = getPlayerData(player);
+		if (data == null) {
+			return Cache.personaNoCharacterFallback;
 		}
-		NameColour colour = character.getNameColour();
-		List<String> hexCodes = colour != null ? colour.getHexCodes() : Collections.emptyList();
-		return StringFormatter.applyColourGradient(plain, hexCodes);
+		RPCharacter active = data.getActiveCharacter();
+		RPCharacter displayChar = active;
+		if (active != null && active.isHidden()) {
+			displayChar = data.findFacadeCharacter();
+		}
+		if (displayChar == null) {
+			return Cache.personaNoCharacterFallback;
+		}
+		return formatColouredDisplay(displayChar);
 	}
 
 	public static String resolveDisplay(Player player) {
 		if (MaskService.isMasked(player)) {
 			return MaskService.getMaskedLabel();
 		}
-		return resolveDisplayNoMask(player);
+		String tempAlias = TempAliasService.getPlain(player);
+		if (!tempAlias.isEmpty()) {
+			RPCharacter active = getActiveCharacter(player);
+			if (active != null) {
+				return applyNameColour(tempAlias, active);
+			}
+			return tempAlias;
+		}
+		return resolveDisplayTab(player);
 	}
 
 	public static String resolveDisplay(RPCharacter character) {
 		if (character != null && character.getOwner() != null && MaskService.isMasked(character.getOwner())) {
 			return MaskService.getMaskedLabel();
 		}
-		return resolveDisplayNoMask(character);
+		if (character != null && character.getOwner() != null) {
+			String tempAlias = TempAliasService.getPlain(character.getOwner());
+			if (!tempAlias.isEmpty()) {
+				return applyNameColour(tempAlias, character);
+			}
+		}
+		return resolveDisplayTab(character);
 	}
 
 	public static boolean isMasked(Player player) {
 		return MaskService.isMasked(player);
 	}
 
+	private static String formatColouredDisplay(RPCharacter character) {
+		String plain = character.getEffectiveDisplayPlain();
+		if (plain.isEmpty()) {
+			return "";
+		}
+		return applyNameColour(plain, character);
+	}
+
+	private static String applyNameColour(String plain, RPCharacter character) {
+		NameColour colour = character.getNameColour();
+		List<String> hexCodes = colour != null ? colour.getHexCodes() : Collections.emptyList();
+		return StringFormatter.applyColourGradient(ClueFormatter.stripColor(plain), hexCodes);
+	}
+
 	private static RPCharacter getActiveCharacter(Player player) {
+		PlayerData data = getPlayerData(player);
+		return data != null ? data.getActiveCharacter() : null;
+	}
+
+	private static PlayerData getPlayerData(Player player) {
 		if (player == null) {
 			return null;
 		}
-		PlayerData data = PlayerManager.get(player);
-		return data != null ? data.getActiveCharacter() : null;
+		return PlayerManager.get(player);
 	}
 }

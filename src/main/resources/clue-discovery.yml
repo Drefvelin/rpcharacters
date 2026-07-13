@@ -1,0 +1,56 @@
+investigation-points:
+  max: 20
+  regen-cycle: 30s
+
+passive-discovery:
+  enabled: true
+  interval-seconds: 15
+  radius: 4.0
+  base-chance: 0.08
+  min-potency: 0.1
+
+active-discovery:
+  enabled: true
+  cooldown-seconds: 3
+  investigation-cost: 1
+  radius: 3.0
+  base-chance: 0.35
+  min-potency: 0.1
+
+attributes:
+  wisdom-weight: 0.02
+  intelligence-weight: 0.015
+
+potency:
+  initial: 1.0
+  decay-per-hour: 0.02
+  min-for-discovery: 0.1
+  min-for-readable: 0.15
+  expire-when-zero: true
+
+disturbance:
+  target-interact:
+    enabled: true
+    potency-loss-min: 0.0
+    potency-loss-max: 0.25
+    zero-loss-chance: 0.4
+
+  foot-traffic:
+    enabled: true
+    radius: 4.0
+    chance-per-check: 0.05
+    max-events-per-clue-per-hour: 6
+    only-undiscovered-players: true
+    potency-loss-min: 0.0
+    potency-loss-max: 0.08
+
+readability:
+  full-clarity: 0.85
+  min-audible: 0.12
+  too-faint-placeholder: '&7*You find a trace, but cannot make it out.*'
+
+messages:
+  discovered: '&7*Something seems off.*'
+  no-investigation-points: '&cOut of focus. Rest up first.'
+  attribute-too-low: '&cYou are not perceptive enough to use this lens.'
+  no-clue-nearby: ''

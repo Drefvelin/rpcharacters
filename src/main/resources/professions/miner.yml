@@ -1,0 +1,150 @@
+name: Miner
+item:
+  material: iron_pickaxe
+  name: #87d65cMiner
+  lore:
+  - §7Spend points earned through leveling
+  - §7the #87d65cMiner §7Profession in #d6cf69/profile
+upgrades:
+  pickaxe_maker_1:
+    item:
+      name: #c9a24fPickaxe Maker I
+      material: iron_pickaxe
+      model_data: 1
+      lore:
+      - §7Unlocks crafting §7Steel Pickaxes
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.pickaxe_maker_1
+  pickaxe_maker_2:
+    item:
+      name: #c9a24fPickaxe Maker II
+      material: iron_pickaxe
+      model_data: 2
+      lore:
+      - §7Unlocks crafting #6b6b6bAbyssalite Pickaxes
+    cost: 2
+    type: permission
+    requires:
+    - pickaxe_maker_1
+    unlocks:
+    - professions.pickaxe_maker_2
+  pickaxe_maker_3:
+    item:
+      name: #c9a24fPickaxe Maker III
+      material: iron_pickaxe
+      model_data: 3
+      lore:
+      - §7Unlocks crafting #56ccf2Mythril Pickaxes
+    cost: 3
+    type: permission
+    requires:
+    - pickaxe_maker_2
+    unlocks:
+    - professions.pickaxe_maker_3
+  flint_extractor:
+    item:
+      name: #c9a24fFlint Extractor
+      material: flint
+      lore:
+      - §7Unlocks crafting flint
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.flint_extractor
+  goldsmith_drop:
+    item:
+      name: #c9a24fGold Digger
+      material: gold_nugget
+      model_data: 7
+      hide_enchants: true
+      lore:
+      - §7Have the chance of getting more #ffffffGoldsmith §7materials when mining gold
+        ore
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.goldsmith_drop
+  gemstone_miner_1:
+    item:
+      name: #c9a24fGemstone Miner I
+      material: amethyst_shard
+      model_data: 26
+      hide_enchants: true
+      lore:
+      - §7Unlocks the chance to drop #ffffffBasic Gemstones §7when mining ore
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.gemstone_miner_1
+  gemstone_miner_2:
+    item:
+      name: #c9a24fGemstone Miner II
+      material: amethyst_shard
+      model_data: 44
+      hide_enchants: true
+      lore:
+      - §7Unlocks the chance to drop #ffffffPolished Gemstones §7when mining ore
+    cost: 2
+    type: permission
+    requires:
+    - gemstone_miner_1
+    unlocks:
+    - professions.gemstone_miner_2
+  gemstone_miner_3:
+    item:
+      name: #c9a24fGemstone Miner III
+      material: amethyst_shard
+      model_data: 7
+      hide_enchants: true
+      lore:
+      - §7Unlocks the chance to drop #ffffffRadiant Gemstones §7when mining ore
+    cost: 3
+    type: permission
+    requires:
+    - gemstone_miner_2
+    unlocks:
+    - professions.gemstone_miner_3
+  gemstone_miner_4:
+    item:
+      name: #c9a24fGemstone Miner IV
+      material: amethyst_shard
+      model_data: 21
+      hide_enchants: true
+      lore:
+      - §7Unlocks the chance to drop #ffffffRare Resources §7when mining ore
+    cost: 4
+    type: permission
+    requires:
+    - gemstone_miner_3
+    unlocks:
+    - professions.gemstone_miner_4
+  gemstone_miner_5:
+    item:
+      name: #c9a24fGemstone Miner V
+      material: magma_cream
+      model_data: 7
+      hide_enchants: true
+      lore:
+      - §7Have a chance of getting #ffffffRunestones §7when mining ore
+    cost: 5
+    type: permission
+    requires:
+    - gemstone_miner_4
+    unlocks:
+    - professions.gemstone_miner_5
+  gemstone_miner_6:
+    item:
+      name: #c9a24fGemstone Miner VI
+      material: amethyst_shard
+      model_data: 9
+      hide_enchants: true
+      lore:
+      - §7Have a chance of getting #ffffffMythical Gemstones §7when mining ore
+    cost: 10
+    type: permission
+    requires:
+    - gemstone_miner_5
+    unlocks:
+    - professions.gemstone_miner_6

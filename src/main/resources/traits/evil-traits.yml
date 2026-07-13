@@ -1,5 +1,6 @@
+# required-account-playtime: hours since account creation (not time played)
 bandit:
-    name: "§4Bandit"
+    name: "#d65c5cBandit"
     key: evil
     required-account-playtime: 24
     dependency:
@@ -14,12 +15,12 @@ bandit:
         - compassionate
         - craven
     description:
-        - "§e[§4Evil§e]"
+        - "#d6cf69[#d65c5cEvil#d6cf69]"
         - "§7This character is a bandit, robbing their way to the top."
         - " "
-        - "§eUnlocks: §4Bandit §7type Evil RP"
+        - "#d6cf69Unlocks: #d65c5cBandit §7type Evil RP"
 assassin:
-    name: "§8Assassin"
+    name: "#6b6b6bAssassin"
     key: evil
     required-account-playtime: 24
     dependency:
@@ -36,12 +37,12 @@ assassin:
         - just
         - compassionate
     description:
-        - "§e[§7Morally Gray§e]"
+        - "#d6cf69[§7Morally Gray#d6cf69]"
         - "§7This character takes lives for the right price."
         - " "
-        - "§eUnlocks: §8Assassin §7type Evil RP"
+        - "#d6cf69Unlocks: #6b6b6bAssassin §7type Evil RP"
 thief:
-    name: "§cThief"
+    name: "#d65c5cThief"
     key: evil
     required-account-playtime: 24
     dependency:
@@ -55,12 +56,12 @@ thief:
         - honest
         - compassionate
     description:
-        - "§e[§4Evil§e]"
+        - "#d6cf69[#d65c5cEvil#d6cf69]"
         - "§7This character is a thief, they may not rob but they will steal."
         - " "
-        - "§eUnlocks: §cThief §7type Evil RP"
+        - "#d6cf69Unlocks: #d65c5cThief §7type Evil RP"
 mercenary:
-    name: "§eMercenary"
+    name: "#d6cf69Mercenary"
     key: evil
     required-account-playtime: 24
     dependency:
@@ -75,7 +76,7 @@ mercenary:
         - compassionate
         - craven
     description:
-        - "§e[§7Morally Gray§e]"
+        - "#d6cf69[§7Morally Gray#d6cf69]"
         - "§7This character is a mercenary, willing to wage war for coin."
         - " "
-        - "§eUnlocks: §eMercenary §7type Evil RP"
+        - "#d6cf69Unlocks: #d6cf69Mercenary §7type Evil RP"

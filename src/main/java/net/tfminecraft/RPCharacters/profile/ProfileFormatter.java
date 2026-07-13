@@ -23,9 +23,10 @@ public final class ProfileFormatter {
 				continue;
 			}
 			String withTokens = template
-					.replace("{display_no_mask}", DisplayIdentityService.resolveDisplayNoMask(target))
+					.replace("{display_tab}", DisplayIdentityService.resolveDisplayTab(target))
 					.replace("{gender}", PersonaService.resolveGender(character))
 					.replace("{age}", PersonaService.resolveAge(character))
+					.replace("{birthday}", PersonaService.resolveBirthday(character))
 					.replace("{race}", PersonaService.resolveRace(character))
 					.replace("{description}", PersonaService.resolveDescription(character));
 			lines.add(StringFormatter.formatHex(withTokens.replace('&', '\u00A7')));

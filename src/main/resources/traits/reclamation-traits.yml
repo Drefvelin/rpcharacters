@@ -1,5 +1,5 @@
 worker:
-    name: "§aWorker"
+    name: "#87d65cWorker"
     key: reclamation
     description:
         - "§7This character spent their time before the"
@@ -18,7 +18,7 @@ worker:
             modifier: 5
    
 traveller:
-    name: "§aTraveler"
+    name: "#87d65cTraveler"
     key: reclamation
     description:
         - "§7This character spent their time before the"
@@ -37,7 +37,7 @@ traveller:
             modifier: 5
         
 explorer:
-    name: "§aCraftsman"
+    name: "#87d65cCraftsman"
     key: reclamation
     description:
         - "§7This character spent their time before the"
@@ -56,7 +56,7 @@ explorer:
             modifier: 5
 
 student:
-    name: "§aStudent"
+    name: "#87d65cStudent"
     key: reclamation
     description:
         - "§7This character spent their time before the"
@@ -75,7 +75,7 @@ student:
             modifier: 5
 
 monk:
-    name: "§aDevotee"
+    name: "#87d65cDevotee"
     key: reclamation
     description:
         - "§7This character spent their time before the"
@@ -94,7 +94,7 @@ monk:
             modifier: 5
         
 performer:
-    name: "§aHumanitarian"
+    name: "#87d65cHumanitarian"
     key: reclamation
     description:
         - "§7This character spent their time before the"

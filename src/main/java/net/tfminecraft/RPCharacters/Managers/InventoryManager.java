@@ -24,9 +24,13 @@ import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Dependency;
+import net.tfminecraft.RPCharacters.Creation.Stage;
+import net.tfminecraft.RPCharacters.Creation.StageEditLock;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
+import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
 import net.tfminecraft.RPCharacters.Holder.RPCHolder;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
+import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
@@ -37,20 +41,32 @@ import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.PotionData;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Utils.AgeFormatter;
 import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
+import net.tfminecraft.RPCharacters.Utils.ClueProgressFormatter;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.identity.DisplayIdentityService;
 import net.tfminecraft.RPCharacters.identity.PersonaService;
+import net.tfminecraft.RPCharacters.mmocore.MmoCoreClassGuiHelper;
+import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
+import net.tfminecraft.RPCharacters.enums.CreationGuiContext;
 import net.tfminecraft.RPCharacters.enums.Status;
+import net.tfminecraft.RPCharacters.permadeath.PermadeathService;
 
 public class InventoryManager {
 	private static final String CHARACTER_ID_KEY = "character_id";
 	private static final String CLUE_INDEX_KEY = "clue_index";
 	private static final String OPEN_CLUES_GUI_KEY = "open_clues_gui";
+	private static final String SUMMARY_ACTION_KEY = "summary_action";
+
+	private static String t(String raw) {
+		return RPTexts.format(raw);
+	}
 
 	public void characterView(Player p, RPCharacter c) {
 		PlayerData pd = PlayerManager.get(c.getOwner());
-		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(c.getOwner()), 27, "§7Character Info");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(c.getOwner()), 27, t(RPTexts.MUTED + "Character Info"));
 		i.setItem(10, getCharacterItem(c, false));
 		i.setItem(12, getDescriptionItem(c));
 		i.setItem(14, getTraitsItem(c));
@@ -61,6 +77,12 @@ public class InventoryManager {
 		if(c.getStatus().equals(Status.ALIVE) && c.getOwner().equals(p)) {
 			i.setItem(8, getKillItem());
 		}
+		if (c.getStatus().equals(Status.DEAD) && Permissions.isAdmin(p)) {
+			boolean canRevive = CharacterSlotService.hasFreeSlot(c.getOwner(), pd);
+			int alive = pd.getCharacters(Status.ALIVE).size();
+			int max = CharacterSlotService.getMaxAliveCharacters(c.getOwner());
+			i.setItem(4, getReviveItem(canRevive, alive, max));
+		}
 		if(c.getStatus().equals(Status.ALIVE) && !c.isActive() && (!PermissionGroupService.hasCharacterSwitchCooldown(p, pd) || Permissions.isAdmin(p)) && c.getOwner().equals(p)) {
 			i.setItem(6, getSwitchItem());
 		}
@@ -69,7 +91,7 @@ public class InventoryManager {
 			if(i.getItem(slotn) == null) {
 				ItemStack fill = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 				ItemMeta fm = fill.getItemMeta();
-				fm.setDisplayName("§8 ");
+				fm.setDisplayName(t(RPTexts.MUTED + " "));
 				fill.setItemMeta(fm);
 				i.setItem(slotn, fill);
 			}
@@ -79,10 +101,19 @@ public class InventoryManager {
 	}
 
 	public void cluesView(Player viewer, RPCharacter c) {
+		cluesView(viewer, c, CreationGuiContext.NONE, null);
+	}
+
+	@SuppressWarnings("deprecation")
+	public void cluesView(Player viewer, RPCharacter c, CreationGuiContext context, CharacterCreation creation) {
 		int clueCount = c.getPlayerClues().size();
 		int rows = Math.max(3, Math.min(6, ((clueCount + 2) + 8) / 9));
-		String title = "§7Clues (" + clueCount + "/" + c.getCluesNeeded() + ")";
-		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(c.getOwner()), rows * 9, title);
+		String title = ClueProgressFormatter.guiTitle(c);
+		RPCHolder holder = context == CreationGuiContext.CREATION_SUMMARY
+				|| context == CreationGuiContext.EDIT_SUMMARY
+				? new RPCHolder(c.getOwner(), creation, context)
+				: new RPCHolder(c.getOwner());
+		Inventory i = RPCharacters.plugin.getServer().createInventory(holder, rows * 9, title);
 
 		NamespacedKey characterKey = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
 		NamespacedKey clueIndexKey = new NamespacedKey(RPCharacters.plugin, CLUE_INDEX_KEY);
@@ -93,11 +124,11 @@ public class InventoryManager {
 			if (slot >= i.getSize() - 9) break;
 			ItemStack paper = new ItemStack(Material.PAPER, 1);
 			ItemMeta meta = paper.getItemMeta();
-			meta.setDisplayName("§7Clue #" + (index + 1));
+			meta.setDisplayName(t(RPTexts.MUTED + "Clue #" + (index + 1)));
 			List<String> lore = new ArrayList<>();
 			lore.add(clues.get(index));
-			lore.add(" ");
-			lore.add("§cClick to remove");
+			lore.add(RPTexts.spacer());
+			lore.add(t(RPTexts.ERROR + "Click to remove"));
 			meta.setLore(lore);
 			meta.getPersistentDataContainer().set(characterKey, PersistentDataType.STRING, c.getId());
 			meta.getPersistentDataContainer().set(clueIndexKey, PersistentDataType.INTEGER, index);
@@ -109,9 +140,12 @@ public class InventoryManager {
 		if (c.canAddClue() && c.getOwner().equals(viewer)) {
 			ItemStack add = new ItemStack(Material.LIME_DYE, 1);
 			ItemMeta addMeta = add.getItemMeta();
-			addMeta.setDisplayName("§aAdd Clue");
+			addMeta.setDisplayName(t(RPTexts.SUCCESS + "Add Clue"));
 			List<String> addLore = new ArrayList<>();
-			addLore.add("§7Click to type a new clue in chat");
+			addLore.add(t(RPTexts.MUTED + "Click to type a new clue in chat"));
+			if (c.hasEnoughClues()) {
+				addLore.add(t(RPTexts.MUTED + "Minimum met. Extra clues optional up to " + RPTexts.WARN + Cache.maxClues));
+			}
 			addMeta.setLore(addLore);
 			addMeta.getPersistentDataContainer().set(characterKey, PersistentDataType.STRING, c.getId());
 			add.setItemMeta(addMeta);
@@ -119,9 +153,9 @@ public class InventoryManager {
 		} else if (!c.canAddClue() && c.getOwner().equals(viewer)) {
 			ItemStack max = new ItemStack(Material.GRAY_DYE, 1);
 			ItemMeta maxMeta = max.getItemMeta();
-			maxMeta.setDisplayName("§7Clue limit reached");
+			maxMeta.setDisplayName(t(RPTexts.MUTED + "Clue limit reached"));
 			List<String> maxLore = new ArrayList<>();
-			maxLore.add("§7You cannot have more than §e" + Cache.maxClues + " §7clues.");
+			maxLore.add(t(RPTexts.MUTED + "You cannot have more than " + RPTexts.WARN + Cache.maxClues + " " + RPTexts.MUTED + "clues."));
 			maxMeta.setLore(maxLore);
 			max.setItemMeta(maxMeta);
 			i.setItem(8, max);
@@ -134,7 +168,7 @@ public class InventoryManager {
 			if (i.getItem(slotn) == null) {
 				ItemStack fill = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 				ItemMeta fm = fill.getItemMeta();
-				fm.setDisplayName("§8 ");
+				fm.setDisplayName(t(RPTexts.MUTED + " "));
 				fill.setItemMeta(fm);
 				i.setItem(slotn, fill);
 			}
@@ -144,25 +178,254 @@ public class InventoryManager {
 	}
 
 	@SuppressWarnings("deprecation")
+	public void creationSummaryView(Player player, CharacterCreation creation, SummaryStage summary) {
+		boolean editing = creation.isEditing();
+		String title = editing ? t(RPTexts.MUTED + "Edit Character") : t(RPTexts.MUTED + "Creation Summary");
+		Inventory inventory = RPCharacters.plugin.getServer().createInventory(
+				new RPCHolder(player, summary, creation, CreationGuiContext.NONE),
+				54,
+				title);
+		RPCharacter character = creation.getCharacter();
+		NamespacedKey actionKey = new NamespacedKey(RPCharacters.plugin, SUMMARY_ACTION_KEY);
+
+		int[] entrySlots = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25,
+				28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
+		int slotIndex = 0;
+
+		for (var entry : summary.getEntries().entrySet()) {
+			if (slotIndex >= entrySlots.length) {
+				break;
+			}
+			String entryKey = entry.getKey();
+			String stageId = entry.getValue();
+			ItemStack item = buildSummaryEntryItem(player, character, entryKey, stageId, editing);
+			if (item == null) {
+				continue;
+			}
+			ItemMeta meta = item.getItemMeta();
+			if (meta != null) {
+				boolean locked = isSummaryEntryLocked(player, character, stageId);
+				if (!locked) {
+					String action = "clues".equalsIgnoreCase(stageId) ? "clues" : "edit:" + stageId;
+					meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action);
+				}
+				item.setItemMeta(meta);
+			}
+			inventory.setItem(entrySlots[slotIndex++], item);
+		}
+
+		boolean canConfirm = editing || canConfirmCreation(creation);
+		ItemStack confirm = new ItemStack(canConfirm ? Material.LIME_CONCRETE : Material.RED_CONCRETE, 1);
+		ItemMeta confirmMeta = confirm.getItemMeta();
+		if (confirmMeta != null) {
+			if (editing) {
+				confirmMeta.setDisplayName(t(RPTexts.SUCCESS + "Done"));
+				confirmMeta.setLore(List.of(t(RPTexts.MUTED + "Close the editor.")));
+			} else {
+				confirmMeta.setDisplayName(t(canConfirm ? RPTexts.SUCCESS + "Confirm Character" : RPTexts.ERROR + "Cannot Confirm Yet"));
+				List<String> confirmLore = new ArrayList<>();
+				if (!canConfirm) {
+					confirmLore.add(t(RPTexts.MUTED + "Complete all required choices and clues first."));
+				} else {
+					confirmLore.add(t(RPTexts.MUTED + "Click to create your character."));
+				}
+				confirmMeta.setLore(confirmLore);
+			}
+			confirmMeta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, "confirm");
+			confirm.setItemMeta(confirmMeta);
+		}
+		inventory.setItem(53, confirm);
+
+		fillEmptySlots(inventory);
+		player.openInventory(inventory);
+	}
+
+	private boolean isSummaryEntryLocked(Player player, RPCharacter character, String stageId) {
+		if ("clues".equalsIgnoreCase(stageId)) {
+			return false;
+		}
+		Stage stage = StageLoader.getById(stageId);
+		return stage != null && !StageEditLock.canEdit(player, stage, character);
+	}
+
+	private boolean canConfirmCreation(CharacterCreation creation) {
+		RPCharacter character = creation.getCharacter();
+		if (character == null) {
+			return false;
+		}
+		PlayerData pd = PlayerManager.get(creation.getCharacter().getOwner());
+		if (pd == null || !CharacterSlotService.hasFreeSlot(character.getOwner(), pd)) {
+			return false;
+		}
+		if (!character.hasEnoughClues()) {
+			return false;
+		}
+		if (character.getName() == null || character.getName().isBlank()) {
+			return false;
+		}
+		if (!character.hasMMOClass()) {
+			return false;
+		}
+		if (character.getRace() == null) {
+			return false;
+		}
+		if (character.getBirthday() == null || character.getBirthday().isBlank()) {
+			return false;
+		}
+		String description = character.getPersonaDescription();
+		return description != null && !description.isBlank();
+	}
+
+	@SuppressWarnings("deprecation")
+	private ItemStack buildSummaryEntryItem(Player player, RPCharacter character, String entryKey, String stageId,
+			boolean editing) {
+		String label = WordUtils.capitalize(entryKey.replace('_', ' '));
+		List<String> lore = new ArrayList<>();
+		boolean locked = editing && isSummaryEntryLocked(player, character, stageId);
+		if (locked) {
+			lore.add(t(RPTexts.ERROR + "Locked"));
+		} else {
+			lore.add(t(RPTexts.MUTED + "Click to change"));
+		}
+		if (editing && !"clues".equalsIgnoreCase(stageId)) {
+			Stage stage = StageLoader.getById(stageId);
+			String lockLore = StageEditLock.lockLore(stage, character);
+			if (lockLore != null && !locked) {
+				lore.add(t(lockLore));
+			}
+		}
+		ItemStack item;
+
+		switch (entryKey.toLowerCase()) {
+			case "name" -> {
+				item = new ItemStack(Material.NAME_TAG, 1);
+				lore.add(0, character.getName() != null ? character.getName() : t(RPTexts.MUTED + "Not set"));
+			}
+			case "class" -> {
+				item = new ItemStack(Material.NETHERITE_SWORD, 1);
+				if (character.hasMMOClass()) {
+					PlayerClass playerClass = MMOCore.plugin.classManager.get(character.getMMOClass());
+					if (playerClass != null && playerClass.getIcon() != null
+							&& playerClass.getIcon().getType() != Material.AIR) {
+						item = playerClass.getIcon().clone();
+					}
+					lore.add(0, playerClass != null ? playerClass.getName() : t(RPTexts.MUTED + character.getMMOClass()));
+				} else {
+					lore.add(0, t(RPTexts.MUTED + "Not selected"));
+				}
+			}
+			case "race" -> {
+				if (character.getRace() != null) {
+					item = new ItemStack(Material.PLAYER_HEAD, 1);
+					lore.add(0, character.getRace().getName());
+				} else {
+					item = new ItemStack(Material.PLAYER_HEAD, 1);
+					lore.add(0, t(RPTexts.MUTED + "Not selected"));
+				}
+			}
+			case "age" -> {
+				item = new ItemStack(Material.CLOCK, 1);
+				lore.clear();
+				lore.add(t(RPTexts.MUTED + "Age: " + RPTexts.WARN + PersonaService.resolveAge(character)));
+				lore.add(t(RPTexts.MUTED + "Birthday: " + RPTexts.WARN + PersonaService.resolveBirthday(character)));
+				lore.add(t(RPTexts.MUTED + "Click to change"));
+			}
+			case "description" -> {
+				item = new ItemStack(Material.WRITABLE_BOOK, 1);
+				String description = character.getPersonaDescription();
+				if (description == null || description.isBlank()) {
+					lore.add(0, t(RPTexts.MUTED + "Not set"));
+				} else {
+					lore.addAll(0, wrapSummaryText(description, 40));
+				}
+			}
+			case "clues" -> {
+				item = new ItemStack(Material.BOOK, 1);
+				lore.add(0, t(character.getPlayerClues().size() + "/" + character.getCluesNeeded()));
+				lore.add(1, t(RPTexts.COMMAND + "/rpcharacter clues"));
+				lore.remove(t(RPTexts.MUTED + "Click to change"));
+			}
+			default -> {
+				if ("clues".equalsIgnoreCase(stageId)) {
+					return null;
+				}
+				List<String> traitNames = new ArrayList<>();
+				if (character.getTraits() != null) {
+					for (Trait trait : character.getTraits()) {
+						if (trait.getTraitData().getKey().equalsIgnoreCase(entryKey)) {
+							traitNames.add(trait.getName());
+						}
+					}
+				}
+				item = new ItemStack(Material.PAPER, 1);
+				if (traitNames.isEmpty()) {
+					lore.add(0, t(RPTexts.MUTED + "Not selected"));
+				} else {
+					lore.add(0, RPTexts.joinFormatted(traitNames, ", "));
+				}
+			}
+		}
+
+		ItemMeta meta = item.getItemMeta();
+		if (meta != null) {
+			meta.setDisplayName(t(RPTexts.WARN + label));
+			meta.setLore(lore);
+			item.setItemMeta(meta);
+		}
+		return item;
+	}
+
+	private List<String> wrapSummaryText(String text, int width) {
+		List<String> lines = new ArrayList<>();
+		String[] words = text.split("\\s+");
+		StringBuilder current = new StringBuilder();
+		for (String word : words) {
+			if (current.length() + word.length() + 1 > width) {
+				lines.add(t(RPTexts.MUTED + current));
+				current = new StringBuilder(word);
+			} else if (current.length() == 0) {
+				current.append(word);
+			} else {
+				current.append(' ').append(word);
+			}
+		}
+		if (current.length() > 0) {
+			lines.add(t(RPTexts.MUTED + current));
+		}
+		return lines;
+	}
+
+	private void fillEmptySlots(Inventory inventory) {
+		for (int slot = 0; slot < inventory.getSize(); slot++) {
+			if (inventory.getItem(slot) == null) {
+				ItemStack fill = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+				ItemMeta meta = fill.getItemMeta();
+				meta.setDisplayName(t(RPTexts.MUTED + " "));
+				fill.setItemMeta(meta);
+				inventory.setItem(slot, fill);
+			}
+		}
+	}
+
+	@SuppressWarnings("deprecation")
 	public ItemStack getCluesPreviewItem(RPCharacter c) {
 		ItemStack i = new ItemStack(Material.BOOK, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§7Character Clues");
+		meta.setDisplayName(t(RPTexts.MUTED + "Character Clues"));
 		List<String> lore = new ArrayList<>();
-		lore.add("§7------------------------");
-		lore.add("§eClues (" + c.getPlayerClues().size() + "/" + c.getCluesNeeded() + "):");
-		lore.add(" ");
+		lore.add(t(RPTexts.MUTED + "------------------------"));
+		lore.add(t(RPTexts.WARN + "Clues (" + c.getPlayerClues().size() + "/" + c.getCluesNeeded() + "):"));
+		lore.add(RPTexts.spacer());
 		if (c.getPlayerClues().isEmpty()) {
-			lore.add("§7No clues yet.");
+			lore.add(t(RPTexts.MUTED + "No clues yet."));
 		} else {
 			for (String clue : c.getPlayerClues()) {
 				lore.add(clue);
 			}
 		}
-		lore.add(" ");
-		lore.add("§7------------------------");
-		lore.add("§eClick §7to manage clues");
-		lore.add("§7/rpcharacter clues");
+		lore.add(RPTexts.spacer());
+		lore.add(t(RPTexts.MUTED + "------------------------"));
+		lore.add(t(RPTexts.COMMAND + "/rpcharacter clues"));
 		meta.setLore(lore);
 		NamespacedKey characterKey = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
 		NamespacedKey openKey = new NamespacedKey(RPCharacters.plugin, OPEN_CLUES_GUI_KEY);
@@ -179,7 +442,7 @@ public class InventoryManager {
 			visibleTraitCount++;
 		}
 		int rows = Math.max(3, Math.min(6, ((visibleTraitCount + 1) + 8) / 9));
-		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(c.getOwner()), rows * 9, "§7Trait List");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(c.getOwner()), rows * 9, t(RPTexts.MUTED + "Trait List"));
 
 		int slot = 0;
 		for(Trait t : c.getTraits()) {
@@ -195,7 +458,7 @@ public class InventoryManager {
 			if(i.getItem(slotn) == null) {
 				ItemStack fill = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 				ItemMeta fm = fill.getItemMeta();
-				fm.setDisplayName("§8 ");
+				fm.setDisplayName(t(RPTexts.MUTED + " "));
 				fill.setItemMeta(fm);
 				i.setItem(slotn, fill);
 			}
@@ -204,7 +467,7 @@ public class InventoryManager {
 		p.openInventory(i);
 	}
 	public void deadView(Player p, Player t) {
-		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(t), 27, "§7Dead Characters");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(t), 27, t(RPTexts.MUTED + "Dead Characters"));
 		PlayerData pd = PlayerManager.get(t);
 		for(int x = 0; x<i.getSize()-1; x++) {
 			List<RPCharacter> chars = pd.getCharacters(Status.DEAD);
@@ -218,7 +481,7 @@ public class InventoryManager {
 			if(i.getItem(slotn) == null) {
 				ItemStack fill = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 				ItemMeta fm = fill.getItemMeta();
-				fm.setDisplayName("§8 ");
+				fm.setDisplayName(t(RPTexts.MUTED + " "));
 				fill.setItemMeta(fm);
 				i.setItem(slotn, fill);
 			}
@@ -227,15 +490,20 @@ public class InventoryManager {
 		p.openInventory(i);
 	}
 	public void profileView(Player p, Player t) {
-		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(t), 27, "§7Character Menu");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(t), 27, t(RPTexts.MUTED + "Character Menu"));
 		i.setItem(0, getPlayerHead(t));
 		PlayerData pd = PlayerManager.get(t);
-		for(int x = 0; x<Cache.characterSlots.size(); x++) {
-			List<RPCharacter> chars = pd.getCharacters(Status.ALIVE);
-			if(x >= chars.size()) {
-				i.setItem(Cache.characterSlots.get(x), getEmptyCharacterItem(pd));
-			} else {
-				i.setItem(Cache.characterSlots.get(x), getCharacterItem(chars.get(x), true));
+		List<RPCharacter> aliveChars = pd.getCharacters(Status.ALIVE);
+		int maxAllowed = CharacterSlotService.getMaxAliveCharacters(t);
+		boolean overLimit = aliveChars.size() > maxAllowed;
+		for (int slotIndex = 0; slotIndex < CharacterSlotService.getDisplaySlotCount(); slotIndex++) {
+			int inventorySlot = Cache.characterSlots.get(slotIndex);
+			if (slotIndex < aliveChars.size()) {
+				i.setItem(inventorySlot, getCharacterItem(aliveChars.get(slotIndex), true, overLimit));
+			} else if (slotIndex < maxAllowed) {
+				i.setItem(inventorySlot, getEmptyCharacterItem(pd));
+			} else if (CharacterSlotService.shouldShowLockedSlot(slotIndex, maxAllowed)) {
+				i.setItem(inventorySlot, getLockedCharacterItem(t, slotIndex));
 			}
 		}
 		i.setItem(Cache.deadSlot, getDeadCharactersItem(pd));
@@ -244,7 +512,7 @@ public class InventoryManager {
 			if(i.getItem(slotn) == null) {
 				ItemStack fill = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 				ItemMeta fm = fill.getItemMeta();
-				fm.setDisplayName("§8 ");
+				fm.setDisplayName(t(RPTexts.MUTED + " "));
 				fill.setItemMeta(fm);
 				i.setItem(slotn, fill);
 			}
@@ -258,7 +526,7 @@ public class InventoryManager {
 			label = s.getTarget() != null ? s.getTarget() : "Selection";
 		}
 		@SuppressWarnings("deprecation")
-		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player, s), s.getSize(), "§7"+WordUtils.capitalize(label)+ " Selection");
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player, s), s.getSize(), t(RPTexts.MUTED + WordUtils.capitalize(label) + " Selection"));
 		for(int x = 0; x<s.getSlots().size(); x++) {
 			if(x >= s.getOptions().size()) break;
 			i.setItem(s.getSlots().get(x), getSelectableItem(player, s, s.getOptions().get(x), cc));
@@ -274,15 +542,15 @@ public class InventoryManager {
 		}
 	}
 	public void confirmView(Player player) {
-		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player), 27, "§7Confirm Action");
-		i.setItem(11, createItemStack(Material.GREEN_CONCRETE, "§aConfirm"));
-		i.setItem(15, createItemStack(Material.RED_CONCRETE, "§cCancel"));
+		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player), 27, t(RPTexts.MUTED + "Confirm Action"));
+		i.setItem(11, createItemStack(Material.GREEN_CONCRETE, t(RPTexts.SUCCESS + "Confirm")));
+		i.setItem(15, createItemStack(Material.RED_CONCRETE, t(RPTexts.ERROR + "Cancel")));
 		Integer slot = 0;
 		while(slot < i.getSize()) {
 			if(i.getItem(slot) == null) {
 				ItemStack fill = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 				ItemMeta fm = fill.getItemMeta();
-				fm.setDisplayName("§8 ");
+				fm.setDisplayName(t(RPTexts.MUTED + " "));
 				fill.setItemMeta(fm);
 				i.setItem(slot, fill);
 			}
@@ -323,7 +591,7 @@ public class InventoryManager {
 	public ItemStack getBackButton() {
 		ItemStack i = new ItemStack(Material.BARRIER, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§cBack");
+		meta.setDisplayName(t(RPTexts.ERROR + "Back"));
 		i.setItemMeta(meta);
 		return i;
 	}
@@ -340,14 +608,14 @@ public class InventoryManager {
 		ItemMeta meta = i.getItemMeta();
 		List<String> lore = new ArrayList<>();
 		if(cc != null) {
-			meta.setDisplayName("§cCancel Creation");
+			meta.setDisplayName(t(RPTexts.ERROR + "Cancel Creation"));
 		
-			lore.add("§7Cancel the current character creation");
-			lore.add("§cThis is not reversible!");
+			lore.add(t(RPTexts.MUTED + "Cancel the current character creation"));
+			lore.add(t(RPTexts.ERROR + "This is not reversible!"));
 		} else{ 
-			meta.setDisplayName("§cCancel");
+			meta.setDisplayName(t(RPTexts.ERROR + "Cancel"));
 		
-			lore.add("§7Cancel the edit");
+			lore.add(t(RPTexts.MUTED + "Cancel the edit"));
 		}
 		
 		meta.setLore(lore);
@@ -357,11 +625,11 @@ public class InventoryManager {
 	public ItemStack getKillItem() {
 		ItemStack i = new ItemStack(Material.IRON_AXE, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§cKill Character");
+		meta.setDisplayName(t(RPTexts.ERROR + "Kill Character"));
 		List<String> lore = new ArrayList<String>();
-		lore.add("§7This will kill the character");
-		lore.add("§7and add it to the list of dead characters");
-		lore.add("§7Only staff can reverse this");
+		lore.add(t(RPTexts.MUTED + "This will kill the character"));
+		lore.add(t(RPTexts.MUTED + "and add it to the list of dead characters"));
+		lore.add(t(RPTexts.MUTED + "Only staff can reverse this"));
 		meta.setLore(lore);
 		i.setItemMeta(meta);
 		return i;
@@ -369,10 +637,10 @@ public class InventoryManager {
 	public ItemStack getSwitchItem() {
 		ItemStack i = new ItemStack(Material.EMERALD, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§aSwitch to Character");
+		meta.setDisplayName(t(RPTexts.SUCCESS + "Switch to Character"));
 		List<String> lore = new ArrayList<String>();
-		lore.add("§7This will switch you to this character");
-		lore.add("§7You will be put on cooldown from switching again");
+		lore.add(t(RPTexts.MUTED + "This will switch you to this character"));
+		lore.add(t(RPTexts.MUTED + "You will be put on cooldown from switching again"));
 		meta.setLore(lore);
 		i.setItemMeta(meta);
 		return i;
@@ -380,15 +648,15 @@ public class InventoryManager {
 	public ItemStack getDescriptionItem(RPCharacter c) {
 		ItemStack i = new ItemStack(Material.WRITABLE_BOOK, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§7Character Background");
+		meta.setDisplayName(t(RPTexts.MUTED + "Character Background"));
 		List<String> lore = new ArrayList<String>();
-		lore.add("§7------------------------");
-		lore.add("§eBackground:");
-		lore.add(" ");
+		lore.add(t(RPTexts.MUTED + "------------------------"));
+		lore.add(t(RPTexts.WARN + "Background:"));
+		lore.add(RPTexts.spacer());
 		for(String s : c.getDescription()) {
-			lore.add(s);
+			lore.add(t(s.startsWith("§") || s.contains("#") ? s : RPTexts.MUTED + s));
 		}
-		lore.add("§7------------------------");
+		lore.add(t(RPTexts.MUTED + "------------------------"));
 		meta.setLore(lore);
 		i.setItemMeta(meta);
 		return i;
@@ -397,29 +665,32 @@ public class InventoryManager {
 	public ItemStack getTraitsItem(RPCharacter c) {
 		ItemStack i = new ItemStack(Material.GOLDEN_APPLE, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§7Character Traits");
+		meta.setDisplayName(t(RPTexts.MUTED + "Character Traits"));
 		List<String> lore = new ArrayList<String>();
-		lore.add("§7------------------------");
-		lore.add("§eTraits:");
-		lore.add(" ");
-		for(Trait t : c.getTraits()) {
-			if(Cache.backgroundTraitTypes.contains(t.getTraitData().getKey())) continue;
-			lore.add("§f- "+t.getName()+" §7("+WordUtils.capitalize(t.getTraitData().getKey()+")"));
+		lore.add(t(RPTexts.MUTED + "------------------------"));
+		lore.add(t(RPTexts.WARN + "Traits:"));
+		lore.add(RPTexts.spacer());
+		for(Trait trait : c.getTraits()) {
+			if(Cache.backgroundTraitTypes.contains(trait.getTraitData().getKey())) continue;
+			lore.add(trait.getName() + RPTexts.mutedParenthetical(WordUtils.capitalize(trait.getTraitData().getKey())));
 		}
-		lore.add("§7------------------------");
-		lore.add("§eProfession EXP:");
+		if (c.getStatus().equals(Status.ALIVE)) {
+			lore.addAll(PermadeathService.computeRisk(c).toLoreLines());
+		}
+		lore.add(t(RPTexts.MUTED + "------------------------"));
+		lore.add(t(RPTexts.WARN + "Profession EXP:"));
 		for(ExperienceModifier m : c.getAttributeData().getExperienceModifiers()) {
 			int amount = m.getModifier();
 			if(amount > 0) {
-				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §a"+amount+"%");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + RPTexts.SUCCESS + amount + "%"));
 			} else if(amount == 0) {
-				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §e"+amount+"%");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + RPTexts.WARN + amount + "%"));
 			} else if(amount < 0){
-				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §c"+amount+"%");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + RPTexts.ERROR + amount + "%"));
 			}
 		}
-		lore.add("§7------------------------");
-		lore.add("§bClick §7to view all trait details");
+		lore.add(t(RPTexts.MUTED + "------------------------"));
+		lore.add(t(RPTexts.MUTED + "Click for trait details"));
 		meta.setLore(lore);
 		NamespacedKey key = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
 		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, c.getId());
@@ -435,8 +706,8 @@ public class InventoryManager {
 		for(String d : t.getDesc()) {
 			lore.add(d);
 		}
-		lore.add(" ");
-		lore.add("§eEffects:");
+		lore.add(RPTexts.spacer());
+		lore.add(t(RPTexts.WARN + "Effects:"));
 
 		boolean hasEffects = false;
 		AttributeData data = t.getTraitData().getAttributeData();
@@ -444,30 +715,31 @@ public class InventoryManager {
 			hasEffects = true;
 			int amount = modifier.getAmount();
 			if(amount > 0) {
-				lore.add("§7"+WordUtils.capitalize(modifier.getType())+": §a+"+amount);
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.SUCCESS + "+" + amount));
 			} else if(amount < 0) {
-				lore.add("§7"+WordUtils.capitalize(modifier.getType())+": §c"+amount);
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.ERROR + amount));
 			} else {
-				lore.add("§7"+WordUtils.capitalize(modifier.getType())+": §e0");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.WARN + "0"));
 			}
 		}
 		for(ExperienceModifier modifier : data.getExperienceModifiers()) {
 			hasEffects = true;
 			int amount = modifier.getModifier();
 			if(amount > 0) {
-				lore.add("§7"+WordUtils.capitalize(modifier.getAlias())+": §a+"+amount+"%");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.SUCCESS + "+" + amount + "%"));
 			} else if(amount < 0) {
-				lore.add("§7"+WordUtils.capitalize(modifier.getAlias())+": §c"+amount+"%");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.ERROR + amount + "%"));
 			} else {
-				lore.add("§7"+WordUtils.capitalize(modifier.getAlias())+": §e0%");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.WARN + "0%"));
 			}
 		}
 		for(PotionData potion : t.getTraitData().getPotionEffects()) {
 			hasEffects = true;
-			lore.add("§7"+WordUtils.capitalize(potion.getId().replace("_", " "))+": §f"+(potion.getAmplifier() + 1)+" §7(3s)");
+			lore.add(t(RPTexts.MUTED + WordUtils.capitalize(potion.getId().replace("_", " ")) + ": "
+					+ (potion.getAmplifier() + 1) + " " + RPTexts.MUTED + "(3s)"));
 		}
 		if(!hasEffects) {
-			lore.add("§7No direct effects");
+			lore.add(t(RPTexts.MUTED + "No direct effects"));
 		}
 
 		NamespacedKey key = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
@@ -477,48 +749,67 @@ public class InventoryManager {
 		return i;
 	}
 	public ItemStack getCharacterItem(RPCharacter c, boolean click) {
+		return getCharacterItem(c, click, false);
+	}
+
+	public ItemStack getCharacterItem(RPCharacter c, boolean click, boolean overLimit) {
 		PlayerData pd = PlayerManager.get(c.getOwner());
 		ItemStack i = new ItemStack(Material.ENDER_PEARL, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§eCharacter: §7"+c.getName());
+		meta.setDisplayName(t(RPTexts.WARN + "Character: " + RPTexts.MUTED + c.getName()));
 		List<String> lore = new ArrayList<String>();
-		lore.add(" ");
+		lore.add(RPTexts.spacer());
 		if (!click) {
-			String display = DisplayIdentityService.resolveDisplayNoMask(c);
+			String display = DisplayIdentityService.resolveDisplayTab(c);
 			if (display != null && !display.isBlank()) {
-				lore.add("§7Display: " + display);
+				lore.add(t(RPTexts.MUTED + "Display: " + display));
 			}
 			if (c.getAlias() != null && !c.getAlias().isBlank()) {
-				lore.add("§7Name: §e" + c.getName());
+				lore.add(t(RPTexts.MUTED + "Name: " + RPTexts.WARN + c.getName()));
 			}
 		}
-		lore.add("§7Race: "+c.getRace().getName());
+		lore.add(RPTexts.labeled("Race: ", c.getRace().getName()));
 		if (!click) {
-			lore.add("§7Gender: §f" + PersonaService.resolveGender(c));
-			lore.add("§7Age: §f" + PersonaService.resolveAge(c));
+			lore.add(t(RPTexts.MUTED + "Gender: " + PersonaService.resolveGender(c)));
+			lore.add(t(RPTexts.MUTED + "Age: " + PersonaService.resolveAge(c)));
+			lore.add(t(RPTexts.MUTED + "Birthday: " + PersonaService.resolveBirthday(c)));
 		}
-		lore.add("§7Status: §f"+c.getStatus().toString());
+		lore.add(t(RPTexts.MUTED + "Status: " + c.getStatus().toString()));
+		if (!click) {
+			lore.add(t(RPTexts.MUTED + "Created: " + AgeFormatter.formatAge(c.getAgeSeconds())));
+		}
+		if (!click && c.getOwner() != null && c.getOwner().hasPermission(Cache.personaCharacterHiddenPermission)) {
+			if (c.getSlug() != null && !c.getSlug().isBlank()) {
+				lore.add(t(RPTexts.MUTED + "Id: " + RPTexts.MUTED + c.getSlug()));
+			}
+			if (c.isHidden()) {
+				lore.add(t(RPTexts.MUTED + "Hidden from TAB/list"));
+			}
+		}
 		if (!click) {
 			String description = PersonaService.resolveDescription(c);
 			if (description != null && !description.isBlank()) {
-				lore.add(" ");
-				lore.add("§eDescription:");
-				for (String line : ClueFormatter.wrapLore("§7" + description)) {
-					lore.add(line);
+				lore.add(RPTexts.spacer());
+				lore.add(t(RPTexts.WARN + "Description:"));
+				for (String line : ClueFormatter.wrapLore(RPTexts.MUTED + description)) {
+					lore.add(t(line));
 				}
 			}
 		}
-		lore.add(" ");
+		lore.add(RPTexts.spacer());
 		if(click) {
-			lore.add("§bClick §7for details");
+			lore.add(t(RPTexts.MUTED + "Click for details"));
+			if (overLimit) {
+				lore.add(t(RPTexts.ERROR + "Over slot limit."));
+			}
 			if(c.isActive()) {
 				meta.addEnchant(Enchantment.UNBREAKING, 1, true);
 				meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 			}
 		}
-		lore.add(" ");
+		lore.add(RPTexts.spacer());
 		if(PermissionGroupService.hasCharacterSwitchCooldown(c.getOwner(), pd)) {
-			lore.add("§eYou are on Cooldown: §f"+formatTime(PermissionGroupService.getRemainingCooldownMinutes(c.getOwner(), pd)));
+			lore.add(t(RPTexts.WARN + "You are on Cooldown: " + formatTime(PermissionGroupService.getRemainingCooldownMinutes(c.getOwner(), pd))));
 		}
 		NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
 		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, c.getId());
@@ -532,9 +823,9 @@ public class InventoryManager {
 		ItemStack i = new ItemStack(Material.SKELETON_SKULL, 1);
 		int count = pd.getCharacters(Status.DEAD).size();
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§7Dead Characters: §f"+count);
+		meta.setDisplayName(t(RPTexts.MUTED + "Dead Characters: " + count));
 		List<String> lore = new ArrayList<String>();
-		lore.add("§7Click to view dead characters");
+		lore.add(t(RPTexts.MUTED + "Click to view dead characters"));
 		meta.setLore(lore);
 		NamespacedKey oKey = new NamespacedKey(RPCharacters.plugin, "owner");
 		meta.getPersistentDataContainer().set(oKey, PersistentDataType.STRING, pd.getPlayer().getName());
@@ -544,12 +835,40 @@ public class InventoryManager {
 	public ItemStack getEmptyCharacterItem(PlayerData pd) {
 		ItemStack i = new ItemStack(Material.YELLOW_CONCRETE, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§eEmpty Slot");
+		meta.setDisplayName(t(RPTexts.WARN + "Empty Slot"));
 		List<String> lore = new ArrayList<String>();
-		lore.add("§7Click to create a new character");
+		lore.add(t(RPTexts.MUTED + "Click to create a new character"));
 		if(PermissionGroupService.hasCharacterSwitchCooldown(pd.getPlayer(), pd)) {
-			lore.add(" ");
-			lore.add("§eYou are on Cooldown: §f"+formatTime(PermissionGroupService.getRemainingCooldownMinutes(pd.getPlayer(), pd)));
+			lore.add(RPTexts.spacer());
+			lore.add(t(RPTexts.WARN + "You are on Cooldown: " + formatTime(PermissionGroupService.getRemainingCooldownMinutes(pd.getPlayer(), pd))));
+		}
+		meta.setLore(lore);
+		i.setItemMeta(meta);
+		return i;
+	}
+
+	public ItemStack getLockedCharacterItem(Player player, int slotIndex) {
+		ItemStack i = new ItemStack(Material.BARRIER, 1);
+		ItemMeta meta = i.getItemMeta();
+		meta.setDisplayName(t(RPTexts.ERROR + "LOCKED"));
+		List<String> lore = new ArrayList<>();
+		lore.add(CharacterSlotService.getUnlockRequirementLore(slotIndex));
+		meta.setLore(lore);
+		i.setItemMeta(meta);
+		return i;
+	}
+
+	public ItemStack getReviveItem(boolean canRevive, int aliveCount, int maxSlots) {
+		ItemStack i = new ItemStack(canRevive ? Material.TOTEM_OF_UNDYING : Material.GRAY_DYE, 1);
+		ItemMeta meta = i.getItemMeta();
+		meta.setDisplayName(t(canRevive ? RPTexts.SUCCESS + "Revive Character" : RPTexts.MUTED + "Cannot Revive"));
+		List<String> lore = new ArrayList<>();
+		if (canRevive) {
+			lore.add(t(RPTexts.MUTED + "Restore this character to alive status"));
+			lore.add(t(RPTexts.MUTED + "Owner slots: " + RPTexts.WARN + aliveCount + RPTexts.MUTED + "/" + RPTexts.WARN + maxSlots));
+		} else {
+			lore.add(t(RPTexts.MUTED + "Owner has no free character slots"));
+			lore.add(t(RPTexts.MUTED + "Slots: " + RPTexts.WARN + aliveCount + RPTexts.MUTED + "/" + RPTexts.WARN + maxSlots));
 		}
 		meta.setLore(lore);
 		i.setItemMeta(meta);
@@ -559,15 +878,18 @@ public class InventoryManager {
 	public ItemStack getPlayerHead(Player p) {
 		ItemStack i = new ItemStack(Material.PLAYER_HEAD, 1);
 		SkullMeta m = (SkullMeta) i.getItemMeta();
-		m.setDisplayName("§7"+p.getName());
+		m.setDisplayName(t(RPTexts.MUTED + p.getName()));
 		m.setOwningPlayer(Bukkit.getOfflinePlayer(p.getName()));
 		List<String> lore = new ArrayList<String>();
-		lore.add("§eCharacter profile of "+p.getName());
+		lore.add(t(RPTexts.WARN + "Character profile of " + p.getName()));
 		PlayerData pd = PlayerManager.get(p);
-		if(pd.isEighteen()) {
-			lore.add("§7Real Age: §e18+");
+		if (pd != null) {
+			lore.add(t(RPTexts.MUTED + "Member for: " + AgeFormatter.formatAge(pd.getAgeSeconds())));
+		}
+		if (pd != null && pd.isEighteen()) {
+			lore.add(t(RPTexts.MUTED + "Real Age: " + RPTexts.WARN + "18+"));
 		} else {
-			lore.add("§7Real Age: §cbelow 18");
+			lore.add(t(RPTexts.MUTED + "Real Age: " + RPTexts.ERROR + "below 18"));
 		}
 		m.setLore(lore);
 		i.setItemMeta(m);
@@ -577,7 +899,7 @@ public class InventoryManager {
 	public ItemStack getConfirmItem() {
 		ItemStack i = new ItemStack(Material.LIME_DYE, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName("§aCONFIRM");
+		meta.setDisplayName(t(RPTexts.SUCCESS + "CONFIRM"));
 		i.setItemMeta(meta);
 		return i;
 	}
@@ -599,9 +921,9 @@ public class InventoryManager {
 				lore.add(d);
 			}
 			if(r.getRaceData().getAttributeData().hasModifiers()) {
-				lore.add(" ");
+				lore.add(RPTexts.spacer());
 				addModifiers(p, lore, r.getRaceData().getAttributeData(), cc);
-				lore.add(" ");
+				lore.add(RPTexts.spacer());
 			}
 			meta.setLore(lore);
 		} else if(s.getType().equalsIgnoreCase("trait")) {
@@ -612,36 +934,36 @@ public class InventoryManager {
 			}
 			if(t.getTraitData().hasDependency()) {
 				Dependency d = t.getTraitData().getDependency();
-				lore.add("§7------------------------");
+				lore.add(t(RPTexts.MUTED + "------------------------"));
 				if(d.getMode().equalsIgnoreCase("all")) {
-					lore.add("§eRequires all of these:");
+					lore.add(t(RPTexts.WARN + "Requires all of these:"));
 				} else if(d.getMode().equalsIgnoreCase("one-or-more")) {
-					lore.add("§eRequires at least one of these:");
+					lore.add(t(RPTexts.WARN + "Requires at least one of these:"));
 				}
 				for(String dep : d.getDependencies()) {
-					lore.add("§f- "+WordUtils.capitalize(dep));
+					lore.add(RPTexts.lore(WordUtils.capitalize(dep)));
 				}
-				lore.add("§7------------------------");
+				lore.add(t(RPTexts.MUTED + "------------------------"));
 			}
 			if(t.getTraitData().hasExclusives()) {
-				lore.add("§7------------------------");
-				lore.add("§eMutually Exclusive with:");
+				lore.add(t(RPTexts.MUTED + "------------------------"));
+				lore.add(t(RPTexts.WARN + "Mutually Exclusive with:"));
 				for(String e : t.getTraitData().getExclusive()) {
-					lore.add("§f- "+WordUtils.capitalize(e));
+					lore.add(RPTexts.lore(WordUtils.capitalize(e)));
 				}
-				lore.add("§7------------------------");
+				lore.add(t(RPTexts.MUTED + "------------------------"));
 			}
 			if(t.getTraitData().getAttributeData().hasModifiers()) {
-				lore.add(" ");
+				lore.add(RPTexts.spacer());
 				addModifiers(p, lore, t.getTraitData().getAttributeData(), cc);
-				lore.add(" ");
+				lore.add(RPTexts.spacer());
 			}
 			if(t.getTraitData().hasCost()) {
-				lore.add("§eCost: §7"+t.getTraitData().getCost());
-				lore.add(" ");
+				lore.add(t(RPTexts.WARN + "Cost: " + RPTexts.MUTED + t.getTraitData().getCost()));
+				lore.add(RPTexts.spacer());
 			}
-			if(stage.hasPoints()) {
-				lore.add("§eUnspent Points: §7"+stage.getPoints());
+			if(stage != null && stage.hasPoints()) {
+				lore.add(t(RPTexts.WARN + "Unspent Points: " + RPTexts.MUTED + stage.getPoints()));
 			}
 			meta.setLore(lore);
 		} else if(s.getType().equalsIgnoreCase("class")) {
@@ -651,23 +973,21 @@ public class InventoryManager {
 				if (s.isSelected()) {
 					ItemMeta iconMeta = i.getItemMeta();
 					if (iconMeta != null) {
-						iconMeta.setDisplayName("§a" + s.getName());
+						iconMeta.setDisplayName(t(RPTexts.SUCCESS + s.getName()));
 						i.setItemMeta(iconMeta);
 					}
 				}
 			}
 			ItemMeta classMeta = i.getItemMeta();
 			if (classMeta != null) {
-				classMeta.setDisplayName((s.isSelected() ? "§a" : "§f") + s.getName());
+				classMeta.setDisplayName(t((s.isSelected() ? RPTexts.SUCCESS : "") + s.getName()));
 				List<String> lore = new ArrayList<>();
 				if (playerClass != null) {
-					for (String line : playerClass.getDescription()) {
-						lore.add(line);
-					}
+					lore.addAll(MmoCoreClassGuiHelper.buildClassLore(playerClass));
 				}
 				if (s.isSelected()) {
-					lore.add(" ");
-					lore.add("§aSelected");
+					lore.add(RPTexts.spacer());
+					lore.add(t(RPTexts.SUCCESS + "Selected"));
 				}
 				classMeta.setLore(lore);
 				i.setItemMeta(classMeta);
@@ -694,14 +1014,14 @@ public class InventoryManager {
 				added = data.getAmount(m);
 			}
 			if(added > 0) {
-				lore.add("§7"+WordUtils.capitalize(m.getType())+ ": §f"+amount+" §a(+"+added+")");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + amount + " " + RPTexts.SUCCESS + "(+" + added + ")"));
 			} else if(added == 0) {
-				lore.add("§7"+WordUtils.capitalize(m.getType())+ ": §f"+amount);
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + amount));
 			} else {
-				lore.add("§7"+WordUtils.capitalize(m.getType())+ ": §f"+amount+" §c("+added+")");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + amount + " " + RPTexts.ERROR + "(" + added + ")"));
 			}
 		}
-		lore.add(" ");
+		lore.add(RPTexts.spacer());
 		for(ExperienceModifier m : current.getExperienceModifiers()) {
 			int amount = m.getModifier();
 			int added = 0;
@@ -709,11 +1029,13 @@ public class InventoryManager {
 				added = data.getAmount(m);
 			}
 			if(added > 0) {
-				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e% §a(+"+added+"§e%§a)");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + amount + RPTexts.WARN + "% "
+						+ RPTexts.SUCCESS + "(+" + added + RPTexts.WARN + "%" + RPTexts.SUCCESS + ")"));
 			} else if(added == 0) {
-				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e%");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + amount + RPTexts.WARN + "%"));
 			} else if(added < 0){
-				lore.add("§7"+WordUtils.capitalize(m.getAlias())+ ": §f"+amount+"§e% §c("+added+"§e%§c)");
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + amount + RPTexts.WARN + "% "
+						+ RPTexts.ERROR + "(" + added + RPTexts.WARN + "%" + RPTexts.ERROR + ")"));
 			}
 		}
 	}

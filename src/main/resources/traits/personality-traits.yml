@@ -1,5 +1,5 @@
 brave:
-    name: "§aBrave"
+    name: "#87d65cBrave"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -7,7 +7,7 @@ brave:
     description:
         - "§7Challenges or danger, this character fears nothing."
 craven:
-    name: "§cCraven"
+    name: "#d65c5cCraven"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -15,7 +15,7 @@ craven:
     description:
         - "§7This character does not enjoy being challenged, or scared, at all."
 zealous:
-    name: "§aZealous"
+    name: "#87d65cZealous"
     key: personality
     mutually-exclusive:
         - cynical
@@ -23,7 +23,7 @@ zealous:
     description:
         - "§7Conviction to faith or cause burns bright at the center of this character."
 just:
-    name: "§aJust"
+    name: "#87d65cJust"
     key: personality
     mutually-exclusive:
         - cynical
@@ -31,7 +31,7 @@ just:
     description:
         - "§7This character has a strong sense of justice."
 cynical:
-    name: "§aCynical"
+    name: "#87d65cCynical"
     key: personality
     mutually-exclusive:
         - just
@@ -40,7 +40,7 @@ cynical:
     description:
         - "§7This character trusts in self-interest above all else."
 content:
-    name: "§cContent"
+    name: "#d65c5cContent"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -49,7 +49,7 @@ content:
     description:
         - "§7What they already have is enough for this character."
 ambitious:
-    name: "§aAmbitious"
+    name: "#87d65cAmbitious"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -57,7 +57,7 @@ ambitious:
     description:
         - "§7This character knows what they want, and are not afraid to try and get it."
 generous:
-    name: "§cGenerous"
+    name: "#d65c5cGenerous"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -65,7 +65,7 @@ generous:
     description:
         - "§7Acts of benevolence and charity are no strangers to this character."
 greedy:
-    name: "§aGreedy"
+    name: "#87d65cGreedy"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -74,7 +74,7 @@ greedy:
     description:
         - "§7This character keeps a tight grip on their purse, always looking to engorge it."
 compassionate:
-    name: "§aCompassionate"
+    name: "#87d65cCompassionate"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -83,7 +83,7 @@ compassionate:
     description:
         - "§7Both merciful and sympathetic, this characer is warmhearted."
 spiteful:
-    name: "§cSpiteful"
+    name: "#d65c5cSpiteful"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -91,7 +91,7 @@ spiteful:
     description:
         - "§7Few things brings this character as much joy as the suffering of others."
 callous:
-    name: "§aCallous"
+    name: "#87d65cCallous"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -99,7 +99,7 @@ callous:
     description:
         - "§7Both heartless and cold-blooded, this characer is indifferent to most."
 honest:
-    name: "§cHonest"
+    name: "#d65c5cHonest"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -107,7 +107,7 @@ honest:
     description:
         - "§7This character values truth and sincerity highly."
 deceitful:
-    name: "§aDeceitful"
+    name: "#87d65cDeceitful"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -115,7 +115,7 @@ deceitful:
     description:
         - "§7To lie and deceive is in this character's nature."
 sociable:
-    name: "§aSociable"
+    name: "#87d65cSociable"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -123,7 +123,7 @@ sociable:
     description:
         - "§7This character enjoys spending time with other people."
 shy:
-    name: "§cShy"
+    name: "#d65c5cShy"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -131,7 +131,7 @@ shy:
     description:
         - "§7This character prefers to avoid interacting with other people."
 humble:
-    name: "§aHumble"
+    name: "#87d65cHumble"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -139,7 +139,7 @@ humble:
     description:
         - "§7This character does not ask for much in life."
 arrogant:
-    name: "§cArrogant"
+    name: "#d65c5cArrogant"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -148,7 +148,7 @@ arrogant:
     description:
         - "§7This character has no problem with their sense of worth."
 calm:
-    name: "§aCalm"
+    name: "#87d65cCalm"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -156,7 +156,7 @@ calm:
     description:
         - "§7This character takes things in stride and keep their cool."
 wrathful:
-    name: "§cWrathful"
+    name: "#d65c5cWrathful"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -164,7 +164,7 @@ wrathful:
     description:
         - "§7This character is quick to anger and fury."
 flexible:
-    name: "§aFlexible"
+    name: "#87d65cFlexible"
     key: personality
     cost: 2
     mutually-exclusive:
@@ -172,7 +172,7 @@ flexible:
     description:
         - "§7This character changes their mind easily, quick to adapt."
 stubborn:
-    name: "§cStubborn"
+    name: "#d65c5cStubborn"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -180,7 +180,7 @@ stubborn:
     description:
         - "§7This character does not back down for anything."
 trusting:
-    name: "§cTrusting"
+    name: "#d65c5cTrusting"
     key: personality
     cost: -1
     mutually-exclusive:
@@ -188,7 +188,7 @@ trusting:
     description:
         - "§7This character is quick to place their faith in others."
 paranoid:
-    name: "§cParanoid"
+    name: "#d65c5cParanoid"
     key: personality
     cost: -1
     mutually-exclusive:

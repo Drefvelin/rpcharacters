@@ -2,6 +2,7 @@ package net.tfminecraft.RPCharacters.persona;
 
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public final class AliasValidator {
 
@@ -9,11 +10,11 @@ public final class AliasValidator {
 
 	public static String validate(String alias) {
 		if (alias == null) {
-			return "§cAlias cannot be empty.";
+			return RPTexts.format(RPTexts.ERROR + "Alias cannot be empty.");
 		}
 		String plain = ClueFormatter.stripColor(alias);
 		if (plain.isEmpty()) {
-			return "§cAlias cannot be empty.";
+			return RPTexts.format(RPTexts.ERROR + "Alias cannot be empty.");
 		}
 		String lengthError = validateLength(plain, "Alias");
 		if (lengthError != null) {
@@ -23,7 +24,8 @@ public final class AliasValidator {
 		for (int i = 0; i < plain.length(); i++) {
 			char c = plain.charAt(i);
 			if (!isAllowed(c, allowed)) {
-				return "§cAlias contains disallowed character: §e" + c;
+				return RPTexts.format(RPTexts.ERROR + "Alias contains disallowed character: "
+						+ RPTexts.WARN + c);
 			}
 		}
 		return null;
@@ -31,18 +33,37 @@ public final class AliasValidator {
 
 	public static String validateCharacterName(String name) {
 		if (name == null || name.isBlank()) {
-			return "§cName cannot be empty.";
+			return RPTexts.format(RPTexts.ERROR + "Name cannot be empty.");
 		}
-		return validateLength(name.trim(), "Name");
+		String trimmed = name.trim();
+		if (containsColourCodes(trimmed)) {
+			return RPTexts.format(RPTexts.ERROR + "Colour codes are not allowed in character names. Use "
+					+ RPTexts.COMMAND + "/char namecolour " + RPTexts.ERROR + "for display colour.");
+		}
+		return validateLength(trimmed, "Name");
+	}
+
+	private static boolean containsColourCodes(String input) {
+		if (input == null) {
+			return false;
+		}
+		String stripped = ClueFormatter.stripColor(input);
+		if (!stripped.equals(input)) {
+			return true;
+		}
+		return input.indexOf('&') >= 0 || input.indexOf('§') >= 0
+				|| input.matches("(?i).*(#[a-f0-9]{6}).*");
 	}
 
 	public static String validateLength(String plain, String label) {
 		int length = plain.length();
 		if (length < Cache.personaDisplayNameMinLength) {
-			return "§c" + label + " must be at least " + Cache.personaDisplayNameMinLength + " characters.";
+			return RPTexts.format(RPTexts.ERROR + label + " must be at least "
+					+ Cache.personaDisplayNameMinLength + " characters.");
 		}
 		if (length > Cache.personaDisplayNameMaxLength) {
-			return "§c" + label + " cannot exceed " + Cache.personaDisplayNameMaxLength + " characters.";
+			return RPTexts.format(RPTexts.ERROR + label + " cannot exceed "
+					+ Cache.personaDisplayNameMaxLength + " characters.");
 		}
 		return null;
 	}

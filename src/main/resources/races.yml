@@ -1,5 +1,5 @@
 human:
-    name: "§fHuman"
+    name: "#ffffffHuman"
     shown: true
     key: race
     age-max: 100
@@ -15,7 +15,7 @@ human:
         - wisdom.3
         - charisma.3
 elf:
-    name: "§9Elf"
+    name: "#5682f2Elf"
     shown: true
     key: race
     age-max: 800
@@ -32,7 +32,7 @@ elf:
         - wisdom.3
         - charisma.3
 orc:
-    name: "§2Orc"
+    name: "#87d65cOrc"
     shown: true
     key: race
     age-max: 120
@@ -52,7 +52,7 @@ orc:
         - wisdom.3
         - charisma.3
 goblin:
-    name: "§2Goblin"
+    name: "#87d65cGoblin"
     shown: true
     key: race
     age-max: 120
@@ -70,7 +70,7 @@ goblin:
         - wisdom.3
         - charisma.3
 dwarf:
-    name: "§6Dwarf"
+    name: "#c9a24fDwarf"
     shown: true
     key: race
     age-max: 400
@@ -87,7 +87,7 @@ dwarf:
         - wisdom.3
         - charisma.3
 dryad:
-    name: "§aDryad"
+    name: "#87d65cDryad"
     shown: true
     key: race
     age-max: 600
@@ -106,7 +106,7 @@ dryad:
         - wisdom.3
         - charisma.3
 oseni:
-    name: "§cOseni"
+    name: "#d65c5cOseni"
     shown: true
     key: race
     age-max: 200

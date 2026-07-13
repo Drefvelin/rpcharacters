@@ -1,0 +1,164 @@
+name: Smith
+item:
+  material: anvil
+  name: #87d65cSmith
+  lore:
+  - §7Spend points earned through leveling
+  - §7the #87d65cSmith §7Profession in #d6cf69/profile
+upgrades:
+  iron_weaponsmith:
+    item:
+      name: #c9a24fIron Weaponsmith
+      material: iron_axe
+      model_data: 6
+      lore:
+      - §7Unlocks crafting #ffffffIron Weaponry
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.iron_weaponsmith
+  steel_weaponsmith:
+    item:
+      name: #c9a24fSteel Weaponsmith
+      material: iron_axe
+      model_data: 7
+      lore:
+      - §7Unlocks crafting §7Steel Weaponry
+    cost: 2
+    requires:
+    - iron_weaponsmith
+    type: permission
+    unlocks:
+    - professions.steel_weaponsmith
+  abyssalite_weaponsmith:
+    item:
+      name: #c9a24fAbyssalite Weaponsmith
+      material: iron_axe
+      model_data: 16
+      lore:
+      - §7Unlocks crafting #6b6b6bAbyssalite Weaponry
+    cost: 3
+    requires:
+    - steel_weaponsmith
+    type: permission
+    unlocks:
+    - professions.abyssalite_weaponsmith
+  mythril_weaponsmith:
+    item:
+      name: #c9a24fMythril Weaponsmith
+      material: iron_axe
+      model_data: 12
+      lore:
+      - §7Unlocks crafting #56ccf2Mythril Weaponry
+    cost: 4
+    requires:
+    - abyssalite_weaponsmith
+    type: permission
+    unlocks:
+    - professions.mythril_weaponsmith
+  chainmail_tailor:
+    item:
+      name: #c9a24fChainmail Tailor
+      material: chainmail_chestplate
+      lore:
+      - §7Unlocks crafting #ffffffChainmail Armour
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.chainmail_tailor
+  steel_tailor:
+    item:
+      name: #c9a24fSteel Tailor
+      material: iron_chestplate
+      lore:
+      - §7Unlocks crafting §7Steel Armour
+    cost: 2
+    requires:
+    - chainmail_tailor
+    type: permission
+    unlocks:
+    - professions.steel_tailor
+  abyssalite_tailor:
+    item:
+      name: #c9a24fAbyssalite Tailor
+      material: netherite_chestplate
+      lore:
+      - §7Unlocks crafting #6b6b6bAbyssalite Armour
+    cost: 3
+    requires:
+    - steel_tailor
+    type: permission
+    unlocks:
+    - professions.abyssalite_tailor
+  mythril_tailor:
+    item:
+      name: #c9a24fMythril Tailor
+      material: diamond_chestplate
+      lore:
+      - §7Unlocks crafting #56ccf2Mythril Armour
+    cost: 4
+    requires:
+    - abyssalite_tailor
+    type: permission
+    unlocks:
+    - professions.mythril_tailor
+  offhand_maker_1:
+    item:
+      name: #c9a24fOffhand Weapon Maker I
+      material: shield
+      lore:
+      - §7Unlocks crafting the #ffffffIron Offhands
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.offhand_maker_1
+  offhand_maker_2:
+    item:
+      name: #c9a24fOffhand Weapon Maker II
+      material: shield
+      lore:
+      - §7Unlocks crafting the §7Steel Offhands
+    cost: 2
+    requires:
+    - offhand_maker_1
+    type: permission
+    unlocks:
+    - professions.offhand_maker_2
+  offhand_maker_3:
+    item:
+      name: #c9a24fOffhand Weapon Maker III
+      material: shield
+      lore:
+      - §7Unlocks crafting the #6b6b6bAbyssalite Offhands
+    cost: 3
+    requires:
+    - offhand_maker_2
+    type: permission
+    unlocks:
+    - professions.offhand_maker_3
+  offhand_maker_4:
+    item:
+      name: #c9a24fOffhand Weapon Maker IV
+      material: shield
+      lore:
+      - §7Unlocks crafting the #56ccf2Mythril Offhands
+    cost: 4
+    requires:
+    - offhand_maker_3
+    type: permission
+    unlocks:
+    - professions.offhand_maker_4
+  goldsmith:
+    item:
+      name: #c9a24fGoldsmith
+      material: gold_nugget
+      model_data: 10
+      enchants:
+      - unbreaking.1
+      hide_enchants: true
+      lore:
+      - §7Unlocks crafting the #ffffffGoldsmithing Tools
+    cost: 10
+    type: permission
+    unlocks:
+    - professions.goldsmith

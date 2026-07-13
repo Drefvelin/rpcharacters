@@ -53,6 +53,7 @@ Assign `rpchar.*` per phase0-design §11:
 - [ ] `rpchar.chat.use` (+ channel-specific perms from `chat.yml`)
 - [ ] `rpchar.roll` (+ `rpchar.roll.alt` if using 1–200 `/roll`)
 - [ ] Admin: `rpchar.persona.override`, `rpchar.chat.admin`, etc. as needed
+- [ ] Staff: `rpchar.tempalias` (session IC chat override), `rpchar.character.hidden` (hide char from TAB via slug)
 
 Retire unused `orpdesc.*` groups if migrating permission templates.
 
@@ -60,9 +61,10 @@ Retire unused `orpdesc.*` groups if migrating permission templates.
 
 ## Staging — TAB / PlaceholderAPI
 
-- [ ] Tab list name: **`%rpcharacters_display_no_mask%`** only (never `%rpcharacters_display%` on TAB)
+- [ ] Tab list name: **`%rpcharacters_display_safe%`** only (never `%rpcharacters_display%` on TAB)
+- [ ] `%rpcharacters_display_no_mask%` is the **real active** character (profiles, character menus) — not TAB when hidden chars are used
 - [ ] Remove `%orpdesc_*%` from TAB, scoreboards, and any remaining formats
-- [ ] Chat/profile placeholders: `%rpcharacters_name%`, `%rpcharacters_display%`, `%rpcharacters_age%`, `%rpcharacters_race%`, `%rpcharacters_gender%`, `%rpcharacters_description%`
+- [ ] Chat/profile placeholders: `%rpcharacters_name%`, `%rpcharacters_display%`, `%rpcharacters_display_safe%`, `%rpcharacters_age%`, `%rpcharacters_race%`, `%rpcharacters_gender%`, `%rpcharacters_description%`
 
 ---
 
@@ -72,7 +74,7 @@ Retire unused `orpdesc.*` groups if migrating permission templates.
 
 - [ ] Channels: `rp`, `shout`, `yell`, `whisper`, `looc`, `ooc`, `action`, `admin`, `helper`, `dm`
 - [ ] Plain chat (no command) → default `rp` channel
-- [ ] No active character: plain chat and IC channels blocked; TAB shows **Unknown** (`%rpcharacters_display_no_mask%`); `/ooc` works with IGN
+- [ ] No active character: plain chat and IC channels blocked; TAB shows **Unknown** (`%rpcharacters_display_safe%`); `/ooc` works with IGN
 - [ ] Channel commands registered from `chat.yml` on load/reload (no jar rebuild for new channels)
 - [ ] Colour codes gated by `rpchar.chat.colors`
 - [ ] Channel cooldowns work
@@ -82,7 +84,7 @@ Retire unused `orpdesc.*` groups if migrating permission templates.
 
 - [ ] Wearing mask: `{display}` channels show plain **Masked** (no colour on label)
 - [ ] Plain chat (no command) works while masked — shows **Masked** on default RP channel (no `/rp` required)
-- [ ] TAB name unchanged when mask worn (`display_no_mask`)
+- [ ] TAB name unchanged when mask worn (`display_safe` ignores mask; chat `{display}` shows **Masked**)
 - [ ] LOOC/OOC still use account `{player}` — mask does not rename those channels
 
 ### Profile
@@ -94,6 +96,8 @@ Retire unused `orpdesc.*` groups if migrating permission templates.
 ### Persona
 
 - [ ] `/rpcharacter alias`, `namecolour`, `gender`, `description`
+- [ ] `/rpcharacter tempalias <name>|clear` — session IC chat override (below mask); cleared on quit
+- [ ] `/rpcharacter sethidden <slug>` toggle; `/rpcharacter sethidden <slug> clear` to unhide; TAB uses `%rpcharacters_display_safe%`
 - [ ] Name colour: tier limits from `permission-groups.yml` (0 default, 1 noble, 2 gilded, 20 ascended); multi-hex gradient supported
 - [ ] Admin `/rpcharacter override ... namecolour` bypasses tier limits and persists through rank changes (`name-colour-staff`)
 - [ ] Default description template with `{continent}` — vowel races produce **An** (not **Aan**)
@@ -136,7 +140,7 @@ Use a **brief maintenance window** — Thievery mask layer and OpenRP chat must 
 4. [ ] Deploy **Thievery** jar (mask-free)
 5. [ ] Remove/disable **OpenRP** (or all replaced modules)
 6. [ ] Disable **ConditionalEvents** roll events (`a_rolls.yml`)
-7. [ ] Verify LuckPerms `rpchar.*` and TAB `%rpcharacters_display_no_mask%` on production configs
+7. [ ] Verify LuckPerms `rpchar.*` and TAB `%rpcharacters_display_safe%` on production configs
 8. [ ] Start server
 9. [ ] Repeat staging smoke test (section above)
 10. [ ] Monitor first session for double-chat or wrong TAB names
@@ -149,7 +153,7 @@ Use a **brief maintenance window** — Thievery mask layer and OpenRP chat must 
 |------|------------|
 | Dual chat plugins | Disable OpenRP chat before enabling RPC chat |
 | Thievery mask + RPC mask both active | Deploy Thievery Phase 8 build in same window as RPC go-live |
-| Wrong TAB placeholder | Use `%rpcharacters_display_no_mask%` only |
+| Wrong TAB placeholder | Use `%rpcharacters_display_safe%` only |
 | Lost `/chtsw` | Optional Phase 9; not required for go-live |
 
 ---

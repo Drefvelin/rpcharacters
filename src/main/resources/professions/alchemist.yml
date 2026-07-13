@@ -1,0 +1,227 @@
+name: Alchemist
+item:
+  material: brewing_stand
+  name: #87d65cAlchemist
+  lore:
+  - §7Spend points earned through leveling
+  - §7the #87d65cAlchemist §7Profession in #d6cf69/profile
+upgrades:
+  alchemy_collector_maker_1:
+    item:
+      name: #c9a24fAlchemy Collector Maker I
+      material: shears
+      lore:
+      - §7Unlocks crafting §7Steel Alchemy Collectors
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.alchemy_collector_maker_1
+  alchemy_collector_maker_2:
+    item:
+      name: #c9a24fAlchemy Collector Maker II
+      material: shears
+      lore:
+      - §7Unlocks crafting #6b6b6bAbyssalite Alchemy Collectors
+    cost: 2
+    type: permission
+    requires:
+    - alchemy_collector_maker_1
+    unlocks:
+    - professions.alchemy_collector_maker_2
+  alchemy_collector_maker_3:
+    item:
+      name: #c9a24fAlchemy Collector Maker III
+      material: shears
+      lore:
+      - §7Unlocks crafting #56ccf2Mythril Alchemy Collectors
+    cost: 3
+    type: permission
+    requires:
+    - alchemy_collector_maker_2
+    unlocks:
+    - professions.alchemy_collector_maker_3
+  musket_maker_1:
+    item:
+      name: #c9a24fMusket Maker I
+      material: stone_hoe
+      model_data: 1.0
+      lore:
+      - §7Unlocks crafting #ffffffIron Muskets, #ffffffGunpowder §7and #ffffffMusket Rounds
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.musket_maker_1
+  musket_maker_2:
+    item:
+      name: #c9a24fMusket Maker II
+      material: stone_hoe
+      model_data: 1.0
+      lore:
+      - §7Unlocks crafting §7Steel Muskets
+    cost: 2
+    type: permission
+    requires:
+    - musket_maker_1
+    unlocks:
+    - professions.musket_maker_2
+  musket_maker_3:
+    item:
+      name: #c9a24fMusket Maker III
+      material: stone_hoe
+      model_data: 3.0
+      lore:
+      - §7Unlocks crafting #6b6b6bAbyssalite Muskets
+    cost: 3
+    type: permission
+    requires:
+    - musket_maker_2
+    unlocks:
+    - professions.musket_maker_3
+  musket_maker_4:
+    item:
+      name: #c9a24fMusket Maker IV
+      material: stone_hoe
+      model_data: 3.0
+      lore:
+      - §7Unlocks crafting #56ccf2Mythril Muskets
+    cost: 4
+    type: permission
+    requires:
+    - musket_maker_3
+    unlocks:
+    - professions.musket_maker_4
+  infantry_armor_1:
+    item:
+      name: #c9a24fInfantry Armor Maker I
+      material: golden_chestplate
+      model_data: 6.0
+      lore:
+      - §7Unlocks crafting #ffffffIron Infantry Armor
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.infantry_armor_1
+  infantry_armor_2:
+    item:
+      name: #c9a24fInfantry Armor Maker II
+      material: golden_chestplate
+      model_data: 6.0
+      lore:
+      - §7Unlocks crafting §7Steel Infantry Armor
+    cost: 2
+    type: permission
+    requires:
+    - infantry_armor_1
+    unlocks:
+    - professions.infantry_armor_2
+  infantry_armor_3:
+    item:
+      name: #c9a24fInfantry Armor Maker III
+      material: golden_chestplate
+      model_data: 6.0
+      lore:
+      - §7Unlocks crafting #6b6b6bAbyssalite Infantry Armor
+    cost: 3
+    type: permission
+    requires:
+    - infantry_armor_2
+    unlocks:
+    - professions.infantry_armor_3
+  infantry_armor_4:
+    item:
+      name: #c9a24fInfantry Armor Maker IV
+      material: golden_chestplate
+      model_data: 6.0
+      lore:
+      - §7Unlocks crafting #56ccf2Mythril Infantry Armor
+    cost: 4
+    type: permission
+    requires:
+    - infantry_armor_3
+    unlocks:
+    - professions.infantry_armor_4
+  potion_brewer_1:
+    item:
+      name: #c9a24fPotion Brewer I
+      material: slime_ball
+      model_data: 3
+      lore:
+      - §7Unlocks crafting potions
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.potion_brewer_1
+  potion_brewer_2:
+    item:
+      name: #c9a24fPotion Brewer II
+      material: slime_ball
+      model_data: 12
+      lore:
+      - §7Unlocks crafting even more potions
+    cost: 2
+    requires:
+    - potion_brewer_1
+    type: permission
+    unlocks:
+    - professions.potion_brewer_2
+  dimension_alchemist:
+    item:
+      name: #c9a24fDimension Alchemist
+      material: nether_wart
+      lore:
+      - §7Unlocks crafting items from other dimensions
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.dimension_alchemist
+  transmutation_1:
+    item:
+      name: #c9a24fTransmutation I
+      material: apple
+      model_data: 12
+      lore:
+      - §7Unlocks crafting items with #ffffffAlchemy Powder
+    cost: 3
+    requires:
+    - dimension_alchemist
+    type: permission
+    unlocks:
+    - professions.transmutation_1
+  transmutation_2:
+    item:
+      name: #c9a24fTransmutation II
+      material: apple
+      model_data: 13
+      lore:
+      - §7Unlocks crafting items with #ffffffTransmutation Powder
+    cost: 4
+    requires:
+    - transmutation_1
+    type: permission
+    unlocks:
+    - professions.transmutation_2
+  researcher:
+    item:
+      name: #c9a24fResearcher
+      material: paper
+      model_data: 22
+      lore:
+      - §7Unlocks crafting #c9a24fResearch §7items in a cartography table
+      - §7§o(High #ffffff§oIntelligence §7§omakes Research easier)
+    cost: 2
+    requires:
+    - transmutation_1
+    type: permission
+    unlocks:
+    - professions.researcher
+  physician:
+    item:
+      name: #c9a24fPhysician
+      material: red_dye
+      model_data: 4
+      lore:
+      - §7Unlocks crafting #ffffffMedicines §7and #ffffffPlague Doctor §7outfit
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.physician

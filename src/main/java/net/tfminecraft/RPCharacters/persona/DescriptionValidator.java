@@ -2,6 +2,7 @@ package net.tfminecraft.RPCharacters.persona;
 
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public final class DescriptionValidator {
 
@@ -9,18 +10,20 @@ public final class DescriptionValidator {
 
 	public static String validate(String description) {
 		if (description == null) {
-			return "§cDescription cannot be empty.";
+			return RPTexts.format(RPTexts.ERROR + "Description cannot be empty.");
 		}
 		String plain = ClueFormatter.stripColor(description).trim();
 		if (plain.isEmpty()) {
-			return "§cDescription cannot be empty.";
+			return RPTexts.format(RPTexts.ERROR + "Description cannot be empty.");
 		}
 		int length = plain.length();
 		if (length < Cache.characterDescriptionMinLength) {
-			return "§cDescription must be at least " + Cache.characterDescriptionMinLength + " characters.";
+			return RPTexts.format(RPTexts.ERROR + "Description must be at least "
+					+ Cache.characterDescriptionMinLength + " characters.");
 		}
 		if (length > Cache.characterDescriptionMaxLength) {
-			return "§cDescription cannot exceed " + Cache.characterDescriptionMaxLength + " characters.";
+			return RPTexts.format(RPTexts.ERROR + "Description cannot exceed "
+					+ Cache.characterDescriptionMaxLength + " characters.");
 		}
 		return null;
 	}

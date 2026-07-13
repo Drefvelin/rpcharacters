@@ -35,6 +35,9 @@ require-character: true
 # Verbose RPCharacters feedback when /mmocore admin skill-points give|set runs (sync breakdown, stripped skills).
 skill-points-admin-debug-messages: false
 
+# Verbose RPCharacters feedback when /mmocore admin attribute-points give|set runs.
+attribute-points-admin-debug-messages: false
+
 default-clues-required: 2
 evil-clues-required: 4
 clue-min-length: 12
@@ -49,6 +52,7 @@ trait-clue-overrides: {}
 
 no-character-freeze: true
 lacking-clues-freeze: true
+excess-characters-freeze: true
 
 race-clue: "This seems to be the mark of {a/an} {race}"
 
@@ -60,9 +64,6 @@ spawned-clue-scale: 0.6
 spawned-clue-particle-interval: 10
 spawned-clue-line-length: 18
 clue-spawn-radius: 3
-
-playtime:
-  tick-seconds: 60
 
 conversation:
   reply-timeout-seconds: 30

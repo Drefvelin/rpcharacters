@@ -1,6 +1,8 @@
 one_legged:
-    name: "§cOne-Legged"
+    name: "#d65c5cOne-Legged"
     key: injury
+    gained-message: "#d65c5cYou lost a leg!"
+    lost-message: "#87d65cYour leg has grown back."
     potion-effects:
         - slowness(0)
     attribute-modifiers:
@@ -8,8 +10,10 @@ one_legged:
     description:
         - "§7This character only has one leg."
 one_handed:
-    name: "§cOne-Handed"
+    name: "#d65c5cOne-Handed"
     key: injury
+    gained-message: "#d65c5cYou lost an arm!"
+    lost-message: "#87d65cYour arm has grown back."
     potion-effects:
         - weakness(0)
     attribute-modifiers:
@@ -18,8 +22,10 @@ one_handed:
     description:
         - "§7This character only has one arm."
 blind:
-    name: "§cBlind"
+    name: "#d65c5cBlind"
     key: injury
+    gained-message: "#d65c5cYou have gone blind!"
+    lost-message: "#87d65cYour sight has returned."
     potion-effects:
         - blindness(4)
     attribute-modifiers:
@@ -28,8 +34,10 @@ blind:
     description:
         - "§7This character is blind."
 half_blind:
-    name: "§cHalf-Blind"
+    name: "#d65c5cHalf-Blind"
     key: injury
+    gained-message: "#d65c5cYou lost an eye!"
+    lost-message: "#87d65cYour eye has healed."
     attribute-modifiers:
         - dexterity.-1
     description:

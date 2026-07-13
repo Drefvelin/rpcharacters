@@ -39,21 +39,29 @@ public final class PermissionGroupsLoader implements LoaderInterface {
 		List<PermissionGroupDefinition> groups = new ArrayList<>();
 		if (config.isConfigurationSection("groups")) {
 			ConfigurationSection groupsSection = config.getConfigurationSection("groups");
+			int autoTier = 0;
 			for (String id : groupsSection.getKeys(false)) {
 				ConfigurationSection groupSection = groupsSection.getConfigurationSection(id);
 				if (groupSection == null) {
 					continue;
 				}
 				String permission = groupSection.getString("permission", "");
+				String displayName = groupSection.getString("display-name", id);
+				int tier = groupSection.contains("tier")
+						? groupSection.getInt("tier")
+						: autoTier++;
+				boolean visible = groupSection.getBoolean("visible", true);
 				Map<String, Integer> perks = new HashMap<>();
 				for (String key : groupSection.getKeys(false)) {
-					if ("permission".equals(key)) {
+					if ("permission".equals(key) || "display-name".equals(key)
+							|| "tier".equals(key) || "visible".equals(key)) {
 						continue;
 					}
 					perks.put(key, groupSection.getInt(key));
 				}
-				groups.add(new PermissionGroupDefinition(id, permission, perks));
+				groups.add(new PermissionGroupDefinition(id, permission, displayName, tier, visible, perks));
 			}
+			groups.sort(java.util.Comparator.comparingInt(PermissionGroupDefinition::getTier));
 		}
 		Cache.permissionGroups = groups;
 	}

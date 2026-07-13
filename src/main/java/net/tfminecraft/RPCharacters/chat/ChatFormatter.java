@@ -19,7 +19,7 @@ public final class ChatFormatter {
 		}
 		String withTokens = template
 				.replace("{display}", displayName != null ? displayName : "")
-				.replace("{display_no_mask}", DisplayIdentityService.resolveDisplayNoMask(sender))
+				.replace("{display_tab}", DisplayIdentityService.resolveDisplayTab(sender))
 				.replace("{player}", sender.getName())
 				.replace("{message}", message != null ? message : "");
 		return StringFormatter.formatHex(withTokens.replace('&', '\u00A7'));

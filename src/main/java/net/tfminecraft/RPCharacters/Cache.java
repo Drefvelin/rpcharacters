@@ -15,9 +15,10 @@ public class Cache {
 	
 	//Profile stuff
 	
-	public static int maxAlive;
 	public static List<Integer> characterSlots;
+	public static int baseCharacterSlotCount;
 	public static int deadSlot;
+	public static int maxCharacterSlots;
 
 	public static Map<String, Integer> permissionGroupDefaults = new HashMap<>();
 	public static List<net.tfminecraft.RPCharacters.Objects.PermissionGroupDefinition> permissionGroups = new ArrayList<>();
@@ -25,6 +26,7 @@ public class Cache {
 	public static boolean requireCharacter;
 	public static boolean noCharacterFreeze;
 	public static boolean lackingCluesFreeze;
+	public static boolean excessCharactersFreeze;
 
 	public static int startingProfessionFactor;
 
@@ -46,11 +48,11 @@ public class Cache {
 	public static int spawnedClueParticleInterval;
 	public static int clueSpawnRadius;
 	public static int spawnedClueLineLength;
-	public static int playtimeTickSeconds = 60;
 	public static int conversationReplyTimeoutSeconds = 30;
 	public static int conversationPairCooldownHours = 2;
 
 	public static boolean skillPointsAdminDebugMessages = false;
+	public static boolean attributePointsAdminDebugMessages = false;
 
 	public static String continent = "Cerrith";
 
@@ -59,6 +61,8 @@ public class Cache {
 	public static String personaDescriptionColorsPermission = "rpchar.persona.colors";
 	public static String personaOverridePermission = "rpchar.persona.override";
 	public static String personaBypassCooldownPermission = "rpchar.persona.bypasscooldown";
+	public static String personaTempaliasPermission = "rpchar.tempalias";
+	public static String personaCharacterHiddenPermission = "rpchar.character.hidden";
 	public static String personaNoCharacterFallback = "§f§oUnknown";
 
 	public static int personaDisplayNameMinLength = 3;
@@ -80,7 +84,24 @@ public class Cache {
 
 	public static String chatDefaultChannel = "rp";
 	public static String chatBypassCooldownPermission = "rpchar.chat.bypasscooldown";
-	public static String chatNoCharacterMessage = "&cYou must have an active character to use this channel. Use &e/rpcharacter &cto create one, or &e/ooc &cfor out-of-character chat.";
+	public static String chatNoCharacterMessage = "&cNo active character. &e/rpcharacter &cto create one, or &e/ooc &cfor OOC.";
+
+	public static boolean chatChannelSwitcherEnabled = true;
+	public static List<String> chatSwitchableChannels = new ArrayList<>();
+	public static boolean chatChannelTogglerEnabled = true;
+	public static List<String> chatToggleableChannels = new ArrayList<>();
+
+	public static String chatRunAsPlayerMessage = "&cPlayers only.";
+	public static String chatChannelSwitchDisabledMessage = "&cChannel switching is disabled.";
+	public static String chatChannelToggleDisabledMessage = "&cChannel toggling is disabled.";
+	public static String chatChannelInvalidUseMessage = "&cBad syntax. Try /{usage}.";
+	public static String chatChannelInvalidChannelMessage = "&cYou cannot target that channel. Allowed channels: {channels}.";
+	public static String chatChannelAlreadySwitchedMessage = "&cYou are already using that channel.";
+	public static String chatChannelSwitchedMessage = "&aSwitched to {channel}.";
+	public static String chatChannelCurrentMessage = "&7Your default chat channel is &e{channel}&7.";
+	public static String chatChannelToggledOnMessage = "&aToggled {channel} visibility ON.";
+	public static String chatChannelToggledOffMessage = "&eToggled {channel} visibility OFF.";
+	public static String chatChannelCantUseWhenToggledOffMessage = "&cChannel is toggled off. Toggle it back on.";
 
 	public static String profilePermission = "rpchar.profile";
 	public static boolean profileRequireSneak = true;
@@ -99,11 +120,15 @@ public class Cache {
 	public static String rollBroadcastText = "&e{player} &7rolled a &6{roll}{modifier} &7out of {max}.";
 	public static int rollBroadcastRange = 20;
 
-	public static int calendarBaseFantasyYear = 372;
-	public static String calendarEra = "AE";
-	public static int calendarBaseIrlYear = 2025;
-	public static double calendarDaysPerYear = 365.25;
-	public static int calendarAgeDecimalPlaces = 1;
+	public static int calendarYearOffset = 1654;
+	public static String calendarEraSuffix = "AE";
 	public static int calendarAgeMinimum = 18;
 	public static String calendarAgeUnsetLabel = "Unset";
+
+	public static int professionMaxSpendingPoints = 40;
+	public static String professionPermContext = "main";
+	public static List<String> professionLockedBreeding = new ArrayList<>();
+	public static List<String> professionBreedingExp = new ArrayList<>();
+	public static boolean professionAdminDebugMessages = false;
+	public static List<net.tfminecraft.RPCharacters.professions.ProfessionItemType> professionItemTypes = new ArrayList<>();
 }

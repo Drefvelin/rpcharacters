@@ -1,0 +1,15 @@
+permadeath-chance-per-injury: 10
+zone-check-cooldown-ms: 100
+
+world-spawn: null
+
+tutorial:
+  - "#d65c5cPermadeath Zone"
+  - "§7Death here might permakill your character."
+  - "§7If you are lucky you might only take an injury instead."
+  - "§7More injuries, higher permadeath chance."
+  - "§7Remedies heal injuries."
+
+permadeath-zones:
+  mini_vard:
+    name: "Mount Vard"

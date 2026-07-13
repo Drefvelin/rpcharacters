@@ -1,5 +1,5 @@
 rower:
-    name: "§aExpedition Deckhand"
+    name: "#87d65cExpedition Deckhand"
     key: expedition
     description:
         - "§7This character performed physical tasks on one"
@@ -18,7 +18,7 @@ rower:
             modifier: 5
 
 planner:
-    name: "§aExpedition Navigator"
+    name: "#87d65cExpedition Navigator"
     key: expedition
     description:
         - "§7This character charted the course for the Calavorian"
@@ -37,7 +37,7 @@ planner:
             modifier: 5
         
 supplier:
-    name: "§aExpedition Caretaker"
+    name: "#87d65cExpedition Caretaker"
     key: expedition
     description:
         - "§7This character catered for their crew, or tended to"
@@ -56,7 +56,7 @@ supplier:
             modifier: 5
         
 navigator:
-    name: "§aExpedition Scout"
+    name: "#87d65cExpedition Scout"
     key: expedition
     description:
         - "§7This character scouted ahead for food, resources,"
@@ -75,7 +75,7 @@ navigator:
             modifier: 5
 
 organiser:
-    name: "§aExpedition Scryer"
+    name: "#87d65cExpedition Scryer"
     key: expedition
     description:
         - "§7This character acted as lookout, or communicated"
@@ -94,7 +94,7 @@ organiser:
             modifier: 5
         
 leader:
-    name: "§aExpedition Organiser"
+    name: "#87d65cExpedition Organiser"
     key: expedition
     description:
         - "§7This character managed their crew's supplies, or"

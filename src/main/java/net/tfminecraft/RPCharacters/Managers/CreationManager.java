@@ -3,40 +3,56 @@ package net.tfminecraft.RPCharacters.Managers;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
+import net.tfminecraft.RPCharacters.Creation.SummaryEditSupport;
+import net.tfminecraft.RPCharacters.Creation.StageEditLock;
 import net.tfminecraft.RPCharacters.Creation.Stages.ClueStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
 import net.tfminecraft.RPCharacters.Holder.RPCHolder;
+import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Utils.PlaytimeGate;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
+import net.tfminecraft.RPCharacters.enums.CreationGuiContext;
+import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 import net.tfminecraft.RPCharacters.enums.Status;
 
 public class CreationManager implements Listener{
 	public static HashMap<Player, CharacterCreation> activeCreators = new HashMap<>();
+	private static final String SUMMARY_ACTION_KEY = "summary_action";
 	
 	public static void initiateCreation(Player p) {
 		PlayerData pd = PlayerManager.get(p);
+		if (!CharacterSlotService.hasFreeSlot(p, pd)) {
+			RPTexts.send(p, RPTexts.ERROR + "You don't have a free character slot!");
+			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+			return;
+		}
 		if(PermissionGroupService.hasCharacterSwitchCooldown(p, pd) && pd.getCharacters(Status.ALIVE).size() > 0 && !p.hasPermission("rpcharacters.no_cooldown")) {
-			p.sendMessage("§cYou are on cooldown from switching characters");
+			RPTexts.send(p, RPTexts.ERROR + "You are on cooldown from switching characters");
 			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 			return;
 		}
@@ -44,8 +60,86 @@ public class CreationManager implements Listener{
 		cc.setCanNext(false);
 		activeCreators.put(p, cc);
 	}
+
+	public static void initiateEdit(Player p) {
+		if (activeCreators.containsKey(p)) {
+			RPTexts.send(p, RPTexts.ERROR + "You already have an active character session.");
+			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+			return;
+		}
+		PlayerData pd = PlayerManager.get(p);
+		if (pd == null || !pd.hasActiveCharacter()) {
+			RPTexts.send(p, RPTexts.ERROR + "You have no active character to edit.");
+			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+			return;
+		}
+		CharacterCreation cc = CharacterCreation.forEdit(p, pd.getActiveCharacter());
+		activeCreators.put(p, cc);
+		cc.openSummary();
+	}
+
+	public static void initiateEditEntry(Player p, String entryKey) {
+		if (entryKey == null || entryKey.isBlank()) {
+			initiateEdit(p);
+			return;
+		}
+		String stageId = SummaryEditSupport.resolveStageId(entryKey);
+		if ("clues".equalsIgnoreCase(stageId)) {
+			if (!activeCreators.containsKey(p)) {
+				initiateEdit(p);
+			}
+			CharacterCreation cc = activeCreators.get(p);
+			if (cc == null) {
+				return;
+			}
+			InventoryManager inv = new InventoryManager();
+			CreationGuiContext context = cc.isEditing() ? CreationGuiContext.EDIT_SUMMARY : CreationGuiContext.CREATION_SUMMARY;
+			inv.cluesView(p, cc.getCharacter(), context, cc);
+			return;
+		}
+		if (stageId == null) {
+			RPTexts.send(p, RPTexts.ERROR + "Unknown edit option.");
+			return;
+		}
+		Stage stage = StageLoader.getById(stageId);
+		PlayerData pd = PlayerManager.get(p);
+		if (pd == null || !pd.hasActiveCharacter()) {
+			RPTexts.send(p, RPTexts.ERROR + "You have no active character to edit.");
+			return;
+		}
+		if (stage != null && !StageEditLock.canEdit(p, stage, pd.getActiveCharacter())) {
+			RPTexts.send(p, RPTexts.ERROR + "That choice is locked and can no longer be edited.");
+			return;
+		}
+		if (!activeCreators.containsKey(p)) {
+			CharacterCreation cc = CharacterCreation.forEdit(p, pd.getActiveCharacter());
+			activeCreators.put(p, cc);
+			cc.jumpToStageForEdit(stageId);
+			return;
+		}
+		CharacterCreation existing = activeCreators.get(p);
+		if (!existing.isEditing()) {
+			RPTexts.send(p, RPTexts.ERROR + "You are busy creating a character.");
+			return;
+		}
+		existing.jumpToStageForEdit(stageId);
+	}
+
+	public static RPCharacter resolveCharacter(Player player, String characterId) {
+		CharacterCreation cc = activeCreators.get(player);
+		if (cc != null && cc.getCharacter().getId().equals(characterId)) {
+			return cc.getCharacter();
+		}
+		PlayerData pd = PlayerManager.get(player);
+		return pd != null ? pd.getCharacterById(characterId) : null;
+	}
+
+	public static boolean isDraftCharacter(Player player, String characterId) {
+		CharacterCreation cc = activeCreators.get(player);
+		return cc != null && !cc.isEditing() && cc.getCharacter().getId().equals(characterId);
+	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void chatEvent(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
 		if (!activeCreators.containsKey(player)) {
@@ -53,17 +147,23 @@ public class CreationManager implements Listener{
 		}
 		event.setCancelled(true);
 		CharacterCreation cc = activeCreators.get(player);
-		if (cc.getCurrentStage() instanceof QuestionStage) {
+		Stage activeStage = cc.getActiveStage();
+		if (activeStage instanceof QuestionStage) {
 			cc.answerQuestion(event.getMessage());
-		} else if (cc.getCurrentStage() instanceof SetterStage setter) {
+		} else if (activeStage instanceof SetterStage setter) {
 			setter.finish(event.getMessage(), player, cc);
-		} else if (cc.getCurrentStage() instanceof ClueStage clue) {
+		} else if (activeStage instanceof ClueStage clue) {
 			clue.finish(event.getMessage(), player, cc);
 		}
 	}
 
 	public static void next(Player p) {
 		if(activeCreators.containsKey(p)) {
+			CharacterCreation cc = activeCreators.get(p);
+			if (cc.isEditingFromSummary()) {
+				cc.returnToSummary();
+				return;
+			}
 			activeCreators.get(p).runStage();
 		}
 	}
@@ -88,14 +188,14 @@ public class CreationManager implements Listener{
 				if(!item.isSelected()) {
 					for(SelectableItem stored : s.getSelection()) {
 						if(stored.isExclusive(item)) {
-							p.sendMessage("§cYou have one or more incompatible traits");
+							RPTexts.send(p, RPTexts.ERROR + "You have one or more incompatible traits");
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
 						}
 					}
 					for(Trait t : c.getTraits()) {
 						if(item.isExclusive(t.getId()) || t.getTraitData().isExclusive(item.getId())) {
-							p.sendMessage("§cYou have one or more incompatible traits");
+							RPTexts.send(p, RPTexts.ERROR + "You have one or more incompatible traits");
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
 						}
@@ -107,19 +207,19 @@ public class CreationManager implements Listener{
 								s.unSelect(chosen);
 							}
 						} else {
-							p.sendMessage("§cCannot make any more selections");
+							RPTexts.send(p, RPTexts.ERROR + "Cannot make any more selections");
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
 						}
 					}
 					if(item.getCost() > s.getPoints()) {
-						p.sendMessage("§cCannot afford this trait");
+						RPTexts.send(p, RPTexts.ERROR + "Cannot afford this trait");
 						p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 						return;
 					}
 					if(item.hasDependency()) {
 						if(!item.getDependency().check(c)) {
-							p.sendMessage("§cLacking requirements");
+							RPTexts.send(p, RPTexts.ERROR + "Lacking requirements");
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
 						}
@@ -127,7 +227,7 @@ public class CreationManager implements Listener{
 					if (item.getType().equalsIgnoreCase("trait")) {
 						Trait trait = TraitLoader.getByString(item.getId());
 						if (trait != null && !PlaytimeGate.canSelectTrait(p, trait)) {
-							p.sendMessage(PlaytimeGate.denialMessage(p, trait));
+							RPTexts.send(p, PlaytimeGate.denialMessage(p, trait));
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
 						}
@@ -136,8 +236,8 @@ public class CreationManager implements Listener{
 				} else {
 					for(Trait t : c.getTraits()) {
 						if(t.getTraitData().hasDependency() && t.getTraitData().getDependency().getDependencies().contains(item.getId()) && !t.getTraitData().getDependency().checkExclude(c, item.getId())) {
-							p.sendMessage(t.getTraitData().getDependency().toString());
-							p.sendMessage("§cYour trait "+t.getName()+" §cis dependent on this trait, remove that first!");
+							RPTexts.send(p, t.getTraitData().getDependency().toString());
+							RPTexts.send(p, RPTexts.ERROR + "Your trait " + t.getName() + RPTexts.ERROR + " is dependent on this trait, remove that first!");
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
 						}
@@ -157,7 +257,21 @@ public class CreationManager implements Listener{
 			}
 		}
 		if(e.getSlot() == s.getSize()-9) {
-			if(cc != null) cc.cancel();
+			if(cc != null) {
+				if (cc.isEditingFromSummary()) {
+					h.override();
+					p.closeInventory();
+					cc.returnToSummary();
+					return;
+				}
+				if (cc.isEditing()) {
+					h.override();
+					p.closeInventory();
+					cc.returnToSummary();
+					return;
+				}
+				cc.cancel();
+			}
 			h.override();
 			p.closeInventory();
 			return;
@@ -165,6 +279,49 @@ public class CreationManager implements Listener{
 		if(e.getSlot() == s.getSize()-1) {
 			h.override();
 			s.confirm(p, cc);
+		}
+	}
+
+	private void handleSummaryClick(Player p, InventoryClickEvent e) {
+		if (!activeCreators.containsKey(p)) {
+			return;
+		}
+		CharacterCreation cc = activeCreators.get(p);
+		ItemStack clicked = e.getCurrentItem();
+		if (clicked == null || clicked.getItemMeta() == null) {
+			return;
+		}
+		NamespacedKey actionKey = new NamespacedKey(RPCharacters.plugin, SUMMARY_ACTION_KEY);
+		String action = clicked.getItemMeta().getPersistentDataContainer().get(actionKey, PersistentDataType.STRING);
+		if (action == null) {
+			return;
+		}
+		if (e.getInventory().getHolder() instanceof RPCHolder holder) {
+			holder.override();
+		}
+		p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+		if ("confirm".equals(action)) {
+			if (cc.isEditing()) {
+				cc.closeEditSession();
+			} else {
+				cc.finish();
+			}
+			return;
+		}
+		if ("clues".equals(action)) {
+			InventoryManager inv = new InventoryManager();
+			CreationGuiContext context = cc.isEditing() ? CreationGuiContext.EDIT_SUMMARY : CreationGuiContext.CREATION_SUMMARY;
+			inv.cluesView(p, cc.getCharacter(), context, cc);
+			return;
+		}
+		if (action.startsWith("edit:")) {
+			String stageId = action.substring("edit:".length());
+			Stage stage = StageLoader.getById(stageId);
+			if (stage != null && !StageEditLock.canEdit(p, stage, cc.getCharacter())) {
+				RPTexts.send(p, RPTexts.ERROR + "That choice is locked and can no longer be edited.");
+				return;
+			}
+			cc.jumpToStageForEdit(stageId);
 		}
 	}
 
@@ -182,14 +339,20 @@ public class CreationManager implements Listener{
 		Player p = (Player) e.getWhoClicked();
 		if(e.getClickedInventory() == null) return;
 		if(!e.getClickedInventory().equals(e.getView().getTopInventory())) return;
+		if (e.getView().getTitle().equals("§7Creation Summary") || e.getView().getTitle().equals("§7Edit Character")) {
+			e.setCancelled(true);
+			handleSummaryClick(p, e);
+			return;
+		}
 		if(!activeCreators.containsKey(p)) {
 			nonCreationClick(p, e);
 			return;
 		}
 		e.setCancelled(true);
 		CharacterCreation cc = activeCreators.get(p);
-		if(cc.getCurrentStage() instanceof SelectionStage) {
-			click(p, cc.getCurrentStage(), cc, e);
+		Stage activeStage = cc.getActiveStage();
+		if (activeStage instanceof SelectionStage) {
+			click(p, activeStage, cc, e);
 		}
 	}
 	
@@ -215,8 +378,9 @@ public class CreationManager implements Listener{
 			return;
 		}
 		CharacterCreation cc = activeCreators.get(p);
-		if(cc.getCurrentStage() instanceof SelectionStage) {
-			SelectionStage s = (SelectionStage) cc.getCurrentStage();
+		Stage activeStage = cc.getActiveStage();
+		if(activeStage instanceof SelectionStage) {
+			SelectionStage s = (SelectionStage) activeStage;
 			if(!s.isActive()) return;
 			if(h.isOverridden()) return;
 			new BukkitRunnable()

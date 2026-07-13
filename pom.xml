@@ -11,7 +11,15 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <worldguard.version>7.0.14</worldguard.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>enginehub</id>
+            <url>https://maven.enginehub.org/repo/</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -71,6 +79,20 @@
             <systemPath>D:/Dokumenter/My Plugins/TFMC/TFMC Update/plugins/PlaceholderAPI-2.11.3.jar</systemPath>
         </dependency>
         <dependency>
+            <groupId>local</groupId>
+            <artifactId>LuckPerms</artifactId>
+            <version>5.4.89</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/TFMC/TFMC Update/plugins/LuckPerms-Bukkit-5.4.89.jar</systemPath>
+        </dependency>
+		<dependency>
+            <groupId>local</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/ProtocolLib.jar</systemPath>
+        </dependency>
+        <dependency>
             <groupId>org.joml</groupId>
             <artifactId>joml</artifactId>
             <version>1.10.5</version>
@@ -78,10 +100,23 @@
         </dependency>
         <dependency>
             <groupId>local</groupId>
+            <artifactId>Bungeecord</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/BungeeCord.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.21.8</version>
             <scope>system</scope>
             <systemPath>D:/Dokumenter/My Plugins/Reference Libs/spigot-api.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.sk89q.worldguard</groupId>
+            <artifactId>worldguard-bukkit</artifactId>
+            <version>${worldguard.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>local</groupId>

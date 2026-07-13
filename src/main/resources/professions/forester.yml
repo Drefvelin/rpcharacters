@@ -1,0 +1,188 @@
+name: Forester
+item:
+  material: iron_axe
+  name: #87d65cForester
+  lore:
+  - §7Spend points earned through leveling
+  - §7the #87d65cForester §7Profession in #d6cf69/profile
+upgrades:
+  axe_maker_1:
+    item:
+      name: #c9a24fAxe Maker I
+      material: iron_axe
+      model_data: 5
+      lore:
+      - §7Unlocks crafting §7Steel Axes
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.axe_maker_1
+  axe_maker_2:
+    item:
+      name: #c9a24fAxe Maker II
+      material: iron_axe
+      model_data: 14
+      lore:
+      - §7Unlocks crafting #6b6b6bAbyssalite Axes
+    cost: 2
+    type: permission
+    requires:
+    - axe_maker_1
+    unlocks:
+    - professions.axe_maker_2
+  axe_maker_3:
+    item:
+      name: #c9a24fAxe Maker III
+      material: iron_axe
+      model_data: 15
+      lore:
+      - §7Unlocks crafting #56ccf2Mythril Axes
+    cost: 3
+    type: permission
+    requires:
+    - axe_maker_2
+    unlocks:
+    - professions.axe_maker_3
+  bow_maker_1:
+    item:
+      name: #c9a24fBow Maker I
+      material: bow
+      lore:
+      - §7Unlocks crafting the #ffffffBarkwood §7Bows
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.bow_maker_1
+  bow_maker_2:
+    item:
+      name: #c9a24fBow Maker II
+      material: bow
+      model_data: 1
+      lore:
+      - §7Unlocks crafting the §7Maplewood §7Bows
+    cost: 2
+    type: permission
+    requires:
+    - bow_maker_1
+    unlocks:
+    - professions.bow_maker_2
+  bow_maker_3:
+    item:
+      name: #c9a24fBow Maker III
+      material: bow
+      model_data: 2
+      lore:
+      - §7Unlocks crafting the #6b6b6bElderwood §7Bows
+    cost: 3
+    type: permission
+    requires:
+    - bow_maker_2
+    unlocks:
+    - professions.bow_maker_3
+  bow_maker_4:
+    item:
+      name: #c9a24fBow Maker IV
+      material: bow
+      model_data: 4
+      lore:
+      - §7Unlocks crafting the #d65c5cDemonwood §7Bows
+    cost: 4
+    type: permission
+    requires:
+    - bow_maker_3
+    unlocks:
+    - professions.bow_maker_4
+  tree_gatherer_1:
+    item:
+      name: #c9a24fTree Gatherer I
+      material: amethyst_shard
+      model_data: 64
+      lore:
+      - §7Unlocks gathering wood cores from trees
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.tree_gatherer_1
+  tree_gatherer_2:
+    item:
+      name: #c9a24fTree Gatherer II
+      material: amethyst_shard
+      model_data: 65
+      lore:
+      - §7Unlocks gathering flower cores from trees
+    cost: 2
+    type: permission
+    requires:
+    - tree_gatherer_1
+    unlocks:
+    - professions.tree_gatherer_2
+  tree_gatherer_3:
+    item:
+      name: #c9a24fTree Gatherer III
+      material: amethyst_shard
+      model_data: 66
+      lore:
+      - §7Unlocks gathering special woods from trees
+    cost: 3
+    type: permission
+    requires:
+    - tree_gatherer_2
+    unlocks:
+    - professions.tree_gatherer_3
+  tree_gatherer_4:
+    item:
+      name: #c9a24fTree Gatherer IV
+      material: brown_dye
+      model_data: 7
+      lore:
+      - §7Unlocks gathering more bark from trees
+    cost: 4
+    type: permission
+    requires:
+    - tree_gatherer_3
+    unlocks:
+    - professions.tree_gatherer_4
+  tree_gatherer_5:
+    item:
+      name: #c9a24fTree Gatherer V
+      material: magma_cream
+      model_data: 7
+      lore:
+      - §7Unlocks gathering even more things from trees
+    cost: 5
+    type: permission
+    requires:
+    - tree_gatherer_4
+    unlocks:
+    - professions.tree_gatherer_5
+  tree_crafter:
+    item:
+      name: #c9a24fTree Crafter
+      material: oak_log
+      lore:
+      - §7Unlocks making things out of tree resources
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.tree_crafter
+  coal_crafter:
+    item:
+      name: #c9a24fCoal Crafter
+      material: coal
+      lore:
+      - §7Unlocks making coal out of charcoal
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.coal_crafter
+  artisan:
+    item:
+      name: #c9a24fArtisan
+      material: iron_shovel
+      model_data: 13
+      lore:
+      - §7Unlocks crafting the #ffffffArtisan Tools
+    cost: 4
+    type: permission
+    unlocks:
+    - professions.artisan

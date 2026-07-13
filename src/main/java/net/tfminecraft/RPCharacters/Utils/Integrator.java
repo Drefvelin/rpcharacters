@@ -29,20 +29,21 @@ public class Integrator {
 		}
 		return map;
 	}
- 	public void remove(Player p, RPCharacter c, boolean reset) {
+
+	public void stripCreationLayer(Player p, RPCharacter c) {
 		PlayerData pd = PlayerData.get(p);
-		int count = 0;
-		for(AttributeModifier m : c.getAttributeData().getModifiers()) {
+		for (AttributeModifier m : c.getAttributeData().getModifiers()) {
 			AttributeInstance attribute = pd.getAttributes().getInstance(m.getType());
-			if(attribute == null) continue;
-			if(attribute.getBase() < m.getAmount()) continue;
-			attribute.setBase(attribute.getBase()-m.getAmount());
-			if(reset) {
-				count = count+attribute.getBase();
-				attribute.setBase(0);
+			if (attribute == null) {
+				continue;
 			}
+			int next = attribute.getBase() - m.getAmount();
+			attribute.setBase(Math.max(0, next));
 		}
-		pd.setAttributePoints(pd.getAttributePoints()+count);
+	}
+
+ 	public void remove(Player p, RPCharacter c, boolean reset) {
+		stripCreationLayer(p, c);
 	}
 	public void remove(Player p, String s) {
 		String type = s.split("\\.")[0];
@@ -51,7 +52,6 @@ public class Integrator {
 		AttributeInstance attribute = pd.getAttributes().getInstance(type);
 		if(attribute == null) return;
 		attribute.setBase(attribute.getBase()-amount);
-		//p.sendMessage(type + " has "+attribute.getBase()+ " points");
 	}
 	public List<String> getRemoveList(Player p, RPCharacter c) {
 		List<String> remove = new ArrayList<>();

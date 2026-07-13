@@ -18,6 +18,7 @@ import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.Indyuce.mmocore.api.player.profess.SavedClassInformation;
 import net.Indyuce.mmocore.skill.ClassSkill;
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.RPCharacters;
 
@@ -103,14 +104,16 @@ public final class ClassService {
 			int afterTotal = pd.getAccountSkillPointsTotal();
 			int unspent = mmoPd.getSkillPoints();
 			spent = mmoPd.countSkillPointsSpent();
-			sender.sendMessage("§7[RPCharacters] §e" + player.getName()
-					+ " skill points: account total §a" + beforeTotal + " → " + afterTotal
-					+ "§e, unspent now §a" + unspent
-					+ "§e (spent on class: §a" + spent + "§e, mmo pool: §a" + mmoPool + "§e)");
-			sender.sendMessage("§7[RPCharacters] §eClass §f" + mmoPd.getProfess().getId()
-					+ "§e skill spend: §7" + formatSkillPointsSpentBreakdown(mmoPd));
+			RPTexts.sendPrefixed(sender, RPTexts.WARN + player.getName()
+					+ " skill points: account total " + RPTexts.SUCCESS + beforeTotal + " → " + afterTotal
+					+ RPTexts.WARN + ", unspent now " + RPTexts.SUCCESS + unspent
+					+ RPTexts.WARN + " (spent on class: " + RPTexts.SUCCESS + spent
+					+ RPTexts.WARN + ", mmo pool: " + RPTexts.SUCCESS + mmoPool + RPTexts.WARN + ")");
+			RPTexts.sendPrefixed(sender, RPTexts.WARN + "Class " + mmoPd.getProfess().getId()
+					+ RPTexts.WARN + " skill spend: " + RPTexts.MUTED + formatSkillPointsSpentBreakdown(mmoPd));
 			if (!stripped.isEmpty()) {
-				sender.sendMessage("§7[RPCharacters] §eStripped foreign skills: §7" + String.join(", ", stripped));
+				RPTexts.sendPrefixed(sender, RPTexts.WARN + "Stripped foreign skills: " + RPTexts.MUTED
+						+ String.join(", ", stripped));
 			}
 		}
 	}
@@ -139,13 +142,14 @@ public final class ClassService {
 		if (target == null) {
 			return;
 		}
-		if (target.getId().equalsIgnoreCase(mmoPd.getProfess().getId())) {
+		if (isOnClass(player, classId)) {
 			if (mmoPd.hasSavedClass(target)) {
 				sanitizeForeignSkillLevels(target, mmoPd.getClassInfo(target));
 			}
 			sanitizeForeignSkillLevels(mmoPd);
 			clampExcessSkillPool(player);
 			applyFreeSkillPoints(player);
+			applyFreeAttributePointsIfActive(player);
 			return;
 		}
 
@@ -166,6 +170,7 @@ public final class ClassService {
 			sanitizeForeignSkillLevels(mmoPd);
 			clampExcessSkillPool(player);
 			applyFreeSkillPoints(player);
+			applyFreeAttributePointsIfActive(player);
 			ACCOUNT_PROGRESS.put(uuid, new Progression(level, exp));
 		} finally {
 			APPLYING.remove(uuid);
@@ -184,10 +189,22 @@ public final class ClassService {
 		pd.setLevel(saved.level);
 		pd.setExperience(saved.exp);
 		applyFreeSkillPoints(player);
+		applyFreeAttributePointsIfActive(player);
 	}
 
 	public static boolean isApplying(UUID uuid) {
 		return APPLYING.contains(uuid);
+	}
+
+	public static boolean isOnClass(Player player, String classId) {
+		if (player == null || classId == null || classId.isBlank()) {
+			return false;
+		}
+		PlayerClass target = MMOCore.plugin.classManager.get(classId);
+		if (target == null) {
+			return false;
+		}
+		return target.getId().equalsIgnoreCase(PlayerData.get(player).getProfess().getId());
 	}
 
 	public static void sanitizeForeignSkillLevels(Player player) {
@@ -237,6 +254,13 @@ public final class ClassService {
 			return "none §8[mmo spent=0]";
 		}
 		return String.join(", ", parts) + " §8[mmo spent=" + totalContributed + "]";
+	}
+
+	private static void applyFreeAttributePointsIfActive(Player player) {
+		net.tfminecraft.RPCharacters.Objects.PlayerData pd = PlayerManager.get(player);
+		if (pd != null && pd.hasActiveCharacter()) {
+			AttributePointService.applyFreeAttributePoints(player, pd.getActiveCharacter());
+		}
 	}
 
 	private static void clampExcessSkillPool(Player player) {

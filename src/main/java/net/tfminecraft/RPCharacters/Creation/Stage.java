@@ -7,7 +7,9 @@ import net.tfminecraft.RPCharacters.Creation.Stages.InfoStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
+import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
+import net.tfminecraft.RPCharacters.Utils.DurationParser;
 import net.tfminecraft.RPCharacters.enums.StageType;
 
 public class Stage {
@@ -20,7 +22,30 @@ public class Stage {
 	private boolean cancelled;
 	
 	private Dependency dependency;
+
+	private long lockTimeMs = -1L;
 	
+	public long getLockTimeMs() {
+		return lockTimeMs;
+	}
+
+	public void setLockTimeMs(long lockTimeMs) {
+		this.lockTimeMs = lockTimeMs;
+	}
+
+	protected void copyBaseFields(Stage source) {
+		setId(source.getId());
+		setRepeat(source.shouldRepeat());
+		setAutoNext(source.autoNext());
+		setCancelled(source.isCancelled());
+		if (source.hasDependency()) {
+			setDependency(source.getDependency());
+		} else {
+			setDependency(null);
+		}
+		setLockTimeMs(source.getLockTimeMs());
+	}
+
 	public boolean autoNext() {
 		return autoNext;
 	}
@@ -73,7 +98,7 @@ public class Stage {
 		if(config.contains("dependency")) {
 			s.setDependency(new Dependency(config.getConfigurationSection("dependency")));
 		}
-		if(StageType.valueOf(config.getString("type").toUpperCase()) == null) throw new IllegalArgumentException("Stage "+id+" has a malformed type");
+		s.setLockTimeMs(DurationParser.parseLockTimeMs(config.getString("lock-time", "-1")));
 		StageType type = StageType.valueOf(config.getString("type").toUpperCase());
 		s.setCancelled(false);
 		if(type.equals(StageType.INFO)) {
@@ -86,6 +111,8 @@ public class Stage {
 			return new SelectionStage(s, config);
 		} else if(type.equals(StageType.CLUE)) {
 			return new ClueStage(s, config);
+		} else if(type.equals(StageType.SUMMARY)) {
+			return new SummaryStage(s, config);
 		}
 		return s;
 	}
@@ -106,6 +133,9 @@ public class Stage {
 		} else if(another instanceof ClueStage) {
 			ClueStage s = (ClueStage) another;
 			return new ClueStage(s);
+		} else if(another instanceof SummaryStage) {
+			SummaryStage s = (SummaryStage) another;
+			return new SummaryStage(s);
 		}
 		return null;
 	}

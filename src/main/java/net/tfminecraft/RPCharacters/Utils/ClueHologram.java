@@ -6,31 +6,28 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.World;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.Transformation;
-
-import org.joml.AxisAngle4f;
-import org.joml.Vector3f;
 
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Managers.SpawnedClueManager;
 import net.tfminecraft.RPCharacters.Objects.SpawnedClue;
-import net.tfminecraft.RPCharacters.RPCharacters;
+import net.tfminecraft.RPCharacters.display.TextDisplayHelper;
 
 public final class ClueHologram {
 
 	private static final DustOptions RAY_DUST = new DustOptions(Color.fromRGB(0xC8C8C8), 0.8f);
 	private static final double ORPHAN_SCAN_RADIUS = 2.5;
+
+	private static final NamespacedKey CLUE_ID_KEY = TextDisplayHelper.key("spawned_clue_id");
+	private static final NamespacedKey CLUE_LINE_KEY = TextDisplayHelper.key("spawned_clue_line");
 
 	private ClueHologram() {}
 
@@ -44,18 +41,13 @@ public final class ClueHologram {
 
 		World world = visualBase.getWorld();
 		List<String> lines = ClueFormatter.wrapLore(clue.getClueText(), Cache.spawnedClueLineLength);
-		float scale = Cache.spawnedClueScale;
-		Transformation transformation = new Transformation(
-				new Vector3f(0, 0, 0),
-				new AxisAngle4f(0, 0, 0, 1),
-				new Vector3f(scale, scale, scale),
-				new AxisAngle4f(0, 0, 0, 1));
+		var transformation = TextDisplayHelper.createScaleTransformation(Cache.spawnedClueScale);
 
 		removeOrphanDisplays(clue, visualBase);
 
 		List<UUID> ids = clue.getDisplayEntityIds();
 		while (ids.size() > lines.size()) {
-			removeDisplay(ids.remove(ids.size() - 1));
+			TextDisplayHelper.removeDisplay(ids.remove(ids.size() - 1));
 		}
 
 		boolean idsChanged = false;
@@ -88,64 +80,36 @@ public final class ClueHologram {
 	}
 
 	public static void remove(SpawnedClue clue) {
+		Location visualBase = clue.getVisualBase();
+		if (visualBase != null && clue.isChunkLoaded()) {
+			removeOrphanDisplays(clue, visualBase);
+		}
 		for (UUID entityId : new ArrayList<>(clue.getDisplayEntityIds())) {
-			removeDisplay(entityId);
+			TextDisplayHelper.removeDisplay(entityId);
 		}
 		clue.clearDisplayEntityIds();
 		clue.setVisualsSpawned(false);
 	}
 
 	private static TextDisplay getOrCreateDisplay(SpawnedClue clue, int lineIndex, UUID entityId,
-			World world, Location lineLoc, String text, Transformation transformation) {
-		TextDisplay existing = findDisplay(entityId);
-		if (existing != null && !existing.isDead()) {
-			existing.teleport(lineLoc);
-			applyDisplay(existing, clue, lineIndex, text, transformation);
-			return existing;
+			World world, Location lineLoc, String text, org.bukkit.util.Transformation transformation) {
+		TextDisplay display = TextDisplayHelper.getOrCreateDisplay(entityId, world, lineLoc, td -> {
+			TextDisplayHelper.applyDisplay(td, text, transformation, true);
+			tagDisplay(td, clue.getId(), lineIndex);
+		});
+		if (display == null) {
+			return null;
 		}
-
-		return world.spawn(lineLoc, TextDisplay.class, td -> applyDisplay(td, clue, lineIndex, text, transformation));
-	}
-
-	private static TextDisplay findDisplay(UUID entityId) {
-		if (entityId == null) return null;
-		Entity entity = Bukkit.getEntity(entityId);
-		return entity instanceof TextDisplay textDisplay ? textDisplay : null;
-	}
-
-	private static void applyDisplay(TextDisplay display, SpawnedClue clue, int lineIndex,
-			String text, Transformation transformation) {
-		display.setText(text);
-		display.setBillboard(Display.Billboard.CENTER);
-		display.setSeeThrough(false);
-		display.setShadowed(true);
-		display.setInvulnerable(true);
-		display.setGravity(false);
-		display.setPersistent(true);
-		display.setAlignment(TextDisplay.TextAlignment.CENTER);
-		display.setTransformation(transformation);
-		tagDisplay(display, clue.getId(), lineIndex);
+		if (entityId != null && entityId.equals(display.getUniqueId())) {
+			TextDisplayHelper.applyDisplay(display, text, transformation, true);
+			tagDisplay(display, clue.getId(), lineIndex);
+		}
+		return display;
 	}
 
 	private static void tagDisplay(TextDisplay display, UUID clueId, int lineIndex) {
-		display.getPersistentDataContainer().set(clueIdKey(), PersistentDataType.STRING, clueId.toString());
-		display.getPersistentDataContainer().set(clueLineKey(), PersistentDataType.INTEGER, lineIndex);
-	}
-
-	private static NamespacedKey clueIdKey() {
-		return new NamespacedKey(RPCharacters.plugin, "spawned_clue_id");
-	}
-
-	private static NamespacedKey clueLineKey() {
-		return new NamespacedKey(RPCharacters.plugin, "spawned_clue_line");
-	}
-
-	private static void removeDisplay(UUID entityId) {
-		if (entityId == null) return;
-		Entity entity = Bukkit.getEntity(entityId);
-		if (entity != null && !entity.isDead()) {
-			entity.remove();
-		}
+		TextDisplayHelper.setTag(display, CLUE_ID_KEY, clueId.toString());
+		TextDisplayHelper.setTag(display, CLUE_LINE_KEY, lineIndex);
 	}
 
 	private static void removeOrphanDisplays(SpawnedClue clue, Location visualBase) {
@@ -158,7 +122,7 @@ public final class ClueHologram {
 		for (Entity entity : world.getNearbyEntities(visualBase, ORPHAN_SCAN_RADIUS, ORPHAN_SCAN_RADIUS, ORPHAN_SCAN_RADIUS)) {
 			if (!(entity instanceof TextDisplay display)) continue;
 			if (display.isDead()) continue;
-			if (!clueId.equals(display.getPersistentDataContainer().get(clueIdKey(), PersistentDataType.STRING))) {
+			if (!clueId.equals(display.getPersistentDataContainer().get(CLUE_ID_KEY, PersistentDataType.STRING))) {
 				continue;
 			}
 			if (!tracked.contains(display.getUniqueId())) {

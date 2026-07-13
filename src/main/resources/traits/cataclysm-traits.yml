@@ -1,5 +1,5 @@
 prisoner:
-    name: "§aPrisoner of War"
+    name: "#87d65cPrisoner of War"
     key: cataclysm
     description:
         - "§7This character or their parents worked in a"
@@ -19,7 +19,7 @@ prisoner:
             modifier: 5
 
 refugees:
-    name: "§aPrison Escapee"
+    name: "#87d65cPrison Escapee"
     key: cataclysm
     description:
         - "§7This character or their parents escaped and"
@@ -39,7 +39,7 @@ refugees:
             modifier: 5
 
 wildlands:
-    name: "§aWildlands Survivor"
+    name: "#87d65cWildlands Survivor"
     key: cataclysm
     description:
         - "§7This character or their parents survived the"
@@ -60,7 +60,7 @@ wildlands:
             modifier: 5
         
 bastion:
-    name: "§aMagical Evader"
+    name: "#87d65cMagical Evader"
     key: cataclysm
     description:
         - "§7This character or their parents survived the"
@@ -80,7 +80,7 @@ bastion:
             modifier: 5
 
 order:
-    name: "§aUndergrounder"
+    name: "#87d65cUndergrounder"
     key: cataclysm
     description:
         - "§7This character or their parents survived by"
@@ -100,7 +100,7 @@ order:
             modifier: 5
 
 renowned:
-    name: "§aHero of Bastion"
+    name: "#87d65cHero of Bastion"
     key: cataclysm
     description:
         - "§7This character or their parents is admired for"

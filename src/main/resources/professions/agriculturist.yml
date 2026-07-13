@@ -1,0 +1,229 @@
+name: Agriculturist
+item:
+  material: iron_hoe
+  name: #87d65cAgriculturist
+  lore:
+  - §7Spend points earned through leveling
+  - §7the #87d65cAgriculturist §7Profession in #d6cf69/profile
+upgrades:
+  hoe_maker_1:
+    item:
+      name: #c9a24fHoe Maker I
+      material: iron_hoe
+      model_data: 3
+      lore:
+      - §7Unlocks crafting §7Steel Hoes
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.hoe_maker_1
+  hoe_maker_2:
+    item:
+      name: #c9a24fHoe Maker II
+      material: iron_hoe
+      model_data: 19
+      lore:
+      - §7Unlocks crafting #6b6b6bAbyssalite Hoes
+    cost: 2
+    type: permission
+    requires:
+    - hoe_maker_1
+    unlocks:
+    - professions.hoe_maker_2
+  hoe_maker_3:
+    item:
+      name: #c9a24fHoe Maker III
+      material: iron_hoe
+      model_data: 20
+      lore:
+      - §7Unlocks crafting #56ccf2Mythril Hoes
+    cost: 3
+    type: permission
+    requires:
+    - hoe_maker_2
+    unlocks:
+    - professions.hoe_maker_3
+  chef_1:
+    item:
+      name: #c9a24fChef I
+      material: tropical_fish
+      model_data: 29
+      lore:
+      - §7Unlocks some food recipes
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.chef_1
+  chef_2:
+    item:
+      name: #c9a24fChef II
+      material: tropical_fish
+      model_data: 23
+      lore:
+      - §7Unlocks better food recipes
+    cost: 2
+    requires:
+    - chef_1
+    type: permission
+    unlocks:
+    - professions.chef_2
+  chef_3:
+    item:
+      name: #c9a24fChef III
+      material: tropical_fish
+      model_data: 49
+      lore:
+      - §7Unlocks even greater food recipes
+    cost: 3
+    requires:
+    - chef_2
+    type: permission
+    unlocks:
+    - professions.chef_3
+  chef_4:
+    item:
+      name: #c9a24fChef IV
+      material: tropical_fish
+      model_data: 16
+      lore:
+      - §7Unlocks the best recipes recipes
+    cost: 4
+    requires:
+    - chef_3
+    type: permission
+    unlocks:
+    - professions.chef_4
+  meal_prep:
+    item:
+      name: #c9a24fMeal Prep
+      material: iron_ingot
+      model_data: 3
+      lore:
+      - §7Unlocks crafting cooking utensils and ingredients
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.meal_prep
+  breeder_1:
+    item:
+      name: #c9a24fBreeder I
+      material: goat_spawn_egg
+      lore:
+      - §7Unlocks #d65c5craising §7of some wild animals
+    cost: 1
+    type: permission
+    unlocks:
+    - professions.breeder_1
+  breeder_2:
+    item:
+      name: #c9a24fBreeder II
+      material: horse_spawn_egg
+      lore:
+      - §7Unlocks #d65c5craising §7of horse like animals
+    cost: 2
+    requires:
+    - breeder_1
+    type: permission
+    unlocks:
+    - professions.breeder_2
+  breeder_3:
+    item:
+      name: #c9a24fBreeder III
+      material: cow_spawn_egg
+      lore:
+      - §7Unlocks #d65c5craising §7of farm animals
+    cost: 3
+    requires:
+    - breeder_2
+    type: permission
+    unlocks:
+    - professions.breeder_3
+  breeder_4:
+    item:
+      name: #c9a24fBreeder IV
+      material: wheat
+      lore:
+      - §7Unlocks breeding all the animals!
+    cost: 4
+    requires:
+    - breeder_3
+    type: breeding
+    unlocks:
+    - goat
+    - frog
+    - wolf
+    - cat
+    - parrot
+    - panda
+    - bee
+    - fox
+    - turtle
+    - axolotl
+    - horse
+    - donkey
+    - camel
+    - llama
+    - rabbit
+    - pig
+    - sheep
+    - cow
+    - chicken
+  vegetables:
+    item:
+      name: #c9a24fVegetable Enjoyer
+      material: dried_kelp
+      model_data: 2
+      lore:
+      - §7Unlocks growing a lot of vegetables
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.vegetables
+  fruits:
+    item:
+      name: #c9a24fFruit Connoisseur
+      material: sweet_berries
+      model_data: 1
+      lore:
+      - §7Unlocks growing juicy fruits
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.fruits
+  spices:
+    item:
+      name: #c9a24fSpice Lover
+      material: green_dye
+      model_data: 2
+      lore:
+      - §7Unlocks growing different spices
+    cost: 2
+    type: permission
+    unlocks:
+    - professions.spices
+  pet_master_1:
+    item:
+      name: #c9a24fPet Master I
+      material: brick
+      model_data: 3552
+      lore:
+      - §7Unlocks the different Farm pets!
+      - §7Summon with /mcpets and read /help pets
+    cost: 4
+    type: permission
+    unlocks:
+    - mcpet.pet_master_1
+  pet_master_2:
+    item:
+      name: #c9a24fPet Master II
+      material: brick
+      model_data: 3547
+      lore:
+      - §7Unlocks the different Fighter pets!
+      - §7Summon with /mcpets and read /help pets
+    cost: 8
+    type: permission
+    requires:
+    - pet_master_1
+    unlocks:
+    - mcpet.pet_master_2

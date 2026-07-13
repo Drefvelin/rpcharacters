@@ -5,3 +5,51 @@ skill-point-tomes:
   major_tome:
     item: m.items.skill_tome_major
     skill-points: 5
+
+attribute-point-tomes:
+  minor_tome:
+    item: m.items.attribute_tome_minor
+    attribute-points: 1
+  major_tome:
+    item: m.items.attribute_tome_major
+    attribute-points: 5
+
+magnifying-glasses:
+  iron:
+    item: m.tools.iron_magnifying_glass
+    discovery-bonus: 0.0
+    investigation-cost: 1
+    search-radius: 3.0
+  steel:
+    item: m.tools.steel_magnifying_glass
+    discovery-bonus: 0.1
+    investigation-cost: 1
+    search-radius: 3.75
+    requires:
+      wisdom: 6
+      intelligence: 4
+  abyssalite:
+    item: m.tools.abyssalite_magnifying_glass
+    discovery-bonus: 0.2
+    investigation-cost: 1
+    search-radius: 4.5
+    requires:
+      wisdom: 10
+      intelligence: 8
+  mythril:
+    item: m.tools.mythril_magnifying_glass
+    discovery-bonus: 0.35
+    investigation-cost: 1
+    search-radius: 6.0
+    requires:
+      wisdom: 14
+      intelligence: 12
+
+remedies:
+  healing_draught:
+    item: v.potion
+    traits:
+      - one_handed
+      - one_legged
+      - blind
+      - half_blind

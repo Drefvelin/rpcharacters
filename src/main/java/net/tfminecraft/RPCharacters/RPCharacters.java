@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -13,35 +13,64 @@ import net.tfminecraft.RPCharacters.Loaders.CalendarLoader;
 import net.tfminecraft.RPCharacters.Loaders.ChatLoader;
 import net.tfminecraft.RPCharacters.Loaders.ConfigLoader;
 import net.tfminecraft.RPCharacters.Loaders.MaskLoader;
+import net.tfminecraft.RPCharacters.Loaders.AttributePointTomeLoader;
+import net.tfminecraft.RPCharacters.Loaders.RemedyLoader;
 import net.tfminecraft.RPCharacters.Loaders.SkillPointTomeLoader;
 import net.tfminecraft.RPCharacters.Loaders.PermissionGroupsLoader;
 import net.tfminecraft.RPCharacters.Loaders.PersonaLoader;
+import net.tfminecraft.RPCharacters.Loaders.ProfessionLoader;
+import net.tfminecraft.RPCharacters.Loaders.ProfessionsGlobalLoader;
 import net.tfminecraft.RPCharacters.Loaders.ProfileLoader;
 import net.tfminecraft.RPCharacters.Loaders.ProfileViewLoader;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.RollLoader;
+import net.tfminecraft.RPCharacters.Loaders.SpeechBubbleLoader;
+import net.tfminecraft.RPCharacters.Loaders.SmartMessageLoader;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.ClueInputManager;
-import net.tfminecraft.RPCharacters.Managers.ClueItemListener;
+import net.tfminecraft.RPCharacters.Loaders.ClueDiscoveryLoader;
+import net.tfminecraft.RPCharacters.Loaders.MagnifyingGlassLoader;
+import net.tfminecraft.RPCharacters.Loaders.InjuryPoolLoader;
+import net.tfminecraft.RPCharacters.Loaders.PermadeathZoneLoader;
 import net.tfminecraft.RPCharacters.Managers.CommandManager;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
+import net.tfminecraft.RPCharacters.Managers.ClueDisturbanceListener;
+import net.tfminecraft.RPCharacters.Managers.MagnifyingGlassListener;
+import net.tfminecraft.RPCharacters.Managers.PlaceClueManager;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
+import net.tfminecraft.RPCharacters.Managers.AttributePointCommandListener;
+import net.tfminecraft.RPCharacters.Managers.AttributePointSpendListener;
+import net.tfminecraft.RPCharacters.Managers.AttributePointTomeListener;
+import net.tfminecraft.RPCharacters.Managers.RemedyListener;
+import net.tfminecraft.RPCharacters.permadeath.PermadeathZoneListener;
+import net.tfminecraft.RPCharacters.permadeath.WorldGuardBridge;
 import net.tfminecraft.RPCharacters.Managers.SkillPointCommandListener;
 import net.tfminecraft.RPCharacters.Managers.SkillPointTomeListener;
 import net.tfminecraft.RPCharacters.Managers.SpawnedClueManager;
+import net.tfminecraft.RPCharacters.chat.ChatChannelCommandHandler;
+import net.tfminecraft.RPCharacters.chat.ChatChannelPreferenceManager;
 import net.tfminecraft.RPCharacters.chat.ChatCooldownManager;
 import net.tfminecraft.RPCharacters.chat.ChatManager;
 import net.tfminecraft.RPCharacters.conversation.ConversationManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Utils.CommandTabCompleter;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.identity.DisplayIdentityService;
 import net.tfminecraft.RPCharacters.persona.PersonaCooldownManager;
 import net.tfminecraft.RPCharacters.profile.ProfileManager;
 import net.tfminecraft.RPCharacters.profile.ProfileViewCooldownManager;
+import net.tfminecraft.RPCharacters.mmocore.AttributePointService;
+import net.tfminecraft.RPCharacters.professions.ProfessionCommandHandler;
+import net.tfminecraft.RPCharacters.professions.ProfessionEffectService;
+import net.tfminecraft.RPCharacters.professions.ProfessionListener;
 import net.tfminecraft.RPCharacters.roll.RollManager;
 import net.tfminecraft.RPCharacters.placeholder.RpCharactersExpansion;
+import net.tfminecraft.RPCharacters.speechbubble.SpeechBubbleListener;
+import net.tfminecraft.RPCharacters.speechbubble.SpeechBubbleManager;
+import net.tfminecraft.RPCharacters.speechbubble.fake.FakeBubbleManager;
+import net.tfminecraft.RPCharacters.speechbubble.fake.ProtocolLibBridge;
 
 public class RPCharacters extends JavaPlugin{
 	public static RPCharacters plugin;
@@ -50,14 +79,26 @@ public class RPCharacters extends JavaPlugin{
 	private static final PlayerManager playerManager = new PlayerManager();
 	private final CreationManager creationManager = new CreationManager();
 	private final ClueInputManager clueInputManager = new ClueInputManager();
+	private final PlaceClueManager placeClueManager = new PlaceClueManager();
+	private final MagnifyingGlassListener magnifyingGlassListener = new MagnifyingGlassListener();
+	private final ClueDisturbanceListener clueDisturbanceListener = new ClueDisturbanceListener();
 	private final SpawnedClueManager spawnedClueManager = SpawnedClueManager.get();
-	private final ClueItemListener clueItemListener = new ClueItemListener();
 	private final SkillPointTomeListener skillPointTomeListener = new SkillPointTomeListener();
 	private final SkillPointCommandListener skillPointCommandListener = new SkillPointCommandListener();
+	private final AttributePointTomeListener attributePointTomeListener = new AttributePointTomeListener();
+	private final RemedyListener remedyListener = new RemedyListener();
+	private final PermadeathZoneListener permadeathZoneListener = new PermadeathZoneListener();
+	private final AttributePointCommandListener attributePointCommandListener = new AttributePointCommandListener();
+	private final AttributePointSpendListener attributePointSpendListener = new AttributePointSpendListener();
 	private final ConversationManager conversationManager = new ConversationManager();
 	private final ChatManager chatManager = new ChatManager();
 	private final ProfileManager profileManager = new ProfileManager();
 	private final RollManager rollManager = new RollManager();
+	private final ProfessionListener professionListener = new ProfessionListener();
+	private final ProfessionEffectService professionEffectService = new ProfessionEffectService();
+	private final ProfessionCommandHandler professionCommandHandler = new ProfessionCommandHandler();
+	private final SpeechBubbleListener speechBubbleListener = new SpeechBubbleListener();
+	private final ChatChannelCommandHandler chatChannelCommandHandler = new ChatChannelCommandHandler();
 	
 	private final ConfigLoader configLoader = new ConfigLoader();
 	private final StageLoader stageLoader = new StageLoader();
@@ -68,10 +109,19 @@ public class RPCharacters extends JavaPlugin{
 	private final PermissionGroupsLoader permissionGroupsLoader = new PermissionGroupsLoader();
 	private final MaskLoader maskLoader = new MaskLoader();
 	private final SkillPointTomeLoader skillPointTomeLoader = new SkillPointTomeLoader();
+	private final AttributePointTomeLoader attributePointTomeLoader = new AttributePointTomeLoader();
+	private final RemedyLoader remedyLoader = new RemedyLoader();
 	private final ChatLoader chatLoader = new ChatLoader();
 	private final ProfileViewLoader profileViewLoader = new ProfileViewLoader();
 	private final RollLoader rollLoader = new RollLoader();
 	private final CalendarLoader calendarLoader = new CalendarLoader();
+	private final ProfessionsGlobalLoader professionsGlobalLoader = new ProfessionsGlobalLoader();
+	private final SpeechBubbleLoader speechBubbleLoader = new SpeechBubbleLoader();
+	private final SmartMessageLoader smartMessageLoader = new SmartMessageLoader();
+	private final ClueDiscoveryLoader clueDiscoveryLoader = new ClueDiscoveryLoader();
+	private final MagnifyingGlassLoader magnifyingGlassLoader = new MagnifyingGlassLoader();
+	private final PermadeathZoneLoader permadeathZoneLoader = new PermadeathZoneLoader();
+	private final InjuryPoolLoader injuryPoolLoader = new InjuryPoolLoader();
 	
 	@Override
 	public void onEnable() {
@@ -86,10 +136,19 @@ public class RPCharacters extends JavaPlugin{
 		getCommand(commandManager.cmd1).setExecutor(commandManager);
 		getCommand("rpcharacter").setTabCompleter(new CommandTabCompleter());
 		getCommand("roll").setExecutor(rollManager);
+		getCommand(ProfessionCommandHandler.COMMAND).setExecutor(professionCommandHandler);
+		getCommand(ProfessionCommandHandler.COMMAND).setTabCompleter(professionCommandHandler);
+		getCommand("channel").setExecutor(chatChannelCommandHandler);
+		getCommand("channel").setTabCompleter(chatChannelCommandHandler);
+		getCommand("channeltoggle").setExecutor(chatChannelCommandHandler);
+		getCommand("channeltoggle").setTabCompleter(chatChannelCommandHandler);
 		registerPlaceholderApi();
 	}
 	@Override
 	public void onDisable() {
+		ProtocolLibBridge.shutdown();
+		SpeechBubbleManager.get().shutdown();
+		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().shutdown();
 		spawnedClueManager.shutdown();
 		save();
 	}
@@ -109,22 +168,36 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(playerManager, this);
 		getServer().getPluginManager().registerEvents(creationManager, this);
 		getServer().getPluginManager().registerEvents(clueInputManager, this);
-		getServer().getPluginManager().registerEvents(clueItemListener, this);
+		getServer().getPluginManager().registerEvents(placeClueManager, this);
+		getServer().getPluginManager().registerEvents(magnifyingGlassListener, this);
+		getServer().getPluginManager().registerEvents(clueDisturbanceListener, this);
 		getServer().getPluginManager().registerEvents(skillPointTomeListener, this);
 		getServer().getPluginManager().registerEvents(skillPointCommandListener, this);
+		getServer().getPluginManager().registerEvents(attributePointTomeListener, this);
+		getServer().getPluginManager().registerEvents(remedyListener, this);
+		getServer().getPluginManager().registerEvents(permadeathZoneListener, this);
+		getServer().getPluginManager().registerEvents(attributePointCommandListener, this);
+		getServer().getPluginManager().registerEvents(attributePointSpendListener, this);
 		getServer().getPluginManager().registerEvents(commandManager, this);
 		getServer().getPluginManager().registerEvents(spawnedClueManager, this);
 		getServer().getPluginManager().registerEvents(conversationManager, this);
 		getServer().getPluginManager().registerEvents(chatManager, this);
 		getServer().getPluginManager().registerEvents(ChatCooldownManager.get(), this);
+		getServer().getPluginManager().registerEvents(ChatChannelPreferenceManager.get(), this);
 		getServer().getPluginManager().registerEvents(profileManager, this);
 		getServer().getPluginManager().registerEvents(ProfileViewCooldownManager.get(), this);
 		getServer().getPluginManager().registerEvents(PersonaCooldownManager.get(), this);
 		getServer().getPluginManager().registerEvents(rollManager, this);
+		getServer().getPluginManager().registerEvents(professionListener, this);
+		getServer().getPluginManager().registerEvents(professionEffectService, this);
+		getServer().getPluginManager().registerEvents(speechBubbleListener, this);
 	}
 	public void startManagers() {
 		playerManager.start();
 		spawnedClueManager.startTicks();
+		SpeechBubbleManager.get().startTicks();
+		ProtocolLibBridge.init(this);
+		FakeBubbleManager.get().startTicks();
 	}
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
@@ -132,19 +205,35 @@ public class RPCharacters extends JavaPlugin{
 		permissionGroupsLoader.load(new File(getDataFolder(), "permission-groups.yml"));
 		maskLoader.load(new File(getDataFolder(), "masks.yml"));
 		skillPointTomeLoader.load(new File(getDataFolder(), "items.yml"));
+		attributePointTomeLoader.load(new File(getDataFolder(), "items.yml"));
+		magnifyingGlassLoader.load(new File(getDataFolder(), "items.yml"));
+		remedyLoader.load(new File(getDataFolder(), "items.yml"));
+		permadeathZoneLoader.load(new File(getDataFolder(), "zones.yml"));
+		clueDiscoveryLoader.load(new File(getDataFolder(), "clue-discovery.yml"));
 		chatLoader.load(new File(getDataFolder(), "chat.yml"));
+		speechBubbleLoader.load(new File(getDataFolder(), "speechbubbles.yml"));
+		smartMessageLoader.load(new File(getDataFolder(), "smart-messages.yml"));
 		profileViewLoader.load(new File(getDataFolder(), "profile-view.yml"));
 		rollLoader.load(new File(getDataFolder(), "rolls.yml"));
 		calendarLoader.load(new File(getDataFolder(), "calendar.yml"));
+		professionsGlobalLoader.load(new File(getDataFolder(), "professions.yml"));
+		ProfessionLoader.reload(new File(getDataFolder(), "professions"));
 		profileLoader.load(new File(getDataFolder(), "profile.yml"));
 		raceLoader.load(new File(getDataFolder(), "races.yml"));
 		File folder = new File(getDataFolder(), "traits");
-    	for (final File file : folder.listFiles()) {
-    		if(!file.isDirectory()) {
-    			traitLoader.load(file);
-    		}
-    	}
+		TraitLoader.oList.clear();
+		File[] traitFiles = folder.listFiles();
+		if (traitFiles != null) {
+			for (final File file : traitFiles) {
+				if (!file.isDirectory()) {
+					traitLoader.load(file);
+				}
+			}
+		}
+		injuryPoolLoader.load(new File(getDataFolder(), "injuries.yml"));
+		StageLoader.oList.clear();
 		stageLoader.load(new File(getDataFolder(), "stages.yml"));
+		WorldGuardBridge.init();
 	}
 	
 	public void createFolders() {
@@ -157,6 +246,8 @@ public class RPCharacters extends JavaPlugin{
 		if(!subFolder.exists()) subFolder.mkdir();
 		subFolder = new File(getDataFolder(), "data/characterdata");
 		if(!subFolder.exists()) subFolder.mkdir();
+		subFolder = new File(getDataFolder(), "professions");
+		if(!subFolder.exists()) subFolder.mkdir();
 	}
 	
 	public void createConfigs() {
@@ -168,11 +259,17 @@ public class RPCharacters extends JavaPlugin{
 				"persona.yml",
 				"masks.yml",
 				"items.yml",
+				"clue-discovery.yml",
 				"chat.yml",
+				"speechbubbles.yml",
+				"smart-messages.yml",
 				"profile-view.yml",
 				"rolls.yml",
 				"calendar.yml",
-				"permission-groups.yml"
+				"permission-groups.yml",
+				"professions.yml",
+				"zones.yml",
+				"injuries.yml"
 				};
 		for(String s : files) {
 			File newConfigFile = new File(getDataFolder(), s);
@@ -181,15 +278,48 @@ public class RPCharacters extends JavaPlugin{
 	            saveResource(s, false);
 	        }
 		}
+		String[] professionFiles = {
+				"alchemist.yml",
+				"smith.yml",
+				"miner.yml",
+				"forester.yml",
+				"agriculturist.yml",
+				"engineer.yml",
+				"fisher.yml"
+		};
+		for (String professionFile : professionFiles) {
+			File professionConfig = new File(getDataFolder(), "professions/" + professionFile);
+			if (!professionConfig.exists()) {
+				professionConfig.getParentFile().mkdirs();
+				saveResource("professions/" + professionFile, false);
+			}
+		}
 	}
 	
 	public void reload() {
 		loadConfigs();
+		ProfessionCommandHandler.reapplyActiveCharacterPerms();
 	}
-	public void reloadMessage(Player p) {
-		p.sendMessage(ChatColor.GREEN + "[RPCharacters]" + ChatColor.YELLOW + " Reloading plugin...");
-		reload();
-		p.sendMessage(ChatColor.GREEN + "[RPCharacters]" + ChatColor.YELLOW + " Reloading complete!");
+
+	public void reloadConfigs(CommandSender sender) {
+		String name = sender != null ? sender.getName() : "unknown";
+		getLogger().info("Config reload requested by " + name);
+		if (sender != null) {
+			RPTexts.sendPrefixed(sender, RPTexts.WARN + "Reloading configs...");
+		}
+		try {
+			reload();
+			getLogger().info("Config reload complete.");
+			if (sender != null) {
+				RPTexts.sendPrefixed(sender, RPTexts.WARN + "Reloading complete!");
+			}
+		} catch (Exception e) {
+			getLogger().severe("Config reload failed: " + e.getMessage());
+			e.printStackTrace();
+			if (sender != null) {
+				RPTexts.sendPrefixed(sender, RPTexts.ERROR + "Reload failed. Check console.");
+			}
+		}
 	}
 
 	public static PlayerManager getPlayerManager() {
@@ -200,16 +330,32 @@ public class RPCharacters extends JavaPlugin{
 		return SpawnedClueManager.get();
 	}
 
-	public static int getAccountPlaytimeSeconds(Player player) {
+	public static PlaceClueManager getPlaceClueManager() {
+		return plugin.placeClueManager;
+	}
+
+	public static int getAccountAgeSeconds(Player player) {
 		if (player == null) {
 			return 0;
 		}
 		PlayerData data = PlayerManager.get(player);
-		return data != null ? data.getAccountPlaytimeSeconds() : 0;
+		return data != null ? data.getAgeSeconds() : 0;
 	}
 
+	public static int getCharacterAgeSeconds(RPCharacter character) {
+		return character != null ? character.getAgeSeconds() : 0;
+	}
+
+	/** @deprecated use {@link #getAccountAgeSeconds(Player)} */
+	@Deprecated
+	public static int getAccountPlaytimeSeconds(Player player) {
+		return getAccountAgeSeconds(player);
+	}
+
+	/** @deprecated use {@link #getCharacterAgeSeconds(RPCharacter)} */
+	@Deprecated
 	public static int getCharacterPlaytimeSeconds(RPCharacter character) {
-		return character != null ? character.getPlaytimeSeconds() : 0;
+		return getCharacterAgeSeconds(character);
 	}
 
 	public static int getConversationCount(RPCharacter character, String otherCharacterId) {
@@ -236,8 +382,39 @@ public class RPCharacters extends JavaPlugin{
 		return DisplayIdentityService.resolveDisplay(player);
 	}
 
-	public static String getDisplayNoMask(Player player) {
-		return DisplayIdentityService.resolveDisplayNoMask(player);
+	public static String getDisplayTab(Player player) {
+		return DisplayIdentityService.resolveDisplayTab(player);
+	}
+
+	public static String getDisplaySafe(Player player) {
+		return DisplayIdentityService.resolveDisplaySafe(player);
+	}
+
+	public static void grantAttributePoints(Player player, int amount) {
+		AttributePointService.grantAttributePoints(player, amount);
+	}
+
+	public static int getAccountAttributePointsTotal(Player player) {
+		if (player == null) {
+			return 0;
+		}
+		PlayerData data = PlayerManager.get(player);
+		return data != null ? data.getAccountAttributePointsTotal() : 0;
+	}
+
+	public static int getFreeAttributePoints(Player player) {
+		if (player == null) {
+			return 0;
+		}
+		PlayerData data = PlayerManager.get(player);
+		if (data == null) {
+			return 0;
+		}
+		RPCharacter active = data.getActiveCharacter();
+		if (active == null) {
+			return data.getAccountAttributePointsTotal();
+		}
+		return Math.max(0, data.getAccountAttributePointsTotal() - active.getSpentExtraAttributePoints());
 	}
 
 	private void registerPlaceholderApi() {

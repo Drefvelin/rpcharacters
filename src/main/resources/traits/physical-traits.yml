@@ -1,6 +1,6 @@
 #Strength
 strong:
-    name: "§aStrong"
+    name: "#87d65cStrong"
     cost: 1
     key: physical
     mutually-exclusive:
@@ -10,7 +10,7 @@ strong:
     attribute-modifiers:
         - strength.2
 weak:
-    name: "§cWeak"
+    name: "#d65c5cWeak"
     cost: -1
     key: physical
     mutually-exclusive:
@@ -21,7 +21,7 @@ weak:
         - strength.-2
 #Dexterity
 agile:
-    name: "§aAgile"
+    name: "#87d65cAgile"
     cost: 1
     key: physical
     mutually-exclusive:
@@ -31,7 +31,7 @@ agile:
     attribute-modifiers:
         - dexterity.2
 clumsy:
-    name: "§cClumsy"
+    name: "#d65c5cClumsy"
     cost: -1
     key: physical
     mutually-exclusive:
@@ -42,7 +42,7 @@ clumsy:
         - dexterity.-2
 #Constitution
 tough:
-    name: "§aTough"
+    name: "#87d65cTough"
     cost: 1
     key: physical
     mutually-exclusive:
@@ -52,7 +52,7 @@ tough:
     attribute-modifiers:
         - constitution.2
 frail:
-    name: "§cFrail"
+    name: "#d65c5cFrail"
     cost: -1
     key: physical
     mutually-exclusive:
@@ -63,7 +63,7 @@ frail:
         - constitution.-2
 #Intelligence
 bright:
-    name: "§aBright"
+    name: "#87d65cBright"
     cost: 1
     key: physical
     mutually-exclusive:
@@ -73,7 +73,7 @@ bright:
     attribute-modifiers:
         - intelligence.2
 dim:
-    name: "§cDim"
+    name: "#d65c5cDim"
     cost: -1
     key: physical
     mutually-exclusive:
@@ -84,7 +84,7 @@ dim:
         - intelligence.-2
 #Wisdom
 prudent:
-    name: "§aPrudent"
+    name: "#87d65cPrudent"
     cost: 1
     key: physical
     mutually-exclusive:
@@ -94,7 +94,7 @@ prudent:
     attribute-modifiers:
         - wisdom.2
 ignorant:
-    name: "§cIgnorant"
+    name: "#d65c5cIgnorant"
     cost: -1
     key: physical
     mutually-exclusive:
@@ -105,7 +105,7 @@ ignorant:
         - wisdom.-2
 #Charisma
 magnetic:
-    name: "§aMagnetic"
+    name: "#87d65cMagnetic"
     cost: 1
     key: physical
     mutually-exclusive:
@@ -115,7 +115,7 @@ magnetic:
     attribute-modifiers:
         - charisma.2
 awkward:
-    name: "§cAwkward"
+    name: "#d65c5cAwkward"
     cost: -1
     key: physical
     mutually-exclusive:

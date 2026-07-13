@@ -1,0 +1,14 @@
+enabled: true
+debug-messages: true
+
+display:
+  scale: 0.8
+  max-characters-per-line: 32
+  line-spacing: 0.22
+  first-line-offset: 0.18
+  height-above-head: 2.0
+  max-stacked-utterances: 5
+  utterance-timeout-seconds: 5
+  bob-amplitude: 0.12
+  bob-period-ticks: 60
+  follow-lerp-factor: 0.35

@@ -10,13 +10,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import net.tfminecraft.RPCharacters.Loaders.ChatLoader;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public final class ChatChannelExecutor implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (!(sender instanceof Player player)) {
-			sender.sendMessage("§cPlease run this command as a player.");
+			RPTexts.send(sender, RPTexts.ERROR + "Players only.");
 			return true;
 		}
 
@@ -31,13 +32,13 @@ public final class ChatChannelExecutor implements CommandExecutor {
 		}
 
 		if (args == null || args.length == 0) {
-			player.sendMessage("§cUsage: /" + label + " <message>");
+			RPTexts.send(player, RPTexts.ERROR + "Usage: /" + label + " <message>");
 			return true;
 		}
 
 		String message = Stream.of(args).collect(Collectors.joining(" ")).stripLeading();
 		if (message.isEmpty()) {
-			player.sendMessage("§cUsage: /" + label + " <message>");
+			RPTexts.send(player, RPTexts.ERROR + "Usage: /" + label + " <message>");
 			return true;
 		}
 

@@ -28,6 +28,7 @@ import net.Indyuce.mmocore.api.event.PlayerLevelUpEvent;
 import net.Indyuce.mmocore.api.event.PlayerExperienceGainEvent;
 import net.Indyuce.mmocore.api.player.attribute.PlayerAttributes.AttributeInstance;
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.identity.TempAliasService;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
@@ -41,8 +42,13 @@ import net.tfminecraft.RPCharacters.Objects.Trait.PotionData;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
+import net.tfminecraft.RPCharacters.Utils.ClueProgressFormatter;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
+import net.tfminecraft.RPCharacters.Permissions;
+import net.tfminecraft.RPCharacters.mmocore.AttributePointService;
 import net.tfminecraft.RPCharacters.mmocore.ClassService;
+import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 import net.tfminecraft.RPCharacters.enums.ConfirmType;
 import net.tfminecraft.RPCharacters.enums.FreezeReason;
@@ -101,7 +107,14 @@ public class PlayerManager implements Listener{
 		p.teleport(loc);
 	}
 
+	public void releaseFreeze(Player p) {
+		frozen.remove(p);
+	}
+
 	public void reevaluateFreeze(Player p) {
+		if (p.isDead() || net.tfminecraft.RPCharacters.permadeath.PermadeathService.isAwaitingPermakillRespawn(p)) {
+			return;
+		}
 		if (CreationManager.activeCreators.containsKey(p) || !p.getGameMode().equals(GameMode.SURVIVAL)) {
 			frozen.remove(p);
 			return;
@@ -109,7 +122,7 @@ public class PlayerManager implements Listener{
 		PlayerData pd = get(p);
 		if (pd == null) return;
 
-		FreezeReason reason = getFreezeReason(pd);
+		FreezeReason reason = getFreezeReason(p, pd);
 		if (reason != null) {
 			if (!frozen.containsKey(p)) {
 				frozen.put(p, p.getLocation());
@@ -119,7 +132,14 @@ public class PlayerManager implements Listener{
 		}
 	}
 
-	private FreezeReason getFreezeReason(PlayerData pd) {
+	private FreezeReason getFreezeReason(Player player, PlayerData pd) {
+		if (Cache.excessCharactersFreeze && player != null) {
+			int max = CharacterSlotService.getMaxAliveCharacters(player);
+			int alive = pd.getCharacters(Status.ALIVE).size();
+			if (alive > max) {
+				return FreezeReason.EXCESS_CHARACTERS;
+			}
+		}
 		if (!pd.hasActiveCharacter() && Cache.noCharacterFreeze) {
 			return FreezeReason.NO_CHARACTER;
 		}
@@ -139,30 +159,38 @@ public class PlayerManager implements Listener{
 		}
 		cooldown.put(p, System.currentTimeMillis() + 5000L);
 		if (reason == FreezeReason.NO_CHARACTER) {
-			p.sendTitle(" ", "§cNo Character!", 5, 50, 5);
-			p.sendMessage("§cYou do not have an active character!");
-			p.sendMessage("§cCreate one with §e/rpcharacter create");
-			p.sendMessage("§cOr do it through §e/rpcharacter menu");
+			RPTexts.title(p, " ", RPTexts.ERROR + "No Character!", 5, 50, 5);
+			RPTexts.send(p, RPTexts.ERROR + "You do not have an active character!");
+			RPTexts.send(p, RPTexts.ERROR + "Create one with " + RPTexts.COMMAND + "/rpcharacter create");
+			RPTexts.send(p, RPTexts.ERROR + "Or do it through " + RPTexts.COMMAND + "/rpcharacter menu");
 		} else if (reason == FreezeReason.LACKING_CLUES) {
 			RPCharacter c = pd.getActiveCharacter();
-			int have = c.getPlayerClues().size();
-			int need = c.getCluesNeeded();
-			p.sendTitle(" ", "§cMore Clues Needed!", 5, 50, 5);
-			p.sendMessage("§cYour character does not have enough clues (§e" + have + "§c/§e" + need + "§c).");
-			p.sendMessage("§cAdd clues with §e/rpcharacter clues");
+			RPTexts.title(p, " ", RPTexts.ERROR + "More Clues Needed!", 5, 50, 5);
+			RPTexts.send(p, ClueProgressFormatter.lackingCluesMessage(c));
+			RPTexts.send(p, RPTexts.ERROR + "Add clues with " + RPTexts.COMMAND + "/rpcharacter clues");
+		} else if (reason == FreezeReason.EXCESS_CHARACTERS) {
+			int alive = pd.getCharacters(Status.ALIVE).size();
+			int max = CharacterSlotService.getMaxAliveCharacters(p);
+			RPTexts.title(p, " ", RPTexts.ERROR + "Too Many Characters!", 5, 50, 5);
+			RPTexts.send(p, RPTexts.ERROR + "You have " + RPTexts.WARN + alive + RPTexts.ERROR
+					+ " alive characters but your rank allows " + RPTexts.WARN + max + RPTexts.ERROR + ".");
+			RPTexts.send(p, RPTexts.COMMAND + "/rpcharacter menu");
 		}
 		p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 	}
 	
 	public void start() {
 		Bukkit.getLogger().info("[RPCharacters] Starting Player Manager");
-		pulse();
 		traitPotionPulse();
 		new BukkitRunnable()
 		{
 			public void run()
 			{
 				for(Player p : Bukkit.getOnlinePlayers()) {
+					if (p.isDead()
+							|| net.tfminecraft.RPCharacters.permadeath.PermadeathService.isAwaitingPermakillRespawn(p)) {
+						continue;
+					}
 					if (CreationManager.activeCreators.containsKey(p) || !p.getGameMode().equals(GameMode.SURVIVAL)) {
 						frozen.remove(p);
 						continue;
@@ -170,7 +198,7 @@ public class PlayerManager implements Listener{
 					PlayerData pd = get(p);
 					if (pd == null) continue;
 
-					FreezeReason reason = getFreezeReason(pd);
+					FreezeReason reason = getFreezeReason(p, pd);
 					if (reason != null) {
 						if (!frozen.containsKey(p)) {
 							frozen.put(p, p.getLocation());
@@ -185,31 +213,6 @@ public class PlayerManager implements Listener{
 				}
 			}
 		}.runTaskTimer(RPCharacters.plugin, 0L, 5L);
-	}
-	public void pulse() {
-		Bukkit.getLogger().info("[RPCharacters] Starting Pulse");
-		new BukkitRunnable()
-		{
-			public void run()
-			{
-				for(Player p : Bukkit.getOnlinePlayers()) {
-					if (p.getGameMode() != GameMode.SURVIVAL) {
-						continue;
-					}
-					PlayerData pd = get(p);
-					if (pd == null) {
-						continue;
-					}
-					pd.addAccountPlaytimeSeconds(Cache.playtimeTickSeconds);
-					if (pd.hasActiveCharacter()) {
-						RPCharacter active = pd.getActiveCharacter();
-						if (active != null) {
-							active.addPlaytimeSeconds(Cache.playtimeTickSeconds);
-						}
-					}
-				}
-			}
-		}.runTaskTimer(RPCharacters.plugin, 0L, 1200L);
 	}
 
 	public void traitPotionPulse() {
@@ -255,6 +258,9 @@ public class PlayerManager implements Listener{
 	@EventHandler
 	public void onLeave(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
+		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().clearViewer(p.getUniqueId());
+		net.tfminecraft.RPCharacters.clues.discovery.ClueAdminModeService.clear(p);
+		TempAliasService.clear(p);
 		savePlayer(p);
 		data.remove(get(p));
 	}
@@ -266,43 +272,75 @@ public class PlayerManager implements Listener{
 	
 	public void initiatePlayer(Player p) {
 		if(!exists(p)) {
-			net.Indyuce.mmocore.api.player.PlayerData mpd = net.Indyuce.mmocore.api.player.PlayerData.get(p);
-			for(AttributeInstance a : mpd.getAttributes().getInstances()) {
-				a.setBase(0);
-			}
 			PlayerData pd = db.loadPlayer(p);
 			if(pd == null) {
 				pd = new PlayerData(p);
 			}
 			data.add(pd);
+			AttributePointService.migrateAttributePointsIfNeeded(p, pd);
 			if(!pd.hasActiveCharacter() && pd.getCharacters(Status.ALIVE).size() > 0) {
 				pd.setActiveCharacter(pd.getCharacters(Status.ALIVE).get(0));
+			} else if(pd.hasActiveCharacter()) {
+				RPCharacter active = pd.getActiveCharacter();
+				AttributePointService.syncOnActivate(active);
+				net.tfminecraft.RPCharacters.professions.ProfessionIntegrator.apply(p, active);
+			} else {
+				net.Indyuce.mmocore.api.player.PlayerData.get(p).setAttributePoints(0);
 			}
-			mpd.setAttributePoints(0);
-			mpd.setAttributeReallocationPoints(0);
+			net.Indyuce.mmocore.api.player.PlayerData.get(p).setAttributeReallocationPoints(0);
 			PermissionGroupService.enforceNameColourOnLogin(p, pd);
 			ClassService.migrateSkillPointsIfNeeded(p);
 			ClassService.trackFromPlayer(p);
 			ClassService.sanitizeForeignSkillLevels(p);
+			net.tfminecraft.RPCharacters.professions.ProfessionPointService.bootstrapLifetimeFromMmoCore(p);
 			ClassService.applyFreeSkillPoints(p);
+			net.tfminecraft.RPCharacters.clues.discovery.InvestigationPointService.bootstrap(p);
+			reevaluateFreeze(p);
 		}
 	}
 	public void confirmClick(Player p, RPCharacter c, ConfirmType t) {
 		if(t.equals(ConfirmType.KILL)) {
-			c.setStatus(Status.DEAD);
-			if(c.isActive()) {
-				c.deactivate();
-				PlayerData pd = PlayerManager.get(p);
-				if(pd.getCharacters(Status.ALIVE).size() > 0) {
-					pd.setActiveCharacter(pd.getCharacters(Status.ALIVE).get(0));
-				}
-			}
+			Player owner = c.getOwner();
+			net.tfminecraft.RPCharacters.permadeath.PermadeathService.killCharacter(owner, c,
+					net.tfminecraft.RPCharacters.permadeath.PermakillCause.CHARACTER_MENU);
 			InventoryManager inv = new InventoryManager();
 			inv.characterView(p, c);
 		} else if(t.equals(ConfirmType.SWITCH)) {
 			PlayerData pd = get(p);
 			pd.setActiveCharacter(c);
+			net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().refreshViewer(p);
 			reevaluateFreeze(p);
+			InventoryManager inv = new InventoryManager();
+			inv.characterView(p, c);
+		} else if (t.equals(ConfirmType.REVIVE)) {
+			Player owner = c.getOwner();
+			PlayerData ownerData = get(owner);
+			if (ownerData == null) {
+				RPTexts.send(p, RPTexts.ERROR + "Could not find that player's data.");
+				return;
+			}
+			if (!CharacterSlotService.hasFreeSlot(owner, ownerData)) {
+				int alive = ownerData.getCharacters(Status.ALIVE).size();
+				int max = CharacterSlotService.getMaxAliveCharacters(owner);
+				RPTexts.send(p, RPTexts.ERROR + owner.getName() + " has no free character slots ("
+						+ RPTexts.WARN + alive + RPTexts.ERROR + "/" + RPTexts.WARN + max + RPTexts.ERROR + ").");
+				p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+				return;
+			}
+			c.setStatus(Status.ALIVE);
+			if (!ownerData.hasActiveCharacter()) {
+				ownerData.setActiveCharacter(c);
+				if (owner.isOnline()) {
+					net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get()
+							.refreshViewer(owner);
+				}
+			}
+			savePlayer(owner);
+			reevaluateFreeze(owner);
+			RPTexts.send(p, RPTexts.SUCCESS + "Revived character " + RPTexts.MUTED + c.getName()
+					+ RPTexts.SUCCESS + " for " + RPTexts.MUTED + owner.getName() + RPTexts.SUCCESS + ".");
+			RPTexts.send(owner, RPTexts.SUCCESS + "Your character " + RPTexts.MUTED + c.getName()
+					+ " " + RPTexts.SUCCESS + "was revived by staff.");
 			InventoryManager inv = new InventoryManager();
 			inv.characterView(p, c);
 		}
@@ -315,7 +353,7 @@ public class PlayerManager implements Listener{
 			if(!stage.getKey().equals(key)) continue;
 			if(stage.hasDependency()) {
 				if(!stage.getDependency().check(get(p).getActiveCharacter())) {
-					p.sendMessage("§cYou do not fulfill the prerequisites to view those traits ("+key+")");
+					RPTexts.send(p, RPTexts.ERROR + "You do not fulfill the prerequisites to view those traits (" + key + ")");
 					return;
 				}
 			}
@@ -344,8 +382,29 @@ public class PlayerManager implements Listener{
 				}
 			} else if(Cache.characterSlots.contains(e.getSlot())) {
 				ItemStack i = e.getCurrentItem();
+				if (i == null) return;
+				if (i.getType().equals(Material.GRAY_STAINED_GLASS_PANE)) {
+					return;
+				}
+				PlayerData pd = get(o);
+				int slotIndex = Cache.characterSlots.indexOf(e.getSlot());
+				if (i.getType().equals(Material.BARRIER)) {
+					RPTexts.send(p, RPTexts.ERROR + "This character slot is locked.");
+					p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+					return;
+				}
 				if(i.getType().equals(Material.YELLOW_CONCRETE)) {
 					if(!p.equals(o)) return;
+					if (!CharacterSlotService.isSlotUnlocked(o, slotIndex)) {
+						RPTexts.send(p, RPTexts.ERROR + "This character slot is locked.");
+						p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+						return;
+					}
+					if (!CharacterSlotService.hasFreeSlot(o, pd)) {
+						RPTexts.send(p, RPTexts.ERROR + "You don't have a free character slot!");
+						p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+						return;
+					}
 					p.closeInventory();
 					CreationManager.initiateCreation(p);
 					p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
@@ -354,13 +413,12 @@ public class PlayerManager implements Listener{
 					NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
 					String id = i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
 					if(o == null) {
-						p.sendMessage("§cCant find player, maybe they are offline?");
+						RPTexts.send(p, RPTexts.ERROR + "Cant find player, maybe they are offline?");
 						return;
 					}
-					PlayerData pd = get(o);
 					RPCharacter c = pd.getCharacterById(id);
 					if(c == null) {
-						p.sendMessage("§cCant find character");
+						RPTexts.send(p, RPTexts.ERROR + "Cant find character");
 						return;
 					}
 					InventoryManager inv = new InventoryManager();
@@ -372,7 +430,7 @@ public class PlayerManager implements Listener{
 			e.setCancelled(true);
 			if(e.getSlot() == 26) {
 				if(o == null) {
-					p.sendMessage("§cCant find player, maybe they are offline?");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find player, maybe they are offline?");
 					return;
 				}
 				InventoryManager inv = new InventoryManager();
@@ -382,7 +440,7 @@ public class PlayerManager implements Listener{
 				ItemStack i = e.getInventory().getItem(10);
 				if(!e.getCurrentItem().getType().equals(Material.IRON_AXE)) return;
 				if(o == null) {
-					p.sendMessage("§cCant find player, maybe they are offline?");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find player, maybe they are offline?");
 					return;
 				}
 				NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
@@ -390,10 +448,41 @@ public class PlayerManager implements Listener{
 				PlayerData pd = get(o);
 				RPCharacter c = pd.getCharacterById(id);
 				if(c == null) {
-					p.sendMessage("§cCant find character");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find character");
 					return;
 				}
 				confirm.put(p, ConfirmType.KILL);
+				last.put(p, c);
+				InventoryManager inv = new InventoryManager();
+				inv.confirmView(p);
+			} else if (e.getSlot() == 4 && Permissions.isAdmin(p)) {
+				ItemStack i = e.getInventory().getItem(10);
+				if (i == null || i.getItemMeta() == null) return;
+				if (!e.getCurrentItem().getType().equals(Material.TOTEM_OF_UNDYING)) return;
+				if (o == null) {
+					RPTexts.send(p, RPTexts.ERROR + "Cant find player, maybe they are offline?");
+					return;
+				}
+				NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
+				String id = i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+				PlayerData pd = get(o);
+				RPCharacter c = pd.getCharacterById(id);
+				if (c == null) {
+					RPTexts.send(p, RPTexts.ERROR + "Cant find character");
+					return;
+				}
+				if (!c.getStatus().equals(Status.DEAD)) {
+					return;
+				}
+				if (!CharacterSlotService.hasFreeSlot(o, pd)) {
+					int alive = pd.getCharacters(Status.ALIVE).size();
+					int max = CharacterSlotService.getMaxAliveCharacters(o);
+					RPTexts.send(p, RPTexts.ERROR + o.getName() + " has no free character slots ("
+							+ RPTexts.WARN + alive + RPTexts.ERROR + "/" + RPTexts.WARN + max + RPTexts.ERROR + ").");
+					p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+					return;
+				}
+				confirm.put(p, ConfirmType.REVIVE);
 				last.put(p, c);
 				InventoryManager inv = new InventoryManager();
 				inv.confirmView(p);
@@ -401,7 +490,7 @@ public class PlayerManager implements Listener{
 				ItemStack i = e.getInventory().getItem(10);
 				if(!e.getCurrentItem().getType().equals(Material.EMERALD)) return;
 				if(o == null) {
-					p.sendMessage("§cCant find player, maybe they are offline?");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find player, maybe they are offline?");
 					return;
 				}
 				NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
@@ -409,7 +498,7 @@ public class PlayerManager implements Listener{
 				PlayerData pd = get(o);
 				RPCharacter c = pd.getCharacterById(id);
 				if(c == null) {
-					p.sendMessage("§cCant find character");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find character");
 					return;
 				}
 				confirm.put(p, ConfirmType.SWITCH);
@@ -420,7 +509,7 @@ public class PlayerManager implements Listener{
 				ItemStack i = e.getInventory().getItem(10);
 				if(i == null || i.getItemMeta() == null) return;
 				if(o == null) {
-					p.sendMessage("§cCant find player, maybe they are offline?");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find player, maybe they are offline?");
 					return;
 				}
 				NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
@@ -428,7 +517,7 @@ public class PlayerManager implements Listener{
 				PlayerData pd = get(o);
 				RPCharacter c = pd.getCharacterById(id);
 				if(c == null) {
-					p.sendMessage("§cCant find character");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find character");
 					return;
 				}
 				InventoryManager inv = new InventoryManager();
@@ -445,7 +534,7 @@ public class PlayerManager implements Listener{
 				PlayerData pd = get(o);
 				RPCharacter c = pd.getCharacterById(id);
 				if (c == null) {
-					p.sendMessage("§cCant find character");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find character");
 					return;
 				}
 				InventoryManager inv = new InventoryManager();
@@ -463,8 +552,21 @@ public class PlayerManager implements Listener{
 			NamespacedKey characterKey = new NamespacedKey(RPCharacters.plugin, "character_id");
 			String characterId = clicked.getItemMeta().getPersistentDataContainer().get(characterKey, PersistentDataType.STRING);
 
+			boolean fromSummary = false;
+			CharacterCreation creation = null;
+			if (e.getInventory().getHolder() instanceof RPCHolder holder) {
+				fromSummary = holder.getContext() == net.tfminecraft.RPCharacters.enums.CreationGuiContext.CREATION_SUMMARY
+						|| holder.getContext() == net.tfminecraft.RPCharacters.enums.CreationGuiContext.EDIT_SUMMARY;
+				creation = holder.getCreation();
+			}
+
 			if (e.getSlot() == e.getInventory().getSize() - 1) {
 				if (characterId == null) return;
+				if (fromSummary && creation != null) {
+					creation.returnToSummary();
+					p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+					return;
+				}
 				RPCharacter c = pd.getCharacterById(characterId);
 				if (c == null) return;
 				InventoryManager inv = new InventoryManager();
@@ -477,22 +579,38 @@ public class PlayerManager implements Listener{
 
 			if (e.getSlot() == 8 && clicked.getType().equals(Material.LIME_DYE)) {
 				if (characterId == null) return;
-				ClueInputManager.beginInput(p, characterId);
+				ClueInputManager.beginInput(p, characterId, fromSummary);
 				return;
 			}
 
 			if (clicked.getType().equals(Material.PAPER)) {
 				if (characterId == null) return;
-				RPCharacter c = pd.getCharacterById(characterId);
+				RPCharacter c = CreationManager.resolveCharacter(p, characterId);
+				if (c == null) {
+					c = pd.getCharacterById(characterId);
+				}
 				if (c == null) return;
 				NamespacedKey clueIndexKey = new NamespacedKey(RPCharacters.plugin, "clue_index");
 				Integer index = clicked.getItemMeta().getPersistentDataContainer().get(clueIndexKey, PersistentDataType.INTEGER);
 				if (index == null) return;
 				if (c.removePlayerClue(index)) {
-					savePlayer(p);
-					reevaluateFreeze(p);
+					CharacterCreation activeSession = CreationManager.activeCreators.get(p);
+					boolean editing = activeSession != null && activeSession.isEditing();
+					if (!CreationManager.isDraftCharacter(p, characterId)) {
+						savePlayer(p);
+						reevaluateFreeze(p);
+					} else if (editing) {
+						activeSession.persistEdits();
+					}
 					InventoryManager inv = new InventoryManager();
-					inv.cluesView(p, c);
+					if (fromSummary && creation != null) {
+						net.tfminecraft.RPCharacters.enums.CreationGuiContext context = creation.isEditing()
+								? net.tfminecraft.RPCharacters.enums.CreationGuiContext.EDIT_SUMMARY
+								: net.tfminecraft.RPCharacters.enums.CreationGuiContext.CREATION_SUMMARY;
+						inv.cluesView(p, c, context, creation);
+					} else {
+						inv.cluesView(p, c);
+					}
 					p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
 				}
 			}
@@ -518,13 +636,13 @@ public class PlayerManager implements Listener{
 			NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
 			String id = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
 			if(o == null) {
-				p.sendMessage("§cCant find player, maybe they are offline?");
+				RPTexts.send(p, RPTexts.ERROR + "Cant find player, maybe they are offline?");
 				return;
 			}
 			PlayerData pd = get(o);
 			RPCharacter c = pd.getCharacterById(id);
 			if(c == null) {
-				p.sendMessage("§cCant find character");
+				RPTexts.send(p, RPTexts.ERROR + "Cant find character");
 				return;
 			}
 			InventoryManager inv = new InventoryManager();
@@ -536,13 +654,13 @@ public class PlayerManager implements Listener{
 				NamespacedKey key = new NamespacedKey(RPCharacters.plugin, "character_id");
 				String id = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
 				if(o == null) {
-					p.sendMessage("§cCant find player, maybe they are offline?");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find player, maybe they are offline?");
 					return;
 				}
 				PlayerData pd = get(o);
 				RPCharacter c = pd.getCharacterById(id);
 				if(c == null) {
-					p.sendMessage("§cCant find character");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find character");
 					return;
 				}
 				InventoryManager inv = new InventoryManager();
@@ -550,7 +668,7 @@ public class PlayerManager implements Listener{
 				p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
 			} else if(e.getCurrentItem() != null) {
 				if(o == null) {
-					p.sendMessage("§cCant find player, maybe they are offline?");
+					RPTexts.send(p, RPTexts.ERROR + "Cant find player, maybe they are offline?");
 					return;
 				}
 				InventoryManager inv = new InventoryManager();
@@ -622,6 +740,7 @@ public class PlayerManager implements Listener{
 							}
 						}
 					}
+					AttributePointService.applyFreeAttributePoints(player, c);
 				}
 			}.runTaskLater(RPCharacters.plugin, 1L);
 		}
