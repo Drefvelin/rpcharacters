@@ -13,6 +13,7 @@ import net.tfminecraft.RPCharacters.Database.Database;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
+import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 
 /**
  * Push a player's character roster mirror to ProvinceSystem.
@@ -72,6 +73,11 @@ public final class RosterSyncService {
 			characters.add(row);
 		}
 		root.put("characters", characters);
+
+		// Per-player slot entitlement only while online (LP requires a Player).
+		if (online != null) {
+			root.put("max_alive_characters", CharacterSlotService.getMaxAliveCharacters(online));
+		}
 
 		ProvinceSystemClient.SimpleResult result = ProvinceSystemClient.pushRoster(root.toJSONString());
 		if (!result.ok && RPCharacters.plugin != null) {
