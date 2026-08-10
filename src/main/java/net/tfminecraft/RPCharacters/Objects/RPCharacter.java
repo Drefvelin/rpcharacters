@@ -119,6 +119,10 @@ public class RPCharacter {
 	public Player getOwner() {
 		return owner;
 	}
+
+	public void setOwner(Player owner) {
+		this.owner = owner;
+	}
 	public List<String> getDescription(){
 		return desc;
 	}

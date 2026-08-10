@@ -1,0 +1,284 @@
+package net.tfminecraft.RPCharacters.api;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+import net.tfminecraft.RPCharacters.Cache;
+
+/**
+ * Minimal HTTP client for ProvinceSystem characters plugin routes.
+ */
+public final class ProvinceSystemClient {
+
+	private static final int TIMEOUT_MS = 8000;
+	private static final Pattern INT_FIELD = Pattern.compile(
+		"\"(\\w+)\"\\s*:\\s*(-?\\d+)"
+	);
+	private static final Pattern STRING_FIELD = Pattern.compile(
+		"\"(\\w+)\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\""
+	);
+
+	private ProvinceSystemClient() {}
+
+	public static final class CatalogPushResult {
+		public final boolean ok;
+		public final int stages;
+		public final int races;
+		public final int traits;
+		public final int classes;
+		public final String updatedAt;
+		public final String error;
+
+		private CatalogPushResult(
+			boolean ok,
+			int stages,
+			int races,
+			int traits,
+			int classes,
+			String updatedAt,
+			String error
+		) {
+			this.ok = ok;
+			this.stages = stages;
+			this.races = races;
+			this.traits = traits;
+			this.classes = classes;
+			this.updatedAt = updatedAt;
+			this.error = error;
+		}
+
+		public static CatalogPushResult success(
+			int stages,
+			int races,
+			int traits,
+			int classes,
+			String updatedAt
+		) {
+			return new CatalogPushResult(
+				true, stages, races, traits, classes, updatedAt, null
+			);
+		}
+
+		public static CatalogPushResult fail(String error) {
+			return new CatalogPushResult(false, 0, 0, 0, 0, null, error);
+		}
+	}
+
+	public static final class SimpleResult {
+		public final boolean ok;
+		public final String error;
+		public final String body;
+
+		private SimpleResult(boolean ok, String error, String body) {
+			this.ok = ok;
+			this.error = error;
+			this.body = body;
+		}
+
+		public static SimpleResult success(String body) {
+			return new SimpleResult(true, null, body);
+		}
+
+		public static SimpleResult fail(String error) {
+			return new SimpleResult(false, error, null);
+		}
+	}
+
+	/** PUT /characters/plugin/creation-catalog */
+	public static CatalogPushResult pushCreationCatalog(String jsonBody) {
+		SimpleResult raw = request("PUT", "/characters/plugin/creation-catalog", jsonBody);
+		if (!raw.ok) {
+			return CatalogPushResult.fail(raw.error);
+		}
+		String response = raw.body;
+		return CatalogPushResult.success(
+			jsonInt(response, "stages"),
+			jsonInt(response, "races"),
+			jsonInt(response, "traits"),
+			jsonInt(response, "classes"),
+			jsonString(response, "updated_at")
+		);
+	}
+
+	/** GET /characters/plugin/pending — returns raw JSON body on success. */
+	public static SimpleResult fetchPendingCreates() {
+		return request("GET", "/characters/plugin/pending", null);
+	}
+
+	/** POST /characters/plugin/applied */
+	public static SimpleResult ackCreates(String jsonBody) {
+		return request("POST", "/characters/plugin/applied", jsonBody);
+	}
+
+	/** PUT /characters/plugin/roster */
+	public static SimpleResult pushRoster(String jsonBody) {
+		return request("PUT", "/characters/plugin/roster", jsonBody);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static List<JSONObject> parsePendingCreates(String body) {
+		List<JSONObject> out = new ArrayList<>();
+		if (body == null || body.isBlank()) {
+			return out;
+		}
+		try {
+			JSONParser parser = new JSONParser();
+			Object parsed = parser.parse(body);
+			if (!(parsed instanceof JSONObject)) {
+				return out;
+			}
+			Object creates = ((JSONObject) parsed).get("creates");
+			if (!(creates instanceof JSONArray)) {
+				return out;
+			}
+			JSONArray arr = (JSONArray) creates;
+			for (Object row : arr) {
+				if (row instanceof JSONObject) {
+					out.add((JSONObject) row);
+				}
+			}
+		} catch (Exception ignored) {
+			// caller treats empty as no pending
+		}
+		return out;
+	}
+
+	private static SimpleResult request(String method, String path, String jsonBody) {
+		String base = Cache.charactersApiBaseUrl;
+		String key = Cache.charactersApiPluginKey;
+		if (base == null || base.isEmpty() || key == null || key.isEmpty()) {
+			return SimpleResult.fail(
+				"Characters API is not configured (characters-api.base-url / plugin-key in config.yml)."
+			);
+		}
+
+		HttpURLConnection connection = null;
+		try {
+			String root = base.endsWith("/") ? base.substring(0, base.length() - 1) : base;
+			@SuppressWarnings("deprecation")
+			URL url = new URL(root + path);
+			connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestMethod(method);
+			connection.setConnectTimeout(TIMEOUT_MS);
+			connection.setReadTimeout(TIMEOUT_MS);
+			connection.setRequestProperty("X-Plugin-Key", key);
+			connection.setRequestProperty("Accept", "application/json");
+
+			if (jsonBody != null) {
+				connection.setDoOutput(true);
+				connection.setRequestProperty("Content-Type", "application/json");
+				byte[] bytes = jsonBody.getBytes(StandardCharsets.UTF_8);
+				connection.setFixedLengthStreamingMode(bytes.length);
+				try (OutputStream out = connection.getOutputStream()) {
+					out.write(bytes);
+				}
+			}
+
+			int status = connection.getResponseCode();
+			String response = readBody(
+				status >= 200 && status < 300
+					? connection.getInputStream()
+					: connection.getErrorStream()
+			);
+
+			if (status >= 200 && status < 300) {
+				return SimpleResult.success(response);
+			}
+
+			String detail = jsonString(response, "detail");
+			if (detail == null || detail.isEmpty()) {
+				detail = response == null || response.isEmpty()
+					? ("HTTP " + status)
+					: response;
+			}
+			if (status == 401) {
+				return SimpleResult.fail(
+					"Unauthorized (check characters-api.plugin-key). " + detail
+				);
+			}
+			return SimpleResult.fail(detail);
+		} catch (Exception e) {
+			return SimpleResult.fail(
+				"Could not reach characters API: " + e.getMessage()
+			);
+		} finally {
+			if (connection != null) {
+				connection.disconnect();
+			}
+		}
+	}
+
+	private static String readBody(InputStream stream) throws Exception {
+		if (stream == null) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		try (BufferedReader reader = new BufferedReader(
+			new InputStreamReader(stream, StandardCharsets.UTF_8)
+		)) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (sb.length() > 0) {
+					sb.append('\n');
+				}
+				sb.append(line);
+			}
+		}
+		return sb.toString();
+	}
+
+	private static int jsonInt(String json, String key) {
+		if (json == null || key == null) {
+			return 0;
+		}
+		Matcher m = INT_FIELD.matcher(json);
+		while (m.find()) {
+			if (key.equals(m.group(1))) {
+				try {
+					return Integer.parseInt(m.group(2));
+				} catch (NumberFormatException ignored) {
+					return 0;
+				}
+			}
+		}
+		return 0;
+	}
+
+	private static String jsonString(String json, String key) {
+		if (json == null || key == null) {
+			return null;
+		}
+		Matcher m = STRING_FIELD.matcher(json);
+		while (m.find()) {
+			if (key.equals(m.group(1))) {
+				return unescape(m.group(2));
+			}
+		}
+		return null;
+	}
+
+	private static String unescape(String raw) {
+		if (raw == null) {
+			return null;
+		}
+		return raw
+			.replace("\\\"", "\"")
+			.replace("\\\\", "\\")
+			.replace("\\n", "\n")
+			.replace("\\r", "\r")
+			.replace("\\t", "\t");
+	}
+}

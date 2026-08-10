@@ -24,6 +24,8 @@ import net.tfminecraft.RPCharacters.Creation.Stages.InfoStage;
 
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 
+import net.tfminecraft.RPCharacters.Creation.Stages.AttributesStage;
+
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
@@ -347,6 +349,12 @@ public class CharacterCreation {
 
 			selection.execute(p, this);
 
+		} else if (fresh instanceof AttributesStage attributes) {
+
+			attributes.hydrateFromCharacter(character);
+
+			attributes.execute(p, this);
+
 		} else if (fresh instanceof SetterStage setter) {
 
 			setter.execute(p, this);
@@ -475,6 +483,12 @@ public class CharacterCreation {
 
 			ss.execute(p, this);
 
+		} else if(s instanceof AttributesStage) {
+
+			AttributesStage attrStage = (AttributesStage) s;
+
+			attrStage.execute(p, this);
+
 		} else if(s instanceof ClueStage) {
 
 			ClueStage cs = (ClueStage) s;
@@ -594,6 +608,8 @@ public class CharacterCreation {
 		RPCharacters.getPlayerManager().savePlayer(p);
 
 		CreationManager.activeCreators.remove(p);
+
+		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(p);
 
 		RPTexts.title(p, RPTexts.SUCCESS + "Finished!", RPTexts.WARN + "Character " + RPTexts.MUTED + character.getName() + RPTexts.WARN + " created!", 5, 50, 5);
 

@@ -1,25 +1,25 @@
 name: Smith
 item:
   material: anvil
-  name: #87d65cSmith
+  name: §aSmith
   lore:
   - §7Spend points earned through leveling
-  - §7the #87d65cSmith §7Profession in #d6cf69/profile
+  - §7the §aSmith §7Profession in §e/profile
 upgrades:
   iron_weaponsmith:
     item:
-      name: #c9a24fIron Weaponsmith
+      name: §6Iron Weaponsmith
       material: iron_axe
       model_data: 6
       lore:
-      - §7Unlocks crafting #ffffffIron Weaponry
+      - §7Unlocks crafting §fIron Weaponry
     cost: 1
     type: permission
     unlocks:
     - professions.iron_weaponsmith
   steel_weaponsmith:
     item:
-      name: #c9a24fSteel Weaponsmith
+      name: §6Steel Weaponsmith
       material: iron_axe
       model_data: 7
       lore:
@@ -32,11 +32,11 @@ upgrades:
     - professions.steel_weaponsmith
   abyssalite_weaponsmith:
     item:
-      name: #c9a24fAbyssalite Weaponsmith
+      name: §6Abyssalite Weaponsmith
       material: iron_axe
       model_data: 16
       lore:
-      - §7Unlocks crafting #6b6b6bAbyssalite Weaponry
+      - §7Unlocks crafting §8Abyssalite Weaponry
     cost: 3
     requires:
     - steel_weaponsmith
@@ -45,11 +45,11 @@ upgrades:
     - professions.abyssalite_weaponsmith
   mythril_weaponsmith:
     item:
-      name: #c9a24fMythril Weaponsmith
+      name: §6Mythril Weaponsmith
       material: iron_axe
       model_data: 12
       lore:
-      - §7Unlocks crafting #56ccf2Mythril Weaponry
+      - §7Unlocks crafting §3Mythril Weaponry
     cost: 4
     requires:
     - abyssalite_weaponsmith
@@ -58,17 +58,17 @@ upgrades:
     - professions.mythril_weaponsmith
   chainmail_tailor:
     item:
-      name: #c9a24fChainmail Tailor
+      name: §6Chainmail Tailor
       material: chainmail_chestplate
       lore:
-      - §7Unlocks crafting #ffffffChainmail Armour
+      - §7Unlocks crafting §fChainmail Armour
     cost: 1
     type: permission
     unlocks:
     - professions.chainmail_tailor
   steel_tailor:
     item:
-      name: #c9a24fSteel Tailor
+      name: §6Steel Tailor
       material: iron_chestplate
       lore:
       - §7Unlocks crafting §7Steel Armour
@@ -80,10 +80,10 @@ upgrades:
     - professions.steel_tailor
   abyssalite_tailor:
     item:
-      name: #c9a24fAbyssalite Tailor
+      name: §6Abyssalite Tailor
       material: netherite_chestplate
       lore:
-      - §7Unlocks crafting #6b6b6bAbyssalite Armour
+      - §7Unlocks crafting §8Abyssalite Armour
     cost: 3
     requires:
     - steel_tailor
@@ -92,10 +92,10 @@ upgrades:
     - professions.abyssalite_tailor
   mythril_tailor:
     item:
-      name: #c9a24fMythril Tailor
+      name: §6Mythril Tailor
       material: diamond_chestplate
       lore:
-      - §7Unlocks crafting #56ccf2Mythril Armour
+      - §7Unlocks crafting §3Mythril Armour
     cost: 4
     requires:
     - abyssalite_tailor
@@ -104,17 +104,17 @@ upgrades:
     - professions.mythril_tailor
   offhand_maker_1:
     item:
-      name: #c9a24fOffhand Weapon Maker I
+      name: §6Offhand Weapon Maker I
       material: shield
       lore:
-      - §7Unlocks crafting the #ffffffIron Offhands
+      - §7Unlocks crafting the §fIron Offhands
     cost: 1
     type: permission
     unlocks:
     - professions.offhand_maker_1
   offhand_maker_2:
     item:
-      name: #c9a24fOffhand Weapon Maker II
+      name: §6Offhand Weapon Maker II
       material: shield
       lore:
       - §7Unlocks crafting the §7Steel Offhands
@@ -126,10 +126,10 @@ upgrades:
     - professions.offhand_maker_2
   offhand_maker_3:
     item:
-      name: #c9a24fOffhand Weapon Maker III
+      name: §6Offhand Weapon Maker III
       material: shield
       lore:
-      - §7Unlocks crafting the #6b6b6bAbyssalite Offhands
+      - §7Unlocks crafting the §8Abyssalite Offhands
     cost: 3
     requires:
     - offhand_maker_2
@@ -138,10 +138,10 @@ upgrades:
     - professions.offhand_maker_3
   offhand_maker_4:
     item:
-      name: #c9a24fOffhand Weapon Maker IV
+      name: §6Offhand Weapon Maker IV
       material: shield
       lore:
-      - §7Unlocks crafting the #56ccf2Mythril Offhands
+      - §7Unlocks crafting the §3Mythril Offhands
     cost: 4
     requires:
     - offhand_maker_3
@@ -150,14 +150,14 @@ upgrades:
     - professions.offhand_maker_4
   goldsmith:
     item:
-      name: #c9a24fGoldsmith
+      name: §6Goldsmith
       material: gold_nugget
       model_data: 10
       enchants:
       - unbreaking.1
       hide_enchants: true
       lore:
-      - §7Unlocks crafting the #ffffffGoldsmithing Tools
+      - §7Unlocks crafting the §fGoldsmithing Tools
     cost: 10
     type: permission
     unlocks:

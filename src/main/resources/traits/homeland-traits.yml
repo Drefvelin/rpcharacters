@@ -1,0 +1,48 @@
+adavaar:
+    name: "§aAdavaari"
+    key: homeland
+    description:
+        - "§7This character hails from another province of Adavaar,"
+        - "§7an anti-Oseni region dominated by the Solmyrith Empire."
+
+urcerrith:
+    name: "§aUrcerrithian"
+    key: homeland
+    description:
+        - "§7This character hails from Bastion, the most populated"
+        - "§7yet most distant part of Cerrithian civilization."
+        
+delor:
+    name: "§aDelorian"
+    key: homeland
+    description:
+        - "§7This character hails from a minor settlement in the"
+        - "§7Delorian Valley, where the Grand Republic once stood."
+        
+aie:
+    name: "§aTricontinental"
+    key: homeland
+    description:
+        - "§7This character hails from either Areth, Imuatun, or"
+        - "§7Emeonis - three joint landmasses focused on trade."
+
+calavorn:
+    name: "§aCalavorn"
+    key: homeland
+    description:
+        - "§7This character hails from Calavorn, the domain of the"
+        - "§7God-Emperor, located across the Wyvern Mountains."
+
+tyvanis:
+    name: "§aTyvanis"
+    key: homeland
+    description:
+        - "§7This character hails from Tyvanis, a land of death that"
+        - "§7is slowly healing, recovered only in the last decade."
+        
+beyond:
+    name: "§aOutsider"
+    key: homeland
+    description:
+        - "§7This character hails from some other civilization"
+        - "§7in the Great Main, or possibly even beyond..."

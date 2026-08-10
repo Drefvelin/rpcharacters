@@ -1,0 +1,71 @@
+discipline:
+    name: "#87d65cDiscipline"
+    key: virtue
+    mutually-exclusive:
+        - strength
+        - wisdom
+    description:
+        - "§7This character exercises their power at the right moment."
+    attribute-modifiers:
+        - strength.1
+        - wisdom.1
+
+presence:
+    name: "#87d65cPresence"
+    key: virtue
+    mutually-exclusive:
+        - strength
+        - charisma
+    description:
+        - "§7This character has an unignorable presence about them."
+    attribute-modifiers:
+        - strength.1
+        - charisma.1
+
+finesse:
+    name: "#87d65cFinesse"
+    key: virtue
+    mutually-exclusive:
+        - dexterity
+        - intelligence
+    description:
+        - "§7This character knows how to unleash their full potential."
+    attribute-modifiers:
+        - dexterity.1
+        - intelligence.1
+
+elegance:
+    name: "#87d65cElegance"
+    key: virtue
+    mutually-exclusive:
+        - dexterity
+        - charisma
+    description:
+        - "§7This character moves and acts with precision and grace."
+    attribute-modifiers:
+        - dexterity.1
+        - charisma.1
+
+perseverance:
+    name: "#87d65cPerseverance"
+    key: virtue
+    mutually-exclusive:
+        - constitution
+        - wisdom
+    description:
+        - "§7This character can persist through immense hardship."
+    attribute-modifiers:
+        - constitution.1
+        - wisdom.1
+
+tenacity:
+    name: "#87d65cTenacity"
+    key: virtue
+    mutually-exclusive:
+        - constitution
+        - intelligence
+    description:
+        - "§7This character maintains a firm and unwavering focus."
+    attribute-modifiers:
+        - constitution.1
+        - intelligence.1

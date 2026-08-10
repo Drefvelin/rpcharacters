@@ -56,6 +56,45 @@ public class CommandManager implements Listener, CommandExecutor{
 			RPCharacters.plugin.reloadConfigs(sender);
 			return true;
 		}
+		if (args.length >= 1 && args[0].equalsIgnoreCase("catalog")) {
+			if (!Permissions.isAdmin(sender)) {
+				RPTexts.send(sender, RPTexts.ERROR + "You do not have permission to use this command.");
+				return true;
+			}
+			if (args.length == 1 || !args[1].equalsIgnoreCase("sync")) {
+				RPTexts.send(sender, RPTexts.ERROR + "Usage: /rpcharacter catalog sync");
+				return true;
+			}
+			RPTexts.send(sender, RPTexts.COMMAND + "Syncing creation catalog…");
+			Bukkit.getScheduler().runTaskAsynchronously(RPCharacters.plugin, () -> {
+				var result = net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService.pushNow();
+				Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> {
+					if (result.ok) {
+						RPTexts.send(sender, RPTexts.SUCCESS + "Creation catalog synced: stages="
+							+ result.stages + " races=" + result.races
+							+ " traits=" + result.traits + " classes=" + result.classes);
+					} else {
+						RPTexts.send(sender, RPTexts.ERROR + "Catalog sync failed: "
+							+ (result.error != null ? result.error : "unknown"));
+					}
+				});
+			});
+			return true;
+		}
+		if (args.length >= 1 && args[0].equalsIgnoreCase("pending")) {
+			if (!Permissions.isAdmin(sender)) {
+				RPTexts.send(sender, RPTexts.ERROR + "You do not have permission to use this command.");
+				return true;
+			}
+			if (args.length == 1 || !args[1].equalsIgnoreCase("sync")) {
+				RPTexts.send(sender, RPTexts.ERROR + "Usage: /rpcharacter pending sync");
+				return true;
+			}
+			RPTexts.send(sender, RPTexts.COMMAND + "Pulling pending web character creates…");
+			net.tfminecraft.RPCharacters.ingest.CharacterIngestService.pullAsync(RPCharacters.plugin);
+			RPTexts.send(sender, RPTexts.SUCCESS + "Pending sync started (see console for results).");
+			return true;
+		}
 		if (!(sender instanceof Player)) {
 			RPTexts.send(sender, RPTexts.ERROR + "Only players can use this command.");
 			return true;

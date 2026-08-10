@@ -66,6 +66,15 @@ character_age_stage:
     repeat: true
     auto-next: true
     message: subtitle(§7Type your character age in chat)
+homeland_selection_stage:
+    type: selection
+    lock-time: 5d
+    repeat: true
+    target: trait
+    key: homeland
+    min-select: 1
+    max-select: 1
+    slots: [10, 11, 12, 13, 14, 15, 16]
 cataclysm_selection_stage:
     type: selection
     lock-time: 5d
@@ -84,21 +93,39 @@ reclamation_selection_stage:
     min-select: 1
     max-select: 1
     slots: [10, 11, 12, 13, 14, 15, 16]
-expedition_selection_stage:
+motivation_selection_stage:
     type: selection
     lock-time: 5d
     repeat: true
     target: trait
-    key: expedition
+    key: motivation
     min-select: 1
     max-select: 1
     slots: [10, 11, 12, 13, 14, 15, 16]
-ambition_selection_stage:
+gift_selection_stage:
     type: selection
     lock-time: 5d
     repeat: true
     target: trait
-    key: ambition
+    key: gift
+    min-select: 2
+    max-select: 2
+    slots: [10, 11, 12, 13, 14, 15, 16]
+virtue_selection_stage:
+    type: selection
+    lock-time: 5d
+    repeat: true
+    target: trait
+    key: virtue
+    min-select: 1
+    max-select: 1
+    slots: [10, 11, 12, 13, 14, 15, 16]
+combat_selection_stage:
+    type: selection
+    lock-time: 5d
+    repeat: true
+    target: trait
+    key: combat
     min-select: 1
     max-select: 1
     slots: [10, 11, 12, 13, 14, 15, 16]
@@ -121,7 +148,16 @@ celestial_selection_stage:
     key: celestial
     min-select: 1
     max-select: 1
+    points: 1
     slots: [10, 11, 12, 13, 14, 15, 16]
+attributes_selection_stage:
+    type: attributes
+    lock-time: 5d
+    repeat: true
+    key: attributes
+    points: 12
+    max-rank: 2
+    gui-size: 36
 personality_selection_stage:
     type: selection
     repeat: true
@@ -150,6 +186,15 @@ evil_info_stage:
         - "title(#c9a24fEvil RP)"
         - "subtitle(§7Pick up to 2 evil archetypes, or skip.)"
         - "subtitle(§7#32ed73/rpcharacter next)"
+evil_selection_stage:
+    type: selection
+    lock-time: 5d
+    repeat: true
+    target: trait
+    key: evil
+    min-select: 0
+    max-select: 2
+    slots: [10, 11, 12, 13, 14, 15, 16]
 creation_description_stage:
     type: info
     repeat: false
@@ -190,12 +235,16 @@ creation_summary_stage:
         race: race_selection_stage
         age: character_age_stage
         description: creation_description_set_stage
+        homeland: homeland_selection_stage
         cataclysm: cataclysm_selection_stage
         reclamation: reclamation_selection_stage
-        expedition: expedition_selection_stage
-        ambition: ambition_selection_stage
+        motivation: motivation_selection_stage
+        gift: gift_selection_stage
+        virtue: virtue_selection_stage
+        combat: combat_selection_stage
         physical: physical_selection_stage
         celestial: celestial_selection_stage
+        attributes: attributes_selection_stage
         personality: personality_selection_stage
         evil: evil_selection_stage
         clues: clues

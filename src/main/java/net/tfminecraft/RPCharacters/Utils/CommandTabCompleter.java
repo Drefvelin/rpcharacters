@@ -47,6 +47,8 @@ public class CommandTabCompleter implements TabCompleter {
 			completions.addAll(PERSONA_SUBCOMMANDS);
 			if (Permissions.isAdmin(sender)) {
 				completions.add("reload");
+				completions.add("catalog");
+				completions.add("pending");
 				completions.add("setclass");
 				completions.add("skipcooldown");
 				completions.add("addtrait");
@@ -77,6 +79,12 @@ public class CommandTabCompleter implements TabCompleter {
 		List<String> completions = new ArrayList<>();
 
 		if (args.length == 2) {
+			if (args[0].equalsIgnoreCase("catalog") && Permissions.isAdmin(sender)) {
+				return filter(List.of("sync"), args[1]);
+			}
+			if (args[0].equalsIgnoreCase("pending") && Permissions.isAdmin(sender)) {
+				return filter(List.of("sync"), args[1]);
+			}
 			if (args[0].equalsIgnoreCase("menu")) {
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					completions.add(online.getName());

@@ -155,6 +155,8 @@ public final class PermadeathService {
 
 		RPCharacters.getPlayerManager().savePlayer(player);
 
+		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(player);
+
 		if (!player.isDead() && cause != PermakillCause.PERMADEATH_ZONE) {
 			RPCharacters.getPlayerManager().reevaluateFreeze(player);
 		}

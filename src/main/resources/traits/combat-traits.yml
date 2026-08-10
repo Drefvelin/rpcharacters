@@ -1,0 +1,39 @@
+safe:
+    name: "#87d65cSafe Technique"
+    key: combat
+    description:
+        - "§7This character values safety and distance in combat."
+    attribute-modifiers:
+        - dexterity.1
+        - constitution.1
+        - charisma.1
+
+conservative:
+    name: "#87d65cConservative Technique"
+    key: combat
+    description:
+        - "§7This character excels in a battle of attrition."
+    attribute-modifiers:
+        - strength.1
+        - constitution.1
+        - intelligence.1
+
+aggressive:
+    name: "#87d65cAggressive Technique"
+    key: combat
+    description:
+        - "§7This character puts their all into hitting hard and fast."
+    attribute-modifiers:
+        - strength.1
+        - wisdom.1
+        - charisma.1
+
+versatile:
+    name: "#87d65cVersatile Technique"
+    key: combat
+    description:
+        - "§7This character fights with strategy and flexibility."
+    attribute-modifiers:
+        - dexterity.1
+        - intelligence.1
+        - wisdom.1

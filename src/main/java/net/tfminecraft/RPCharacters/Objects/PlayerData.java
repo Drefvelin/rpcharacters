@@ -1,13 +1,13 @@
 package net.tfminecraft.RPCharacters.Objects;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import java.time.Instant;
+import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
@@ -17,6 +17,7 @@ import net.tfminecraft.RPCharacters.enums.Status;
 
 public class PlayerData {
 	private Player p;
+	private final UUID uniqueId;
 	private Long lastCharacterSwitchAtMs;
 	private boolean eighteen;
 	
@@ -34,11 +35,23 @@ public class PlayerData {
 	
 	public PlayerData(Player p) {
 		this.p = p;
+		this.uniqueId = p.getUniqueId();
 		this.lastCharacterSwitchAtMs = null;
 		this.eighteen = false;
 		this.createdAtEpochSeconds = (int) Instant.now().getEpochSecond();
 		this.accountSkillPointsTotal = null;
 	}
+
+	/** Offline / file-backed player data (no online Player). */
+	public PlayerData(UUID uniqueId) {
+		this.p = null;
+		this.uniqueId = uniqueId;
+		this.lastCharacterSwitchAtMs = null;
+		this.eighteen = false;
+		this.createdAtEpochSeconds = (int) Instant.now().getEpochSecond();
+		this.accountSkillPointsTotal = null;
+	}
+
 	public PlayerData(Player p, List<String> cs, Long lastCharacterSwitchAtMs, boolean b, int createdAtEpochSeconds) {
 		this(p, cs, lastCharacterSwitchAtMs, b, createdAtEpochSeconds, null);
 	}
@@ -46,6 +59,18 @@ public class PlayerData {
 	public PlayerData(Player p, List<String> cs, Long lastCharacterSwitchAtMs, boolean b, int createdAtEpochSeconds,
 			Integer accountSkillPointsTotal) {
 		this.p = p;
+		this.uniqueId = p.getUniqueId();
+		this.completedStages = cs;
+		this.lastCharacterSwitchAtMs = lastCharacterSwitchAtMs;
+		eighteen = b;
+		this.createdAtEpochSeconds = Math.max(0, createdAtEpochSeconds);
+		this.accountSkillPointsTotal = accountSkillPointsTotal;
+	}
+
+	public PlayerData(UUID uniqueId, List<String> cs, Long lastCharacterSwitchAtMs, boolean b, int createdAtEpochSeconds,
+			Integer accountSkillPointsTotal) {
+		this.p = null;
+		this.uniqueId = uniqueId;
 		this.completedStages = cs;
 		this.lastCharacterSwitchAtMs = lastCharacterSwitchAtMs;
 		eighteen = b;
@@ -171,6 +196,15 @@ public class PlayerData {
 	public Player getPlayer() {
 		return p;
 	}
+
+	public UUID getUniqueId() {
+		return uniqueId;
+	}
+
+	public void bindPlayer(Player player) {
+		this.p = player;
+	}
+
 	public boolean hasActiveCharacter() {
 		for(RPCharacter ch : characters) {
 			if(ch.isActive()) return true;

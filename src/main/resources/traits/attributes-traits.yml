@@ -1,0 +1,83 @@
+str1:
+    name: "#87d65cStrength I"
+    cost: 1
+    key: attributes
+    attribute-modifiers:
+        - strength.1
+
+str2:
+    name: "#87d65cStrength II"
+    cost: 2
+    key: attributes
+    attribute-modifiers:
+        - strength.1
+
+dex1:
+    name: "#87d65cDexterity I"
+    cost: 1
+    key: attributes
+    attribute-modifiers:
+        - dexterity.1
+
+dex2:
+    name: "#87d65cDexterity II"
+    cost: 2
+    key: attributes
+    attribute-modifiers:
+        - dexterity.1
+
+con1:
+    name: "#87d65cConstitution I"
+    cost: 1
+    key: attributes
+    attribute-modifiers:
+        - constitution.1
+
+con2:
+    name: "#87d65cConstitution II"
+    cost: 2
+    key: attributes
+    attribute-modifiers:
+        - constitution.1
+
+int1:
+    name: "#87d65cIntelligence I"
+    cost: 1
+    key: attributes
+    attribute-modifiers:
+        - intelligence.1
+
+int2:
+    name: "#87d65cIntelligence II"
+    cost: 2
+    key: attributes
+    attribute-modifiers:
+        - intelligence.1
+
+wis1:
+    name: "#87d65cWisdom I"
+    cost: 1
+    key: attributes
+    attribute-modifiers:
+        - wisdom.1
+
+wis2:
+    name: "#87d65cWisdom II"
+    cost: 2
+    key: attributes
+    attribute-modifiers:
+        - wisdom.1
+
+cha1:
+    name: "#87d65cCharisma I"
+    cost: 1
+    key: attributes
+    attribute-modifiers:
+        - charisma.1
+
+cha2:
+    name: "#87d65cCharisma II"
+    cost: 2
+    key: attributes
+    attribute-modifiers:
+        - charisma.1

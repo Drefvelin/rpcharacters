@@ -13,16 +13,19 @@ professions:
     - alchemist(#b57f6eAlchemist Experience)
     - engineer(#b57f6eEngineer Experience)
     - forester(#b57f6eForester Experience)
-    - fisher(#b57f6eFisher Experience)
     - agriculturist(#b57f6eAgriculturist Experience)
 
 background-trait-types:
+    - homeland
     - cataclysm
     - reclamation
-    - expedition
-    - ambition
+    - motivation
+    - gift
+    - virtue
+    - combat
     - physical
     - celestial
+    - attributes
 
 editable-trait-types:
     - personality
@@ -68,3 +71,8 @@ clue-spawn-radius: 3
 conversation:
   reply-timeout-seconds: 30
   pair-cooldown-hours: 2
+
+# ProvinceSystem creation catalog sync (Step 19.02)
+characters-api:
+  base-url: "http://127.0.0.1:18001"
+  plugin-key: "dev-plugin-key"

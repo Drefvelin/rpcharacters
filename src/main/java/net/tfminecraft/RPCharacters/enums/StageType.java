@@ -7,4 +7,5 @@ public enum StageType {
 	QUESTIONS,
 	CLUE,
 	SUMMARY,
+	ATTRIBUTES,
 }

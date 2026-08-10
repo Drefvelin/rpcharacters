@@ -1,0 +1,105 @@
+conquest:
+    name: "#87d65cConquerer"
+    key: motivation
+    description:
+        - "§7This character came to Vardera seeking to conquer"
+        - "§7its lands, either untouched or directly occupied."
+    attribute-modifiers:
+        - strength.2
+        - dexterity.1
+        - constitution.1
+        - intelligence.1
+    experience-modifiers:
+        engineer:
+            modifier: 5
+        smith:
+            modifier: 5
+
+
+wealth:
+    name: "#87d65cAdventurer"
+    key: motivation
+    description:
+        - "§7This character came to Vardera seeking adventure,"
+        - "§7fortune and glory in a developing province."
+    attribute-modifiers:
+        - dexterity.2
+        - strength.1
+        - wisdom.1
+        - charisma.1
+    experience-modifiers:
+        alchemist:
+            modifier: 5
+        miner:
+            modifier: 5
+
+asylum:
+    name: "#87d65cRefugee"
+    key: motivation
+    description:
+        - "§7This character came to Vardera seeking asylum or"
+        - "§7refuge from the political disarray of another place."
+    attribute-modifiers:
+        - constitution.2
+        - dexterity.1
+        - intelligence.1
+        - wisdom.1
+    experience-modifiers:
+        agriculturist:
+            modifier: 5
+        forester:
+            modifier: 5
+
+        
+trade:
+    name: "#87d65cEntrepreneur"
+    key: motivation
+    description:
+        - "§7This character came to Vardera to offer a service"
+        - "§7to its people with a new or established business."
+    attribute-modifiers:
+        - intelligence.2
+        - strength.1
+        - dexterity.1
+        - charisma.1
+    experience-modifiers:
+        miner:
+            modifier: 5
+        smith:
+            modifier: 5
+      
+ 
+justice:
+    name: "#87d65cCrusader"
+    key: motivation
+    description:
+        - "§7This character came to Vardera to oppose the Empire"
+        - "§7of Solmyrith, or the malignant forces of Adavaar."
+    attribute-modifiers:
+        - wisdom.2
+        - strength.1
+        - constitution.1
+        - charisma.1
+    experience-modifiers:
+        alchemist:
+            modifier: 5
+        forester:
+            modifier: 5
+        
+
+companionship:
+    name: "#87d65cNetworker"
+    key: motivation
+    description:
+        - "§7This character came to Vardera looking to create new"
+        - "§7connections and find friends, partners or family."
+    attribute-modifiers:
+        - charisma.2
+        - constitution.1
+        - wisdom.1
+        - intelligence.1
+    experience-modifiers:
+        agriculturist:
+            modifier: 5
+        engineer:
+            modifier: 5

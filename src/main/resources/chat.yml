@@ -125,7 +125,7 @@ channels:
     commands: [dm, narrate]
     require-character: false
     use-perm: rpchar.chat.admin
-    read-perm: rpchar.chat.admin
+    read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
     format: '&7{message}'
     range: 64

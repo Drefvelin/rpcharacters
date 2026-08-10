@@ -1,6 +1,7 @@
 aspect1:
     name: "#87d65cAspect of Osenis"
     key: celestial
+    cost: 1
     description:
         - "§7This character embodies the might of the Oseni."
     attribute-modifiers:
@@ -9,6 +10,7 @@ aspect1:
 aspect2:
     name: "#87d65cAspect of Varden"
     key: celestial
+    cost: 1
     description:
         - "§7This character embodies the agility of the Vardir."
     attribute-modifiers:
@@ -17,6 +19,7 @@ aspect2:
 aspect3:
     name: "#87d65cAspect of Metora"
     key: celestial
+    cost: 1
     description:
         - "§7This character embodies the resilience of the Metorans."
     attribute-modifiers:
@@ -25,6 +28,7 @@ aspect3:
 aspect4:
     name: "#87d65cAspect of Seithrin"
     key: celestial
+    cost: 1
     description:
         - "§7This character embodies the intellect of the Seithr."
     attribute-modifiers:
@@ -33,6 +37,7 @@ aspect4:
 aspect5:
     name: "#87d65cAspect of Mitlan"
     key: celestial
+    cost: 1
     description:
         - "§7This character embodies the insight of the Mitlani."
     attribute-modifiers:
@@ -41,7 +46,22 @@ aspect5:
 aspect6:
     name: "#87d65cAspect of Cerrith"
     key: celestial
+    cost: 1
     description:
         - "§7This character embodies the spirit of the Cerrith."
     attribute-modifiers:
+        - charisma.1
+
+aspect7:
+    name: "#87d65cAspect of Arcanum"
+    key: celestial
+    cost: 3
+    description:
+        - "§7This character embodies the perfection of the Arcanum."
+    attribute-modifiers:
+        - strength.1
+        - dexterity.1
+        - constitution.1
+        - intelligence.1
+        - wisdom.1
         - charisma.1

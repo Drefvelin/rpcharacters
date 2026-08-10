@@ -234,6 +234,8 @@ public class RPCharacters extends JavaPlugin{
 		StageLoader.oList.clear();
 		stageLoader.load(new File(getDataFolder(), "stages.yml"));
 		WorldGuardBridge.init();
+		net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService.pushAsync(this);
+		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.pullAsync(this);
 	}
 	
 	public void createFolders() {

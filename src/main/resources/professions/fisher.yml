@@ -1,25 +1,25 @@
 name: Fisher
 item:
   material: fishing_rod
-  name: #87d65cFisher
+  name: §aFisher
   lore:
   - §7Spend points earned through leveling
-  - §7the #87d65cFisher §7Profession in #d6cf69/profile
+  - §7the §aFisher §7Profession in §e/profile
 upgrades:
   lure_1:
     item:
-      name: #c9a24fLure I
+      name: §6Lure I
       material: shears
       model_data: 50000
       lore:
-      - §7Unlocks crafting the #ffffffIron Hook and Bait
+      - §7Unlocks crafting the §fIron Hook and Bait
     cost: 1
     type: permission
     unlocks:
     - professions.lure_1
   lure_2:
     item:
-      name: #c9a24fLure II
+      name: §6Lure II
       material: fishing_rod
       model_data: 2
       lore:
@@ -32,11 +32,11 @@ upgrades:
     - professions.lure_2
   lure_3:
     item:
-      name: #c9a24fLure III
+      name: §6Lure III
       material: fishing_rod
       model_data: 3
       lore:
-      - §7Unlocks crafting the #6b6b6bAbyssalite Fishing Rod, Hook and Baits
+      - §7Unlocks crafting the §8Abyssalite Fishing Rod, Hook and Baits
     cost: 3
     type: permission
     requires:
@@ -45,11 +45,11 @@ upgrades:
     - professions.lure_3
   lure_4:
     item:
-      name: #c9a24fLure IV
+      name: §6Lure IV
       material: fishing_rod
       model_data: 3
       lore:
-      - §7Unlocks crafting the #56ccf2Mythril Fishing Rod, Hook and Baits
+      - §7Unlocks crafting the §3Mythril Fishing Rod, Hook and Baits
     cost: 4
     type: permission
     requires:
@@ -58,18 +58,18 @@ upgrades:
     - professions.lure_4
   fisher_weapon_1:
     item:
-      name: #c9a24fFisher Weapon Maker I
+      name: §6Fisher Weapon Maker I
       material: iron_sword
       model_data: 24
       lore:
-      - §7Unlocks crafting #ffffffFish Weaponry
+      - §7Unlocks crafting §fFish Weaponry
     cost: 1
     type: permission
     unlocks:
     - professions.fisher_weapon_1
   fisher_weapon_2:
     item:
-      name: #c9a24fFisher Weapon Maker II
+      name: §6Fisher Weapon Maker II
       material: iron_sword
       model_data: 24
       lore:
@@ -82,11 +82,11 @@ upgrades:
     - professions.fisher_weapon_2
   fisher_weapon_3:
     item:
-      name: #c9a24fFisher Weapon Maker III
+      name: §6Fisher Weapon Maker III
       material: iron_sword
       model_data: 24
       lore:
-      - §7Unlocks crafting #6b6b6bShark Weaponry
+      - §7Unlocks crafting §8Shark Weaponry
     cost: 3
     requires:
     - fisher_weapon_2
@@ -95,11 +95,11 @@ upgrades:
     - professions.fisher_weapon_3
   fisher_weapon_4:
     item:
-      name: #c9a24fFisher Weapon Maker IV
+      name: §6Fisher Weapon Maker IV
       material: iron_sword
       model_data: 24
       lore:
-      - §7Unlocks crafting #56ccf2Orca Weaponry
+      - §7Unlocks crafting §3Orca Weaponry
     cost: 4
     requires:
     - fisher_weapon_3
@@ -108,18 +108,18 @@ upgrades:
     - professions.fisher_weapon_4
   fisher_armor_1:
     item:
-      name: #c9a24fFisher Armor Maker I
+      name: §6Fisher Armor Maker I
       material: leather_chestplate
       model_data: 10090
       lore:
-      - §7Unlocks crafting #ffffffFish Scale Armor
+      - §7Unlocks crafting §fFish Scale Armor
     cost: 1
     type: permission
     unlocks:
     - professions.fisher_armor_1
   fisher_armor_2:
     item:
-      name: #c9a24fFisher Armor Maker II
+      name: §6Fisher Armor Maker II
       material: leather_chestplate
       model_data: 10091
       lore:
@@ -132,11 +132,11 @@ upgrades:
     - professions.fisher_armor_2
   fisher_armor_3:
     item:
-      name: #c9a24fFisher Armor Maker III
+      name: §6Fisher Armor Maker III
       material: leather_chestplate
       model_data: 10092
       lore:
-      - §7Unlocks crafting #6b6b6bShark Scale Armor
+      - §7Unlocks crafting §8Shark Scale Armor
     cost: 3
     requires:
     - fisher_armor_2
@@ -145,11 +145,11 @@ upgrades:
     - professions.fisher_armor_3
   fisher_armor_4:
     item:
-      name: #c9a24fFisher Armor Maker IV
+      name: §6Fisher Armor Maker IV
       material: leather_chestplate
       model_data: 10093
       lore:
-      - §7Unlocks crafting #56ccf2Orca Scale Armor
+      - §7Unlocks crafting §3Orca Scale Armor
     cost: 4
     requires:
     - fisher_armor_3
@@ -158,7 +158,7 @@ upgrades:
     - professions.fisher_armor_4
   fish_cook:
     item:
-      name: #c9a24fFish Cook
+      name: §6Fish Cook
       material: kelp
       model_data: 53
       lore:
@@ -170,20 +170,20 @@ upgrades:
     - professions.fish_cook
   recycler_1:
     item:
-      name: #c9a24fRecycler I
+      name: §6Recycler I
       material: raw_gold
       lore:
-      - §7Unlocks crafting #ffffffRaw Gold
+      - §7Unlocks crafting §fRaw Gold
     cost: 1
     type: permission
     unlocks:
     - professions.recycler_1
   recycler_2:
     item:
-      name: #c9a24fRecycler II
+      name: §6Recycler II
       material: raw_iron
       lore:
-      - §7Unlocks crafting #ffffffRaw Iron
+      - §7Unlocks crafting §fRaw Iron
     cost: 2
     type: permission
     requires:
@@ -192,10 +192,10 @@ upgrades:
     - professions.recycler_2
   recycler_3:
     item:
-      name: #c9a24fRecycler III
+      name: §6Recycler III
       material: diamond
       lore:
-      - §7Unlocks crafting #ffffffDiamonds
+      - §7Unlocks crafting §fDiamonds
     cost: 3
     type: permission
     requires:
@@ -204,22 +204,22 @@ upgrades:
     - professions.recycler_3
   disc_maker_1:
     item:
-      name: #c9a24fBroken Disc Maker I
+      name: §6Broken Disc Maker I
       material: recovery_compass
       model_data: 2
       lore:
-      - §7Unlocks crafting #c9a24fBroken Discs
+      - §7Unlocks crafting §6Broken Discs
     cost: 1
     type: permission
     unlocks:
     - professions.discmaker_1
   disc_maker_2:
     item:
-      name: #c9a24fBroken Disc Maker II
+      name: §6Broken Disc Maker II
       material: recovery_compass
       model_data: 5
       lore:
-      - §7Unlocks crafting #56ccf2Broken Rare Discs
+      - §7Unlocks crafting §bBroken Rare Discs
     cost: 2
     type: permission
     requires:

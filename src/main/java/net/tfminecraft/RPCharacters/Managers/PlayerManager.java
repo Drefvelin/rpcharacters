@@ -72,13 +72,13 @@ public class PlayerManager implements Listener{
 	
 	public static boolean exists(Player p) {
 		for(PlayerData pd : data) {
-			if(pd.getPlayer().equals(p)) return true;
+			if(pd.getPlayer() != null && pd.getPlayer().equals(p)) return true;
 		}
 		return false;
 	}
 	public static PlayerData get(Player p) {
 		for(PlayerData pd : data) {
-			if(pd.getPlayer().equals(p)) return pd;
+			if(pd.getPlayer() != null && pd.getPlayer().equals(p)) return pd;
 		}
 		return null;
 	}
@@ -299,6 +299,9 @@ public class PlayerManager implements Listener{
 	public void onJoin(PlayerJoinEvent e) {
 		Player p = e.getPlayer();
 		initiatePlayer(p);
+		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.pullForPlayerAsync(
+			RPCharacters.plugin, p.getUniqueId()
+		);
 	}
 	@EventHandler
 	public void onLeave(PlayerQuitEvent e) {

@@ -35,6 +35,13 @@ public class ConfigLoader implements LoaderInterface{
         }
         Cache.backgroundTraitTypes = config.getStringList("background-trait-types");
         Cache.continent = config.getString("continent", "Cerrith");
+        if (config.isConfigurationSection("characters-api")) {
+            Cache.charactersApiBaseUrl = config.getString("characters-api.base-url", "").trim();
+            Cache.charactersApiPluginKey = config.getString("characters-api.plugin-key", "").trim();
+        } else {
+            Cache.charactersApiBaseUrl = "";
+            Cache.charactersApiPluginKey = "";
+        }
         Cache.requireCharacter = config.getBoolean("require-character", false);
         Cache.noCharacterFreeze = config.getBoolean("no-character-freeze", true);
         Cache.lackingCluesFreeze = config.getBoolean("lacking-clues-freeze", true);

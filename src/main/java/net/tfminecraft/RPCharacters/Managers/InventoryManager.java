@@ -26,6 +26,7 @@ import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Dependency;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Creation.StageEditLock;
+import net.tfminecraft.RPCharacters.Creation.Stages.AttributesStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
 import net.tfminecraft.RPCharacters.Holder.RPCHolder;
@@ -541,6 +542,160 @@ public class InventoryManager {
 			i.setItem(s.getSlots().get(x), getSelectableItem(player, s, s.getOptions().get(x), cc));
 		}
 	}
+
+	/** Fixed sheet slots: [minus, icon, plus] per attribute index 0..5. */
+	public static int[] attributeSheetSlots(int attrIndex) {
+		int[][] layout = {
+			{10, 11, 12},
+			{14, 15, 16},
+			{19, 20, 21},
+			{23, 24, 25},
+			{28, 29, 30},
+			{32, 33, 34}
+		};
+		if (attrIndex < 0 || attrIndex >= layout.length) {
+			return new int[] {-1, -1, -1};
+		}
+		return layout[attrIndex];
+	}
+
+	public void attributesView(Player player, AttributesStage s, CharacterCreation cc) {
+		@SuppressWarnings("deprecation")
+		Inventory i = RPCharacters.plugin.getServer().createInventory(
+			new RPCHolder(player, s),
+			s.getSize(),
+			t(RPTexts.MUTED + "Attributes")
+		);
+		attributesUpdate(i, player, s, cc);
+		player.openInventory(i);
+	}
+
+	public void attributesUpdate(Inventory i, Player player, AttributesStage s, CharacterCreation cc) {
+		for (int slot = 0; slot < s.getSize(); slot++) {
+			i.setItem(slot, null);
+		}
+		i.setItem(4, getAttributePointsHeader(s));
+		List<String> attrs = s.getAttributes();
+		for (int idx = 0; idx < attrs.size() && idx < 6; idx++) {
+			String attr = attrs.get(idx);
+			int[] slots = attributeSheetSlots(idx);
+			i.setItem(slots[0], getAttributeMinusItem(attr, s));
+			i.setItem(slots[1], getAttributeStatItem(attr, s));
+			i.setItem(slots[2], getAttributePlusItem(attr, s));
+		}
+		if (cc != null) {
+			i.setItem(s.getSize() - 9, createCancelItem(cc));
+		} else {
+			i.setItem(s.getSize() - 9, createCancelItem(null));
+		}
+		i.setItem(s.getSize() - 1, getAttributeConfirmItem(s));
+	}
+
+	public ItemStack getAttributePointsHeader(AttributesStage s) {
+		ItemStack i = new ItemStack(Material.EXPERIENCE_BOTTLE, Math.max(1, Math.min(64, s.getRemaining())));
+		ItemMeta meta = i.getItemMeta();
+		meta.setDisplayName(t(RPTexts.COMMAND + "Points remaining: " + s.getRemaining()
+			+ " / " + s.getPool()));
+		List<String> lore = new ArrayList<>();
+		lore.add(t(RPTexts.MUTED + "Spend exactly " + s.getPool() + " points."));
+		lore.add(t(RPTexts.MUTED + "Max +" + s.getMaxRank() + " per attribute."));
+		lore.add(t(RPTexts.MUTED + "Cost: 1st rank = 1, 2nd = 2."));
+		meta.setLore(lore);
+		i.setItemMeta(meta);
+		return i;
+	}
+
+	public ItemStack getAttributeConfirmItem(AttributesStage s) {
+		if (s.getRemaining() == 0) {
+			return getConfirmItem();
+		}
+		ItemStack i = new ItemStack(Material.GRAY_DYE, 1);
+		ItemMeta meta = i.getItemMeta();
+		meta.setDisplayName(t(RPTexts.ERROR + "CONFIRM"));
+		List<String> lore = new ArrayList<>();
+		lore.add(t(RPTexts.MUTED + "Spend all points first ("
+			+ s.getRemaining() + " left)."));
+		meta.setLore(lore);
+		i.setItemMeta(meta);
+		return i;
+	}
+
+	private ItemStack attributeActionItem(Material mat, String name, List<String> lore,
+		String attr, String action) {
+		ItemStack i = new ItemStack(mat, 1);
+		ItemMeta meta = i.getItemMeta();
+		meta.setDisplayName(name);
+		meta.setLore(lore);
+		NamespacedKey attrKey = new NamespacedKey(RPCharacters.plugin, "attr_id");
+		NamespacedKey actionKey = new NamespacedKey(RPCharacters.plugin, "attr_action");
+		meta.getPersistentDataContainer().set(attrKey, PersistentDataType.STRING, attr);
+		meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action);
+		i.setItemMeta(meta);
+		return i;
+	}
+
+	public ItemStack getAttributeMinusItem(String attr, AttributesStage s) {
+		int rank = s.getRank(attr);
+		List<String> lore = new ArrayList<>();
+		if (rank <= 0) {
+			lore.add(t(RPTexts.MUTED + "Already at 0."));
+		} else {
+			lore.add(t(RPTexts.MUTED + "Refund " + AttributesStage.costForRank(rank)
+				+ " point(s)."));
+		}
+		return attributeActionItem(
+			rank > 0 ? Material.RED_CONCRETE : Material.GRAY_CONCRETE,
+			t(RPTexts.ERROR + "− " + WordUtils.capitalize(attr)),
+			lore,
+			attr,
+			"minus"
+		);
+	}
+
+	public ItemStack getAttributePlusItem(String attr, AttributesStage s) {
+		int rank = s.getRank(attr);
+		List<String> lore = new ArrayList<>();
+		if (rank >= s.getMaxRank()) {
+			lore.add(t(RPTexts.MUTED + "Max rank reached."));
+		} else {
+			int cost = AttributesStage.costForRank(rank + 1);
+			lore.add(t(RPTexts.MUTED + "Next rank costs " + cost + "."));
+			if (s.getRemaining() < cost) {
+				lore.add(t(RPTexts.ERROR + "Not enough points."));
+			}
+		}
+		boolean can = rank < s.getMaxRank()
+			&& s.getRemaining() >= AttributesStage.costForRank(rank + 1);
+		return attributeActionItem(
+			can ? Material.LIME_CONCRETE : Material.GRAY_CONCRETE,
+			t(RPTexts.SUCCESS + "+ " + WordUtils.capitalize(attr)),
+			lore,
+			attr,
+			"plus"
+		);
+	}
+
+	public ItemStack getAttributeStatItem(String attr, AttributesStage s) {
+		int rank = s.getRank(attr);
+		ItemStack i = new ItemStack(Material.PAPER, Math.max(1, rank));
+		ItemMeta meta = i.getItemMeta();
+		meta.setDisplayName(t(RPTexts.COMMAND + WordUtils.capitalize(attr)
+			+ " +" + rank));
+		List<String> lore = new ArrayList<>();
+		lore.add(t(RPTexts.MUTED + "Current rank: +" + rank
+			+ " / +" + s.getMaxRank()));
+		if (rank < s.getMaxRank()) {
+			lore.add(t(RPTexts.MUTED + "Next costs "
+				+ AttributesStage.costForRank(rank + 1) + "."));
+		}
+		lore.add(t(RPTexts.MUTED + "Points left: " + s.getRemaining()));
+		NamespacedKey attrKey = new NamespacedKey(RPCharacters.plugin, "attr_id");
+		meta.getPersistentDataContainer().set(attrKey, PersistentDataType.STRING, attr);
+		meta.setLore(lore);
+		i.setItemMeta(meta);
+		return i;
+	}
+
 	public void confirmView(Player player) {
 		Inventory i = RPCharacters.plugin.getServer().createInventory(new RPCHolder(player), 27, t(RPTexts.MUTED + "Confirm Action"));
 		i.setItem(11, createItemStack(Material.GREEN_CONCRETE, t(RPTexts.SUCCESS + "Confirm")));

@@ -9,6 +9,9 @@ strong:
         - "§7This character has a strong physique."
     attribute-modifiers:
         - strength.2
+    experience-modifiers:
+        forester:
+            modifier: 5
 weak:
     name: "#d65c5cWeak"
     cost: -1
@@ -19,6 +22,9 @@ weak:
         - "§7This character lacks physical prowess."
     attribute-modifiers:
         - strength.-2
+    experience-modifiers:
+        forester:
+            modifier: -5
 #Dexterity
 agile:
     name: "#87d65cAgile"
@@ -27,9 +33,12 @@ agile:
     mutually-exclusive:
         - clumsy
     description:
-        - "§7This character is quick on their feet."
+        - "§7This character moves with swiftness and skill."
     attribute-modifiers:
         - dexterity.2
+    experience-modifiers:
+        engineer:
+            modifier: 5
 clumsy:
     name: "#d65c5cClumsy"
     cost: -1
@@ -40,6 +49,9 @@ clumsy:
         - "§7This character struggles with movement."
     attribute-modifiers:
         - dexterity.-2
+    experience-modifiers:
+        engineer:
+            modifier: -5
 #Constitution
 tough:
     name: "#87d65cTough"
@@ -51,6 +63,9 @@ tough:
         - "§7This character has a high endurance."
     attribute-modifiers:
         - constitution.2
+    experience-modifiers:
+        miner:
+            modifier: 5
 frail:
     name: "#d65c5cFrail"
     cost: -1
@@ -61,6 +76,9 @@ frail:
         - "§7This character gets tired easily."
     attribute-modifiers:
         - constitution.-2
+    experience-modifiers:
+        miner:
+            modifier: -5
 #Intelligence
 bright:
     name: "#87d65cBright"
@@ -72,6 +90,9 @@ bright:
         - "§7This character is intellectually gifted."
     attribute-modifiers:
         - intelligence.2
+    experience-modifiers:
+        alchemist:
+            modifier: 5
 dim:
     name: "#d65c5cDim"
     cost: -1
@@ -82,6 +103,9 @@ dim:
         - "§7This character isn't the sharpest tool in the shed."
     attribute-modifiers:
         - intelligence.-2
+    experience-modifiers:
+        alchemist:
+            modifier: -5
 #Wisdom
 prudent:
     name: "#87d65cPrudent"
@@ -93,6 +117,9 @@ prudent:
         - "§7This character can depend on their knowledge."
     attribute-modifiers:
         - wisdom.2
+    experience-modifiers:
+        smith:
+            modifier: 5
 ignorant:
     name: "#d65c5cIgnorant"
     cost: -1
@@ -103,6 +130,9 @@ ignorant:
         - "§7This character does not retain knowledge well."
     attribute-modifiers:
         - wisdom.-2
+    experience-modifiers:
+        alchemist:
+            modifier: -5
 #Charisma
 magnetic:
     name: "#87d65cMagnetic"
@@ -114,6 +144,9 @@ magnetic:
         - "§7This character wields a natural charm."
     attribute-modifiers:
         - charisma.2
+    experience-modifiers:
+        agriculturist:
+            modifier: 5
 awkward:
     name: "#d65c5cAwkward"
     cost: -1
@@ -124,3 +157,6 @@ awkward:
         - "§7This character struggles to relate to others."
     attribute-modifiers:
         - charisma.-2
+    experience-modifiers:
+        agriculturist:
+            modifier: -5

@@ -1,0 +1,53 @@
+strength:
+    name: "#87d65cGift of Strength"
+    key: gift
+    description:
+        - "§7This character is gifted with Strength, giving power to"
+        - "§7their attacks, most class skills, and Mage Blade spells."
+    attribute-modifiers:
+        - strength.2
+
+dexterity:
+    name: "#87d65cGift of Dexterity"
+    key: gift
+    description:
+        - "§7This character is gifted with Dexterity, giving power to"
+        - "§7their projectiles, Archer skills, and ability to lockpick."
+    attribute-modifiers:
+        - dexterity.2
+
+constitution:
+    name: "#87d65cGift of Constitution"
+    key: gift
+    description:
+        - "§7This character is gifted with Constituion, and has more"
+        - "§7maximum health and therefore greater tolerance to pain."
+    attribute-modifiers:
+        - constitution.2
+
+intelligence:
+    name: "#87d65cGift of Intelligence"
+    key: gift
+    description:
+        - "§7This character is gifted with Intelligence, allowing them"
+        - "§7to research easier, and wield and regenerate more Mana."
+    attribute-modifiers:
+        - intelligence.2
+
+wisdom:
+    name: "#87d65cGift of Wisdom"
+    key: gift
+    description:
+        - "§7This character is gifted with Wisdom, allowing them to"
+        - "§7better detect hidden things and use skills more often."
+    attribute-modifiers:
+        - wisdom.2
+
+charisma:
+    name: "#87d65cGift of Charisma"
+    key: gift
+    description:
+        - "§7This character is gifted with Charisma, giving power to"
+        - "§7their magic, firearm aim and reload, and ability to hear."
+    attribute-modifiers:
+        - charisma.2

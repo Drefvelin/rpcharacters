@@ -22,6 +22,7 @@ import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Creation.SummaryEditSupport;
 import net.tfminecraft.RPCharacters.Creation.StageEditLock;
+import net.tfminecraft.RPCharacters.Creation.Stages.AttributesStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.ClueStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
@@ -353,7 +354,74 @@ public class CreationManager implements Listener{
 		Stage activeStage = cc.getActiveStage();
 		if (activeStage instanceof SelectionStage) {
 			click(p, activeStage, cc, e);
+		} else if (activeStage instanceof AttributesStage) {
+			attributesClick(p, (AttributesStage) activeStage, cc, e);
 		}
+	}
+
+	private void attributesClick(Player p, AttributesStage s, CharacterCreation cc, InventoryClickEvent e) {
+		Inventory inventory = e.getClickedInventory();
+		if (inventory == null) {
+			return;
+		}
+		if (!(inventory.getHolder() instanceof RPCHolder)) {
+			return;
+		}
+		RPCHolder h = (RPCHolder) inventory.getHolder();
+		int slot = e.getSlot();
+		if (slot == s.getSize() - 9) {
+			if (cc != null) {
+				if (cc.isEditingFromSummary() || cc.isEditing()) {
+					h.override();
+					p.closeInventory();
+					cc.returnToSummary();
+					return;
+				}
+				cc.cancel();
+			}
+			h.override();
+			p.closeInventory();
+			return;
+		}
+		if (slot == s.getSize() - 1) {
+			h.override();
+			s.confirm(p, cc);
+			return;
+		}
+		ItemStack clicked = e.getCurrentItem();
+		if (clicked == null || clicked.getItemMeta() == null) {
+			return;
+		}
+		NamespacedKey attrKey = new NamespacedKey(RPCharacters.plugin, "attr_id");
+		NamespacedKey actionKey = new NamespacedKey(RPCharacters.plugin, "attr_action");
+		String attr = clicked.getItemMeta().getPersistentDataContainer()
+			.get(attrKey, PersistentDataType.STRING);
+		String action = clicked.getItemMeta().getPersistentDataContainer()
+			.get(actionKey, PersistentDataType.STRING);
+		if (attr == null || action == null) {
+			return;
+		}
+		boolean changed = false;
+		if ("plus".equals(action)) {
+			changed = s.tryIncrease(attr);
+			if (!changed) {
+				RPTexts.send(p, RPTexts.ERROR + "Cannot increase " + attr + ".");
+				p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+				return;
+			}
+		} else if ("minus".equals(action)) {
+			changed = s.tryDecrease(attr);
+			if (!changed) {
+				RPTexts.send(p, RPTexts.ERROR + "Cannot decrease " + attr + ".");
+				p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+				return;
+			}
+		} else {
+			return;
+		}
+		p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+		InventoryManager inv = new InventoryManager();
+		inv.attributesUpdate(e.getView().getTopInventory(), p, s, cc);
 	}
 	
 	@EventHandler
@@ -374,6 +442,13 @@ public class CreationManager implements Listener{
 					inv.selectionView(p, (SelectionStage) stage, null);
 				}
 			}.runTaskLater(RPCharacters.plugin, 3L);
+			} else if (stage instanceof AttributesStage) {
+				new BukkitRunnable() {
+					public void run() {
+						InventoryManager inv = new InventoryManager();
+						inv.attributesView(p, (AttributesStage) stage, null);
+					}
+				}.runTaskLater(RPCharacters.plugin, 3L);
 			}
 			return;
 		}
@@ -389,6 +464,16 @@ public class CreationManager implements Listener{
 				{
 					InventoryManager inv = new InventoryManager();
 					inv.selectionView(p, s, cc);
+				}
+			}.runTaskLater(RPCharacters.plugin, 3L);
+		} else if (activeStage instanceof AttributesStage) {
+			AttributesStage s = (AttributesStage) activeStage;
+			if (!s.isActive()) return;
+			if (h.isOverridden()) return;
+			new BukkitRunnable() {
+				public void run() {
+					InventoryManager inv = new InventoryManager();
+					inv.attributesView(p, s, cc);
 				}
 			}.runTaskLater(RPCharacters.plugin, 3L);
 		}

@@ -2,7 +2,7 @@ human:
     name: "#ffffffHuman"
     shown: true
     key: race
-    age-max: 100
+    age-max: 110
     description:
         - "§7The most common of the Cerrithian races."
         - "§7Can be found in every corner of the world."
@@ -18,7 +18,7 @@ elf:
     name: "#5682f2Elf"
     shown: true
     key: race
-    age-max: 800
+    age-max: 210
     description:
         - "§7Known for their physical beauty and long ears."
         - "§7Live twice as long as humans, often wiser."
@@ -35,7 +35,7 @@ orc:
     name: "#87d65cOrc"
     shown: true
     key: race
-    age-max: 120
+    age-max: 90
     description:
         - "§7Are the result of Arcanum exposure,"
         - "§7created through experiments on humans."
@@ -55,7 +55,7 @@ goblin:
     name: "#87d65cGoblin"
     shown: true
     key: race
-    age-max: 120
+    age-max: 90
     description:
         - "§7Like orcs, have greenish skin from transformation,"
         - "§7though not from experimentation, but harsh environments."
@@ -73,10 +73,12 @@ dwarf:
     name: "#c9a24fDwarf"
     shown: true
     key: race
-    age-max: 400
+    age-max: 160
     description:
+        - "§7One of the rarer Cerrithian races,"
+        - "§7nearly driven to extinction by the Cataclysm."
         - "§7Known for their short, strong bodies and full beards."
-        - "§7Adapted for the mountains of Cerrith, great miners"
+        - "§7Adapted for the mountains of Cerrith, great laborers."
         - "§7Typically found in large underground cities."
         - "§7Are often industrious and value tradition."
     attribute-modifiers:
@@ -90,11 +92,11 @@ dryad:
     name: "#87d65cDryad"
     shown: true
     key: race
-    age-max: 600
+    age-max: 210
     description:
         - "§7One of the rarer Cerrithian races."
-        - "§7Come in many different forms."
-        - "§7Each in harmony with a natural biome."
+        - "§7Come in many different forms,"
+        - "§7each in harmony with a natural biome."
         - "§7Most are a hybrid of humanlike and plant features."
         - "§7Found in places of strong elemental magic."
         - "§7Known for being peaceful and magically connected."
@@ -109,14 +111,15 @@ oseni:
     name: "#d65c5cOseni"
     shown: true
     key: race
-    age-max: 200
+    age-max: 160
     description:
         - "§7Originally residents of the Fire Plane,"
         - "§7many chose to stay after the invasion of Cerrith."
         - "§7Able to survive due to an alliance between planes."
         - "§7Come from a rigid warrior culture with castes."
         - "§7Known for their red skin and other demonic features."
-        - "§7Often not accepted due to hatred of Oseni invasions."
+        - "§7Often not accepted due to hatred of Oseni invasions,"
+        - "§7and are outlawed in the nearby Solmyrith Empire."
     attribute-modifiers:
         - strength.3
         - dexterity.3

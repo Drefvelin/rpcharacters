@@ -134,8 +134,74 @@ public class Database {
         }
 		return null;
 	}
+
+	/**
+	 * Load player data by UUID without requiring an online Player.
+	 * Returns a new empty PlayerData if no file exists.
+	 */
+	public PlayerData loadPlayerData(java.util.UUID uuid) {
+		if (uuid == null) {
+			return null;
+		}
+		org.bukkit.entity.Player online = Bukkit.getPlayer(uuid);
+		if (online != null) {
+			PlayerData loaded = loadPlayer(online);
+			return loaded != null ? loaded : new PlayerData(online);
+		}
+		File file = new File("plugins/RPCharacters/data/playerdata", uuid.toString() + ".json");
+		if (!file.exists()) {
+			return new PlayerData(uuid);
+		}
+		try {
+			json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+			Long lastCharacterSwitchAtMs = null;
+			if (json.containsKey("last-character-switch-ms")) {
+				lastCharacterSwitchAtMs = ((Number) json.get("last-character-switch-ms")).longValue();
+			} else if (json.containsKey("cooldown")) {
+				int remainingMinutes = (int) Math.round(((Number) json.get("cooldown")).doubleValue());
+				lastCharacterSwitchAtMs = PermissionGroupService.migrateLegacyCooldownMinutes(remainingMinutes);
+			}
+			boolean eighteen = json.containsKey("eighteen") ? Boolean.parseBoolean((String) json.get("eighteen")) : false;
+			List<String> completedStages = new ArrayList<>();
+			int i = 0;
+			JSONArray stageArray = (JSONArray) json.get("completed stages");
+			if (stageArray != null) {
+				while (i < stageArray.size()) {
+					completedStages.add(stageArray.get(i).toString());
+					i++;
+				}
+			}
+			int createdAtEpochSeconds = DurationParser.resolveCreatedAtEpochSeconds(
+					json.containsKey("created-at"),
+					json.containsKey("created-at") ? ((Number) json.get("created-at")).intValue() : 0,
+					json.containsKey("account-playtime-seconds"),
+					json.containsKey("account-playtime-seconds") ? ((Number) json.get("account-playtime-seconds")).intValue() : 0,
+					file);
+			Integer accountSkillPointsTotal = null;
+			if (json.containsKey("account-skill-points-total")) {
+				accountSkillPointsTotal = ((Number) json.get("account-skill-points-total")).intValue();
+			}
+			PlayerData pd = new PlayerData(
+					uuid, completedStages, lastCharacterSwitchAtMs, eighteen, createdAtEpochSeconds,
+					accountSkillPointsTotal);
+			if (json.containsKey("account-attribute-points-total")) {
+				pd.setAccountAttributePointsTotal(((Number) json.get("account-attribute-points-total")).intValue());
+			}
+			loadAccountProfessionPoints(pd, json);
+			loadInvestigationPoints(pd, json);
+			if (json.containsKey("permadeath-tutorial-dismissed")) {
+				pd.setPermadeathTutorialDismissed(Boolean.parseBoolean((String) json.get("permadeath-tutorial-dismissed")));
+			}
+			loadCharacters(pd);
+			return pd;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return new PlayerData(uuid);
+		}
+	}
+
 	public void loadCharacters(PlayerData pd) {
-		File folder = new File("plugins/RPCharacters/data/characterdata", pd.getPlayer().getUniqueId().toString());
+		File folder = new File("plugins/RPCharacters/data/characterdata", pd.getUniqueId().toString());
 		if (!folder.exists() || !folder.isDirectory()) {
 			return;
 		}
@@ -201,9 +267,9 @@ public class Database {
 	@SuppressWarnings("unchecked")
 	public void savePlayer(PlayerData pd) {
 		try {
-			File subFolder = new File("plugins/RPCharacters/data/characterdata", pd.getPlayer().getUniqueId().toString());
+			File subFolder = new File("plugins/RPCharacters/data/characterdata", pd.getUniqueId().toString());
 			if(!subFolder.exists()) subFolder.mkdir();
-			File file = new File("plugins/RPCharacters/data/playerdata", pd.getPlayer().getUniqueId().toString()+".json");
+			File file = new File("plugins/RPCharacters/data/playerdata", pd.getUniqueId().toString()+".json");
 			file.createNewFile();
         	PrintWriter pw = new PrintWriter(file, "UTF-8");
         	pw.print("{");
@@ -247,7 +313,7 @@ public class Database {
 			}
         	for(RPCharacter c : pd.getCharacters()) {
         		saveCharacter(pd, c);
-        		if(c.isActive()) {
+        		if(c.isActive() && pd.getPlayer() != null) {
             		Integrator integrator = new Integrator();
             		
             		i = 0;
@@ -268,7 +334,11 @@ public class Database {
 	@SuppressWarnings("unchecked")
 	public void saveCharacter(PlayerData pd, RPCharacter c) {
 		try {
-			File file = new File("plugins/RPCharacters/data/characterdata", pd.getPlayer().getUniqueId().toString()+"/"+c.getId()+".json");
+			File dir = new File("plugins/RPCharacters/data/characterdata", pd.getUniqueId().toString());
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			File file = new File(dir, c.getId()+".json");
 			file.createNewFile();
         	PrintWriter pw = new PrintWriter(file, "UTF-8");
         	pw.print("{");
