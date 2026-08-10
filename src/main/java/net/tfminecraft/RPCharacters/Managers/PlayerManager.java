@@ -2,8 +2,11 @@ package net.tfminecraft.RPCharacters.Managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -63,6 +66,8 @@ public class PlayerManager implements Listener{
 	private HashMap<Player, ConfirmType> confirm = new HashMap<>();
 	private HashMap<Player, RPCharacter> last = new HashMap<>();
 	private HashMap<Player, Long> cooldown = new HashMap<>();
+	/** In-memory Discord gate; TFMCWeb re-applies on join (not persisted). */
+	private final Set<UUID> discordGateRequired = new HashSet<>();
 	private Database db = new Database();
 	
 	public static boolean exists(Player p) {
@@ -111,6 +116,36 @@ public class PlayerManager implements Listener{
 		frozen.remove(p);
 	}
 
+	/**
+	 * External Discord gate (TFMCWeb). Does not touch characters.
+	 * Survival freeze is applied via {@link #reevaluateFreeze(Player)}.
+	 */
+	public void setDiscordGate(UUID id, boolean required) {
+		if (id == null) {
+			return;
+		}
+		if (required) {
+			discordGateRequired.add(id);
+		} else {
+			discordGateRequired.remove(id);
+		}
+		Player online = Bukkit.getPlayer(id);
+		if (online != null && online.isOnline()) {
+			reevaluateFreeze(online);
+		}
+	}
+
+	public void setDiscordGate(Player p, boolean required) {
+		if (p == null) {
+			return;
+		}
+		setDiscordGate(p.getUniqueId(), required);
+	}
+
+	public boolean isDiscordGate(UUID id) {
+		return id != null && discordGateRequired.contains(id);
+	}
+
 	public void reevaluateFreeze(Player p) {
 		if (p.isDead() || net.tfminecraft.RPCharacters.permadeath.PermadeathService.isAwaitingPermakillRespawn(p)) {
 			return;
@@ -133,6 +168,9 @@ public class PlayerManager implements Listener{
 	}
 
 	private FreezeReason getFreezeReason(Player player, PlayerData pd) {
+		if (player != null && isDiscordGate(player.getUniqueId())) {
+			return FreezeReason.DISCORD_REQUIRED;
+		}
 		if (Cache.excessCharactersFreeze && player != null) {
 			int max = CharacterSlotService.getMaxAliveCharacters(player);
 			int alive = pd.getCharacters(Status.ALIVE).size();
@@ -158,7 +196,14 @@ public class PlayerManager implements Listener{
 			return;
 		}
 		cooldown.put(p, System.currentTimeMillis() + 5000L);
-		if (reason == FreezeReason.NO_CHARACTER) {
+		if (reason == FreezeReason.DISCORD_REQUIRED) {
+			RPTexts.title(p, " ", RPTexts.ERROR + "Discord Required!", 5, 50, 5);
+			RPTexts.send(p, RPTexts.ERROR + "You must be linked to Discord and in the TFMC server to play.");
+			RPTexts.send(p, RPTexts.ERROR + "Link with " + RPTexts.COMMAND + "/linkdiscord"
+					+ RPTexts.ERROR + " (then run " + RPTexts.COMMAND + "/linkdiscord <code>"
+					+ RPTexts.ERROR + " in Discord).");
+			RPTexts.send(p, RPTexts.MUTED + "If you left Discord, rejoin within 1 hour to keep your link.");
+		} else if (reason == FreezeReason.NO_CHARACTER) {
 			RPTexts.title(p, " ", RPTexts.ERROR + "No Character!", 5, 50, 5);
 			RPTexts.send(p, RPTexts.ERROR + "You do not have an active character!");
 			RPTexts.send(p, RPTexts.ERROR + "Create one with " + RPTexts.COMMAND + "/rpcharacter create");

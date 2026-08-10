@@ -326,6 +326,20 @@ public class RPCharacters extends JavaPlugin{
 		return playerManager;
 	}
 
+	/** External Discord gate (TFMCWeb); see {@link PlayerManager#setDiscordGate(Player, boolean)}. */
+	public static void setDiscordGate(Player player, boolean required) {
+		playerManager.setDiscordGate(player, required);
+	}
+
+	/** External Discord gate by UUID (online reevaluate if present). */
+	public static void setDiscordGate(java.util.UUID id, boolean required) {
+		playerManager.setDiscordGate(id, required);
+	}
+
+	public static boolean isDiscordGate(java.util.UUID id) {
+		return playerManager.isDiscordGate(id);
+	}
+
 	public static SpawnedClueManager getSpawnedClueManager() {
 		return SpawnedClueManager.get();
 	}

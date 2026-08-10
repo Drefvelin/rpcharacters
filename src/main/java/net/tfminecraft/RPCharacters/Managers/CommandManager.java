@@ -216,6 +216,36 @@ public class CommandManager implements Listener, CommandExecutor{
 				}
 				ClueDiscoveryVisualManager.get().refreshViewer(p);
 				return true;
+			} else if (cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("discordgate")
+					&& args.length == 3) {
+				if (!Permissions.isAdmin(sender)) {
+					RPTexts.sendPrefixed(p, RPTexts.ERROR + "You do not have access to this command");
+					return true;
+				}
+				boolean enable;
+				if (args[2].equalsIgnoreCase("on")) {
+					enable = true;
+				} else if (args[2].equalsIgnoreCase("off")) {
+					enable = false;
+				} else {
+					RPTexts.sendPrefixed(p, RPTexts.ERROR + "Usage: /rpcharacter discordgate <player> <on|off>");
+					return true;
+				}
+				Player argPlayer = Bukkit.getPlayerExact(args[1]);
+				if (argPlayer == null) {
+					RPTexts.sendPrefixed(p, RPTexts.ERROR + "No online player found: " + args[1]);
+					return true;
+				}
+				RPCharacters.getPlayerManager().setDiscordGate(argPlayer, enable);
+				if (enable) {
+					RPTexts.sendPrefixed(p, RPTexts.WARN + "Discord gate " + RPTexts.SUCCESS + "ON"
+							+ RPTexts.WARN + " for " + argPlayer.getName()
+							+ RPTexts.MUTED + " (Survival freeze; characters untouched).");
+				} else {
+					RPTexts.sendPrefixed(p, RPTexts.WARN + "Discord gate " + RPTexts.ERROR + "OFF"
+							+ RPTexts.WARN + " for " + argPlayer.getName() + ".");
+				}
+				return true;
 			} else if (cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("dismisspdwarning")) {
 				PlayerData pd = PlayerManager.get(p);
 				if (pd == null) {

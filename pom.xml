@@ -11,7 +11,14 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <worldguard.version>7.0.14</worldguard.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- 7.0.14+ needs Java 21; this PC builds with JDK 17 -->
+        <worldguard.version>7.0.9</worldguard.version>
+        <!-- Same layout as Workspace/armourshop -->
+        <tfmc.refs>D:/Documents/TFMC/ReferenceLibs</tfmc.refs>
+        <tfmc.builds>D:/Documents/TFMC/Builds/RPCharacters</tfmc.builds>
+        <tfmc.tlibs>D:/Documents/TFMC/Builds/TLibs</tfmc.tlibs>
+        <tfmc.plugins>D:/Documents/TFMC/Workspace/plugins</tfmc.plugins>
     </properties>
 
     <repositories>
@@ -24,73 +31,74 @@
     <dependencies>
         <dependency>
             <groupId>local</groupId>
-            <artifactId>LoneLibs</artifactId>
+            <artifactId>ItemsAdder</artifactId>
             <version>3.5.0</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/ItemsAdder_3.5.0-r2.jar</systemPath>
+            <systemPath>${tfmc.refs}/ItemsAdder_3.5.0-r2.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>TLibs</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/TFMC/TLibs/TLibs.jar</systemPath>
+            <systemPath>${tfmc.tlibs}/TLibs.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>json-simple</artifactId>
             <version>1.1</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/json-simple-1.1.jar</systemPath>
+            <systemPath>${tfmc.refs}/json-simple-1.1.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>gson</artifactId>
             <version>2.10.1</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/gson-2.10.1.jar</systemPath>
+            <systemPath>${tfmc.refs}/gson-2.10.1.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>MMOCore</artifactId>
             <version>1.13.1</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MMOCore-1.13.1.jar</systemPath>
+            <systemPath>${tfmc.refs}/MMOCore-1.13.1.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>MMOItems</artifactId>
             <version>6.10</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MMOItems-6.10.jar</systemPath>
+            <systemPath>${tfmc.refs}/MMOItems-6.10.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>MythicLib</artifactId>
-            <version>1.6.1</version>
+            <version>1.7</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MythicLib-1.7.jar</systemPath>
+            <systemPath>${tfmc.refs}/MythicLib-1.7.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>PlaceholderAPI</artifactId>
-            <version>2.11.3</version>
+            <version>2.12.2</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/TFMC/TFMC Update/plugins/PlaceholderAPI-2.11.3.jar</systemPath>
+            <systemPath>${tfmc.plugins}/PlaceholderAPI-2.12.2.jar</systemPath>
         </dependency>
+        <!-- Compile-time only; LuckPerms plugin provides API at runtime -->
         <dependency>
             <groupId>local</groupId>
-            <artifactId>LuckPerms</artifactId>
-            <version>5.4.89</version>
+            <artifactId>luckperms-api</artifactId>
+            <version>5.4</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/TFMC/TFMC Update/plugins/LuckPerms-Bukkit-5.4.89.jar</systemPath>
+            <systemPath>${tfmc.refs}/api-5.4.jar</systemPath>
         </dependency>
-		<dependency>
+        <dependency>
             <groupId>local</groupId>
             <artifactId>ProtocolLib</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/ProtocolLib.jar</systemPath>
+            <systemPath>${tfmc.refs}/ProtocolLib.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.joml</groupId>
@@ -99,18 +107,18 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>local</groupId>
-            <artifactId>Bungeecord</artifactId>
-            <version>1.0</version>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-chat</artifactId>
+            <version>1.20-R0.1</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/BungeeCord.jar</systemPath>
+            <systemPath>${tfmc.refs}/BungeeCord.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.21.8</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/spigot-api.jar</systemPath>
+            <systemPath>${tfmc.refs}/spigot-api.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
@@ -123,7 +131,7 @@
             <artifactId>MythicMobs</artifactId>
             <version>5.8.0</version>
             <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MythicMobs-5.8.0-SNAPSHOT.jar</systemPath>
+            <systemPath>${tfmc.refs}/MythicMobs-5.8.0-SNAPSHOT.jar</systemPath>
         </dependency>
     </dependencies>
 
@@ -132,14 +140,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals><goal>run</goal></goals>
                         <configuration>
                             <target>
+                                <mkdir dir="${tfmc.builds}"/>
                                 <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                    tofile="D:\Dokumenter\My Plugins\TFMC\RPCharacters\${project.build.finalName}.jar"/>
+                                    tofile="${tfmc.builds}/${project.build.finalName}.jar"/>
                             </target>
                         </configuration>
                     </execution>

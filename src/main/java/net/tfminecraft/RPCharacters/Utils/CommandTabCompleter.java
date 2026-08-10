@@ -54,6 +54,7 @@ public class CommandTabCompleter implements TabCompleter {
 				completions.add("clearclues");
 				completions.add("placeclue");
 				completions.add("adminmode");
+				completions.add("discordgate");
 				completions.add("setworldspawn");
 				completions.add("injure");
 				completions.add("permakill");
@@ -109,6 +110,10 @@ public class CommandTabCompleter implements TabCompleter {
 			} else if (args[0].equalsIgnoreCase("adminmode") && Permissions.isAdmin(sender)) {
 				completions.add("on");
 				completions.add("off");
+			} else if (args[0].equalsIgnoreCase("discordgate") && Permissions.isAdmin(sender)) {
+				for (Player online : Bukkit.getOnlinePlayers()) {
+					completions.add(online.getName());
+				}
 			} else if (args[0].equalsIgnoreCase("tempalias") && sender.hasPermission(Cache.personaTempaliasPermission)) {
 				completions.addAll(CLEAR);
 			} else if (args[0].equalsIgnoreCase("sethidden") && sender.hasPermission(Cache.personaCharacterHiddenPermission)
@@ -124,7 +129,10 @@ public class CommandTabCompleter implements TabCompleter {
 		}
 
 		if (args.length == 3) {
-			if (args[0].equalsIgnoreCase("sethidden") && sender.hasPermission(Cache.personaCharacterHiddenPermission)) {
+			if (args[0].equalsIgnoreCase("discordgate") && Permissions.isAdmin(sender)) {
+				completions.add("on");
+				completions.add("off");
+			} else if (args[0].equalsIgnoreCase("sethidden") && sender.hasPermission(Cache.personaCharacterHiddenPermission)) {
 				completions.addAll(CLEAR);
 			} else if (args[0].equalsIgnoreCase("setclass")) {
 				completions.add("className");
