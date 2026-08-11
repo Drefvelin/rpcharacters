@@ -26,6 +26,9 @@ import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
+import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
+import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeModifier;
+import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.PermissionGroupDefinition;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
@@ -83,6 +86,14 @@ public final class CreationCatalogSyncService {
 			if (stage.getLockTimeMs() > 0) {
 				sb.append(",\"lock_time_ms\":").append(stage.getLockTimeMs());
 			}
+			if (stage.getRequireAccountAgeHoursMin() != null) {
+				sb.append(",\"require_account_age_hours_min\":")
+					.append(stage.getRequireAccountAgeHoursMin());
+			}
+			if (stage.getRequireAccountAgeHoursMax() != null) {
+				sb.append(",\"require_account_age_hours_max\":")
+					.append(stage.getRequireAccountAgeHoursMax());
+			}
 			if (stage.hasDependency()) {
 				sb.append(',');
 				appendDependency(sb, stage.getDependency());
@@ -90,7 +101,12 @@ public final class CreationCatalogSyncService {
 			if (stage instanceof InfoStage info) {
 				sb.append(",\"interval\":").append(info.getInterval());
 				sb.append(',');
-				appendStringList(sb, "messages", info.getMessages());
+				appendStringList(sb, "messages", substituteHoursList(info.getMessages()));
+				if (info.hasWebMessages()) {
+					sb.append(',');
+					appendStringList(sb, "web_messages",
+						substituteHoursList(info.getWebMessages()));
+				}
 			} else if (stage instanceof SetterStage setter) {
 				appendField(sb, "target", setter.getTarget(), false);
 			} else if (stage instanceof SelectionStage selection) {
@@ -163,7 +179,7 @@ public final class CreationCatalogSyncService {
 
 	private static void appendAttributePointBuy(StringBuilder sb) {
 		int pool = 12;
-		int maxRank = 2;
+		int maxRank = 4;
 		List<String> attrs = new ArrayList<>(Cache.attributes);
 		for (Stage stage : StageLoader.oList) {
 			if (stage instanceof AttributesStage attributes) {
@@ -223,6 +239,9 @@ public final class CreationCatalogSyncService {
 			sb.append(",\"age_max\":").append(race.getAgeMax());
 			sb.append(',');
 			appendStringList(sb, "description", stripList(race.getDesc()));
+			if (race.getRaceData() != null) {
+				appendAttributeData(sb, race.getRaceData().getAttributeData());
+			}
 			sb.append('}');
 		}
 		sb.append(']');
@@ -258,6 +277,17 @@ public final class CreationCatalogSyncService {
 				sb.append(',');
 				appendDependency(sb, trait.getTraitData().getDependency());
 			}
+			appendAttributeData(sb, trait.getTraitData().getAttributeData());
+			int playtimeSeconds = trait.getTraitData().getRequiredAccountPlaytimeSeconds();
+			if (playtimeSeconds > 0) {
+				double hours = playtimeSeconds / 3600.0;
+				sb.append(",\"required_account_playtime_hours\":");
+				if (Math.abs(hours - Math.rint(hours)) < 1e-9) {
+					sb.append((long) Math.rint(hours));
+				} else {
+					sb.append(hours);
+				}
+			}
 			sb.append('}');
 		}
 		sb.append(']');
@@ -285,12 +315,58 @@ public final class CreationCatalogSyncService {
 				sb.append(",\"display_order\":").append(playerClass.getDisplayOrder());
 				sb.append(',');
 				appendStringList(sb, "description", stripList(playerClass.getDescription()));
+				sb.append(',');
+				appendStringList(
+					sb,
+					"attribute_description",
+					stripList(playerClass.getAttributeDescription())
+				);
 				sb.append('}');
 			}
 		} catch (Throwable t) {
 			RPCharacters.plugin.getLogger().warning(
 				"[creation-catalog] could not read MMOCore classes: " + t.getMessage()
 			);
+		}
+		sb.append(']');
+	}
+
+	/** Serialize race/trait AttributeData (omit zero amounts). */
+	private static void appendAttributeData(StringBuilder sb, AttributeData data) {
+		if (data == null) {
+			return;
+		}
+		sb.append(",\"attribute_modifiers\":[");
+		boolean first = true;
+		for (AttributeModifier mod : data.getModifiers()) {
+			if (mod == null || mod.getAmount() == 0) {
+				continue;
+			}
+			if (!first) {
+				sb.append(',');
+			}
+			first = false;
+			sb.append('{');
+			appendField(sb, "type", mod.getType(), true);
+			sb.append(",\"amount\":").append(mod.getAmount());
+			sb.append('}');
+		}
+		sb.append(']');
+		sb.append(",\"experience_modifiers\":[");
+		first = true;
+		for (ExperienceModifier mod : data.getExperienceModifiers()) {
+			if (mod == null || mod.getModifier() == 0) {
+				continue;
+			}
+			if (!first) {
+				sb.append(',');
+			}
+			first = false;
+			sb.append('{');
+			appendField(sb, "profession", mod.getProfession(), true);
+			appendField(sb, "alias", strip(mod.getAlias()), false);
+			sb.append(",\"amount\":").append(mod.getModifier());
+			sb.append('}');
 		}
 		sb.append(']');
 	}
@@ -304,6 +380,11 @@ public final class CreationCatalogSyncService {
 		sb.append(",\"age\":{");
 		sb.append("\"minimum\":").append(Cache.calendarAgeMinimum);
 		sb.append('}');
+		sb.append(",\"calendar\":{");
+		sb.append("\"year_offset\":").append(Cache.calendarYearOffset);
+		sb.append(',');
+		appendField(sb, "era_suffix", Cache.calendarEraSuffix, true);
+		sb.append('}');
 		sb.append(",\"description\":{");
 		sb.append("\"min_length\":").append(Cache.characterDescriptionMinLength);
 		sb.append(",\"max_length\":").append(Cache.characterDescriptionMaxLength);
@@ -311,6 +392,7 @@ public final class CreationCatalogSyncService {
 		sb.append(",\"clues\":{");
 		sb.append("\"default_required\":").append(Cache.defaultCluesRequired);
 		sb.append(",\"evil_required\":").append(Cache.evilCluesRequired);
+		sb.append(",\"evil_min_account_age_hours\":").append(Cache.evilMinAccountAgeHours);
 		sb.append(",\"min_length\":").append(Cache.clueMinLength);
 		sb.append(",\"max_length\":").append(Cache.clueMaxLength);
 		sb.append(",\"max_clues\":").append(Cache.maxClues);
@@ -325,7 +407,11 @@ public final class CreationCatalogSyncService {
 		int defaultMax = Cache.permissionGroupDefaults.getOrDefault(
 			PermissionGroupDefinition.KEY_MAX_ALIVE_CHARACTERS, 3
 		);
+		int defaultColourStops = Cache.permissionGroupDefaults.getOrDefault(
+			PermissionGroupDefinition.KEY_NAME_COLOUR_STOPS, 0
+		);
 		sb.append("\"max_alive_characters\":").append(defaultMax);
+		sb.append(",\"name_colour_stops\":").append(defaultColourStops);
 		sb.append('}');
 		sb.append(",\"groups\":[");
 		boolean first = true;
@@ -345,6 +431,9 @@ public final class CreationCatalogSyncService {
 			sb.append(",\"visible\":").append(group.isVisible());
 			sb.append(",\"max_alive_characters\":").append(
 				group.getPerk(PermissionGroupDefinition.KEY_MAX_ALIVE_CHARACTERS, defaultMax)
+			);
+			sb.append(",\"name_colour_stops\":").append(
+				group.getPerk(PermissionGroupDefinition.KEY_NAME_COLOUR_STOPS, defaultColourStops)
 			);
 			sb.append('}');
 		}
@@ -386,6 +475,17 @@ public final class CreationCatalogSyncService {
 		}
 		sb.append('"').append(escape(key)).append("\":\"")
 			.append(escape(value == null ? "" : value)).append('"');
+	}
+
+	private static List<String> substituteHoursList(List<String> values) {
+		List<String> out = new ArrayList<>();
+		if (values == null) {
+			return out;
+		}
+		for (String v : values) {
+			out.add(InfoStage.substitutePlaceholders(v));
+		}
+		return out;
 	}
 
 	private static void appendStringList(StringBuilder sb, String key, List<String> values) {

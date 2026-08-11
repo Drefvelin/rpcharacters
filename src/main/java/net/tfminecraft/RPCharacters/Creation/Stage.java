@@ -25,6 +25,11 @@ public class Stage {
 	private Dependency dependency;
 
 	private long lockTimeMs = -1L;
+
+	/** Inclusive minimum account-age hours, or null if unset. */
+	private Integer requireAccountAgeHoursMin;
+	/** Exclusive maximum account-age hours, or null if unset. */
+	private Integer requireAccountAgeHoursMax;
 	
 	public long getLockTimeMs() {
 		return lockTimeMs;
@@ -32,6 +37,38 @@ public class Stage {
 
 	public void setLockTimeMs(long lockTimeMs) {
 		this.lockTimeMs = lockTimeMs;
+	}
+
+	public Integer getRequireAccountAgeHoursMin() {
+		return requireAccountAgeHoursMin;
+	}
+
+	public void setRequireAccountAgeHoursMin(Integer requireAccountAgeHoursMin) {
+		this.requireAccountAgeHoursMin = requireAccountAgeHoursMin;
+	}
+
+	public Integer getRequireAccountAgeHoursMax() {
+		return requireAccountAgeHoursMax;
+	}
+
+	public void setRequireAccountAgeHoursMax(Integer requireAccountAgeHoursMax) {
+		this.requireAccountAgeHoursMax = requireAccountAgeHoursMax;
+	}
+
+	/**
+	 * @return true if the player passes any configured account-age min/max gate.
+	 */
+	public boolean passesAccountAgeGate(PlayerData pd) {
+		int ageSec = pd == null ? 0 : pd.getAgeSeconds();
+		if (requireAccountAgeHoursMin != null
+				&& ageSec < requireAccountAgeHoursMin * 3600L) {
+			return false;
+		}
+		if (requireAccountAgeHoursMax != null
+				&& ageSec >= requireAccountAgeHoursMax * 3600L) {
+			return false;
+		}
+		return true;
 	}
 
 	protected void copyBaseFields(Stage source) {
@@ -45,6 +82,8 @@ public class Stage {
 			setDependency(null);
 		}
 		setLockTimeMs(source.getLockTimeMs());
+		setRequireAccountAgeHoursMin(source.getRequireAccountAgeHoursMin());
+		setRequireAccountAgeHoursMax(source.getRequireAccountAgeHoursMax());
 	}
 
 	public boolean autoNext() {
@@ -100,6 +139,12 @@ public class Stage {
 			s.setDependency(new Dependency(config.getConfigurationSection("dependency")));
 		}
 		s.setLockTimeMs(DurationParser.parseLockTimeMs(config.getString("lock-time", "-1")));
+		if (config.contains("require-account-age-hours-min")) {
+			s.setRequireAccountAgeHoursMin(config.getInt("require-account-age-hours-min"));
+		}
+		if (config.contains("require-account-age-hours-max")) {
+			s.setRequireAccountAgeHoursMax(config.getInt("require-account-age-hours-max"));
+		}
 		StageType type = StageType.valueOf(config.getString("type").toUpperCase());
 		s.setCancelled(false);
 		if(type.equals(StageType.INFO)) {

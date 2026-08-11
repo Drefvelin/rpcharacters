@@ -49,6 +49,7 @@ public class CommandTabCompleter implements TabCompleter {
 				completions.add("reload");
 				completions.add("catalog");
 				completions.add("pending");
+				completions.add("stage");
 				completions.add("setclass");
 				completions.add("skipcooldown");
 				completions.add("addtrait");
@@ -84,6 +85,9 @@ public class CommandTabCompleter implements TabCompleter {
 			}
 			if (args[0].equalsIgnoreCase("pending") && Permissions.isAdmin(sender)) {
 				return filter(List.of("sync"), args[1]);
+			}
+			if (args[0].equalsIgnoreCase("stage") && Permissions.isAdmin(sender)) {
+				return filter(List.of("preview"), args[1]);
 			}
 			if (args[0].equalsIgnoreCase("menu")) {
 				for (Player online : Bukkit.getOnlinePlayers()) {
@@ -137,7 +141,15 @@ public class CommandTabCompleter implements TabCompleter {
 		}
 
 		if (args.length == 3) {
-			if (args[0].equalsIgnoreCase("discordgate") && Permissions.isAdmin(sender)) {
+			if (args[0].equalsIgnoreCase("stage") && args[1].equalsIgnoreCase("preview")
+					&& Permissions.isAdmin(sender)) {
+				for (net.tfminecraft.RPCharacters.Creation.Stage stage
+						: net.tfminecraft.RPCharacters.Loaders.StageLoader.oList) {
+					if (stage != null && stage.getId() != null) {
+						completions.add(stage.getId());
+					}
+				}
+			} else if (args[0].equalsIgnoreCase("discordgate") && Permissions.isAdmin(sender)) {
 				completions.add("on");
 				completions.add("off");
 			} else if (args[0].equalsIgnoreCase("sethidden") && sender.hasPermission(Cache.personaCharacterHiddenPermission)) {

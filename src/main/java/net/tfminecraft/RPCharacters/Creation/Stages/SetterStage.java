@@ -92,10 +92,18 @@ public class SetterStage extends Stage{
 
 		if (target != null && target.equalsIgnoreCase("real_age")) {
 			if(n.equalsIgnoreCase("yes")) {
-				PlayerManager.get(p).setEighteen(true);
+				if (!cc.isPreview()) {
+					PlayerManager.get(p).setEighteen(true);
+					RPCharacters.getPlayerManager().savePlayer(p);
+					net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(p);
+				}
 				RPTexts.title(p, " ", RPTexts.MUTED + "Real age set to " + RPTexts.WARN + "18+", 5, 50, 5);
 			} else if(n.equalsIgnoreCase("no")) {
-				PlayerManager.get(p).setEighteen(false);
+				if (!cc.isPreview()) {
+					PlayerManager.get(p).setEighteen(false);
+					RPCharacters.getPlayerManager().savePlayer(p);
+					net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(p);
+				}
 				RPTexts.title(p, " ", RPTexts.MUTED + "Real age set to " + RPTexts.WARN + "below 18", 5, 50, 5);
 			} else {
 				RPTexts.send(p, RPTexts.ERROR + "Write " + RPTexts.WARN + "yes " + RPTexts.MUTED + "or " + RPTexts.WARN + "no.");
@@ -162,7 +170,10 @@ public class SetterStage extends Stage{
 			return;
 		}
 
-		String birthday = AgeCalculator.birthdayFromAge(age, FantasyCalendar.getCurrentDate());
+		String birthdaySalt = cc.getCharacter().getId();
+		String birthday = AgeCalculator.birthdayFromAge(
+			age, FantasyCalendar.getCurrentDate(), birthdaySalt
+		);
 		cc.getCharacter().setBirthday(birthday);
 		String formattedBirthday = FantasyCalendar.formatBirthday(birthday);
 		RPTexts.title(p, " ", RPTexts.MUTED + "Age set to " + RPTexts.WARN + age, 5, 50, 5);

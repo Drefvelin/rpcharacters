@@ -36,6 +36,9 @@ public class InfoStage extends Stage{
 
 	private List<String> messages = new ArrayList<>();
 
+	/** Optional website copy; in-game always uses {@link #messages}. */
+	private List<String> webMessages = new ArrayList<>();
+
 	
 
 	public InfoStage(Stage s, ConfigurationSection config) {
@@ -46,6 +49,12 @@ public class InfoStage extends Stage{
 
 		this.messages = config.getStringList("messages");
 
+		if (config.contains("web-messages")) {
+
+			this.webMessages = config.getStringList("web-messages");
+
+		}
+
 	}
 
 	public InfoStage(InfoStage another) {
@@ -55,6 +64,8 @@ public class InfoStage extends Stage{
 		this.interval = another.getInterval();
 
 		this.messages = another.getMessages();
+
+		this.webMessages = new ArrayList<>(another.getWebMessages());
 
 	}
 
@@ -74,11 +85,29 @@ public class InfoStage extends Stage{
 
 
 
+	public List<String> getWebMessages() {
+
+		return webMessages;
+
+	}
+
+
+
+	public boolean hasWebMessages() {
+
+		return webMessages != null && !webMessages.isEmpty();
+
+	}
+
+
+
 	public void runMessage(Player p, String message) {
 
-		String type = message.split("\\(")[0];
+		String substituted = substitutePlaceholders(message);
 
-		String info = RPTexts.format(message.split("\\(")[1].replace(")", ""));
+		String type = substituted.split("\\(")[0];
+
+		String info = RPTexts.format(substituted.split("\\(")[1].replace(")", ""));
 
 		if(type.equalsIgnoreCase("title")) {
 
@@ -94,6 +123,14 @@ public class InfoStage extends Stage{
 
 		}
 
+	}
+
+	public static String substitutePlaceholders(String raw) {
+		if (raw == null) {
+			return "";
+		}
+		return raw.replace("{hours}", String.valueOf(
+			net.tfminecraft.RPCharacters.Cache.evilMinAccountAgeHours));
 	}
 
 	public void execute(Player p, CharacterCreation cc) {
@@ -143,4 +180,3 @@ public class InfoStage extends Stage{
 	}
 
 }
-

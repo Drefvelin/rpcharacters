@@ -32,6 +32,7 @@ public class Cache {
 
 	public static int defaultCluesRequired;
 	public static int evilCluesRequired = 4;
+	public static int evilMinAccountAgeHours = 24;
 	public static int characterDescriptionMinLength = 32;
 	public static int characterDescriptionMaxLength = 256;
 	public static int clueMinLength;

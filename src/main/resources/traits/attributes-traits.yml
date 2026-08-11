@@ -12,6 +12,20 @@ str2:
     attribute-modifiers:
         - strength.1
 
+str3:
+    name: "#87d65cStrength III"
+    cost: 4
+    key: attributes
+    attribute-modifiers:
+        - strength.1
+
+str4:
+    name: "#87d65cStrength IV"
+    cost: 8
+    key: attributes
+    attribute-modifiers:
+        - strength.1
+
 dex1:
     name: "#87d65cDexterity I"
     cost: 1
@@ -22,6 +36,20 @@ dex1:
 dex2:
     name: "#87d65cDexterity II"
     cost: 2
+    key: attributes
+    attribute-modifiers:
+        - dexterity.1
+
+dex3:
+    name: "#87d65cDexterity III"
+    cost: 4
+    key: attributes
+    attribute-modifiers:
+        - dexterity.1
+
+dex4:
+    name: "#87d65cDexterity IV"
+    cost: 8
     key: attributes
     attribute-modifiers:
         - dexterity.1
@@ -40,6 +68,20 @@ con2:
     attribute-modifiers:
         - constitution.1
 
+con3:
+    name: "#87d65cConstitution III"
+    cost: 4
+    key: attributes
+    attribute-modifiers:
+        - constitution.1
+
+con4:
+    name: "#87d65cConstitution IV"
+    cost: 8
+    key: attributes
+    attribute-modifiers:
+        - constitution.1
+
 int1:
     name: "#87d65cIntelligence I"
     cost: 1
@@ -50,6 +92,20 @@ int1:
 int2:
     name: "#87d65cIntelligence II"
     cost: 2
+    key: attributes
+    attribute-modifiers:
+        - intelligence.1
+
+int3:
+    name: "#87d65cIntelligence III"
+    cost: 4
+    key: attributes
+    attribute-modifiers:
+        - intelligence.1
+
+int4:
+    name: "#87d65cIntelligence IV"
+    cost: 8
     key: attributes
     attribute-modifiers:
         - intelligence.1
@@ -68,6 +124,20 @@ wis2:
     attribute-modifiers:
         - wisdom.1
 
+wis3:
+    name: "#87d65cWisdom III"
+    cost: 4
+    key: attributes
+    attribute-modifiers:
+        - wisdom.1
+
+wis4:
+    name: "#87d65cWisdom IV"
+    cost: 8
+    key: attributes
+    attribute-modifiers:
+        - wisdom.1
+
 cha1:
     name: "#87d65cCharisma I"
     cost: 1
@@ -78,6 +148,20 @@ cha1:
 cha2:
     name: "#87d65cCharisma II"
     cost: 2
+    key: attributes
+    attribute-modifiers:
+        - charisma.1
+
+cha3:
+    name: "#87d65cCharisma III"
+    cost: 4
+    key: attributes
+    attribute-modifiers:
+        - charisma.1
+
+cha4:
+    name: "#87d65cCharisma IV"
+    cost: 8
     key: attributes
     attribute-modifiers:
         - charisma.1

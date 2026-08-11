@@ -1,7 +1,10 @@
 package net.tfminecraft.RPCharacters.Creation.Stages;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -72,10 +75,27 @@ public class SelectionStage extends Stage{
 				}
 			}
 		} else if(this.target.equalsIgnoreCase("class")) {
-			MmoCoreClassGuiHelper.ClassGuiData classData = MmoCoreClassGuiHelper.buildClassOptions(this.size);
+			Map<String, Integer> classSlots = parseClassSlots(config);
+			MmoCoreClassGuiHelper.ClassGuiData classData =
+				MmoCoreClassGuiHelper.buildClassOptions(this.size, classSlots);
 			options.addAll(classData.getOptions());
 			this.slots = classData.getSlots();
 		}
+	}
+
+	private static Map<String, Integer> parseClassSlots(ConfigurationSection config) {
+		Map<String, Integer> out = new LinkedHashMap<>();
+		ConfigurationSection section = config.getConfigurationSection("class-slots");
+		if (section == null) {
+			return out;
+		}
+		for (String rawKey : section.getKeys(false)) {
+			if (rawKey == null || rawKey.isBlank()) {
+				continue;
+			}
+			out.put(rawKey.trim().toLowerCase(Locale.ROOT), section.getInt(rawKey));
+		}
+		return out;
 	}
 	public SelectionStage(SelectionStage another) {
 		copyBaseFields(another);

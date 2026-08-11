@@ -125,6 +125,14 @@ public class CharacterCreation {
 
 	}
 
+
+
+	public boolean isPreview() {
+
+		return sessionMode == CharacterSessionMode.PREVIEW;
+
+	}
+
 	
 
 	public Stage getCurrentStage() {
@@ -229,6 +237,112 @@ public class CharacterCreation {
 
 
 
+	public static CharacterCreation forStagePreview(Player p, String stageId) {
+
+		if (p == null || stageId == null || stageId.isBlank()) {
+
+			return null;
+
+		}
+
+		Stage template = StageLoader.getById(stageId.trim());
+
+		if (template == null) {
+
+			RPTexts.send(p, RPTexts.ERROR + "Unknown stage id.");
+
+			return null;
+
+		}
+
+		Stage fresh = Stage.another(template);
+
+		if (fresh == null) {
+
+			RPTexts.send(p, RPTexts.ERROR + "Could not preview that stage.");
+
+			return null;
+
+		}
+
+		CharacterCreation cc = new CharacterCreation();
+
+		cc.p = p;
+
+		cc.sessionMode = CharacterSessionMode.PREVIEW;
+
+		cc.character = new RPCharacter(p);
+
+		cc.stages = new ArrayList<>();
+
+		cc.stages.add(fresh);
+
+		cc.currentStage = 0;
+
+		cc.tempData = new AttributeData();
+
+		cc.editingFromSummary = true;
+
+		cc.editStage = fresh;
+
+		CreationManager.activeCreators.put(p, cc);
+
+		if (fresh instanceof SelectionStage selection) {
+
+			selection.hydrateFromCharacter(cc.character);
+
+			selection.execute(p, cc);
+
+		} else if (fresh instanceof AttributesStage attributes) {
+
+			attributes.hydrateFromCharacter(cc.character);
+
+			attributes.execute(p, cc);
+
+		} else if (fresh instanceof SetterStage setter) {
+
+			setter.execute(p, cc);
+
+		} else if (fresh instanceof InfoStage info) {
+
+			info.execute(p, cc);
+
+			RPTexts.send(p, RPTexts.COMMAND + "/rpcharacter next");
+
+		} else if (fresh instanceof ClueStage clue) {
+
+			clue.execute(p, cc);
+
+		} else if (fresh instanceof QuestionStage question) {
+
+			question.execute(p, cc);
+
+		} else if (fresh instanceof SummaryStage summary) {
+
+			summary.execute(p, cc);
+
+		} else {
+
+			CreationManager.activeCreators.remove(p);
+
+			RPTexts.send(p, RPTexts.ERROR + "That stage type cannot be previewed.");
+
+			return null;
+
+		}
+
+		RPTexts.send(p, RPTexts.MUTED + "Stage preview: " + RPTexts.WARN + stageId.trim()
+
+				+ RPTexts.MUTED + ". Confirm or " + RPTexts.COMMAND + "/rpcharacter cancel"
+
+				+ RPTexts.MUTED + " to exit.");
+
+		return cc;
+
+	}
+
+
+
 	private CharacterCreation() {}
 
 	
@@ -250,6 +364,14 @@ public class CharacterCreation {
 
 
 	public void openSummary() {
+
+		if (isPreview()) {
+
+			endPreview();
+
+			return;
+
+		}
 
 		SummaryStage summary = findSummaryStage();
 
@@ -381,6 +503,14 @@ public class CharacterCreation {
 
 	public void returnToSummary() {
 
+		if (isPreview()) {
+
+			endPreview();
+
+			return;
+
+		}
+
 		editingFromSummary = false;
 
 		editStage = null;
@@ -410,6 +540,14 @@ public class CharacterCreation {
 	
 
 	public void runStage() {
+
+		if (isPreview()) {
+
+			endPreview();
+
+			return;
+
+		}
 
 		canNext = false;
 
@@ -456,6 +594,18 @@ public class CharacterCreation {
 				return;
 
 			}
+
+		}
+
+		PlayerData agePd = PlayerManager.get(p);
+
+		if (!s.passesAccountAgeGate(agePd)) {
+
+			currentStage++;
+
+			runStage();
+
+			return;
 
 		}
 
@@ -522,6 +672,14 @@ public class CharacterCreation {
 	}
 
 	public void finish() {
+
+		if (isPreview()) {
+
+			endPreview();
+
+			return;
+
+		}
 
 		if (isEditing()) {
 
@@ -611,6 +769,8 @@ public class CharacterCreation {
 
 		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(p);
 
+		p.closeInventory();
+
 		RPTexts.title(p, RPTexts.SUCCESS + "Finished!", RPTexts.WARN + "Character " + RPTexts.MUTED + character.getName() + RPTexts.WARN + " created!", 5, 50, 5);
 
 		RPTexts.send(p, RPTexts.MUTED + "Edit later with " + RPTexts.COMMAND + "/rpcharacter edit" + RPTexts.MUTED + ".");
@@ -639,7 +799,43 @@ public class CharacterCreation {
 
 
 
+	public void endPreview() {
+
+		if (!isPreview()) {
+
+			return;
+
+		}
+
+		if (CreationManager.activeCreators.get(p) != this) {
+
+			return;
+
+		}
+
+		editingFromSummary = false;
+
+		editStage = null;
+
+		CreationManager.activeCreators.remove(p);
+
+		p.closeInventory();
+
+		RPTexts.send(p, RPTexts.SUCCESS + "Stage preview ended.");
+
+	}
+
+
+
 	public void cancel() {
+
+		if (isPreview()) {
+
+			endPreview();
+
+			return;
+
+		}
 
 		if (isEditing()) {
 

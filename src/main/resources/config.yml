@@ -43,6 +43,8 @@ attribute-points-admin-debug-messages: false
 
 default-clues-required: 2
 evil-clues-required: 4
+# Account age (hours since account createdAt) required to pick evil archetypes.
+evil-min-account-age-hours: 24
 clue-min-length: 12
 clue-max-length: 48
 max-clues: 10

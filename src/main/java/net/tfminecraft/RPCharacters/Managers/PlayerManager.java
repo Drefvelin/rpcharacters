@@ -302,6 +302,8 @@ public class PlayerManager implements Listener{
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.pullForPlayerAsync(
 			RPCharacters.plugin, p.getUniqueId()
 		);
+		// Push roster so website learns real_age_set / slots even if no new character was finished.
+		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(p);
 	}
 	@EventHandler
 	public void onLeave(PlayerQuitEvent e) {

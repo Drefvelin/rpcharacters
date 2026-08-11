@@ -48,6 +48,7 @@ import net.tfminecraft.RPCharacters.Utils.ClueProgressFormatter;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.identity.DisplayIdentityService;
 import net.tfminecraft.RPCharacters.identity.PersonaService;
+import net.tfminecraft.RPCharacters.mmocore.MmoCoreAttributeHelper;
 import net.tfminecraft.RPCharacters.mmocore.MmoCoreClassGuiHelper;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
@@ -284,15 +285,15 @@ public class InventoryManager {
 		List<String> lore = new ArrayList<>();
 		boolean locked = editing && isSummaryEntryLocked(player, character, stageId);
 		if (locked) {
-			lore.add(t(RPTexts.ERROR + "Locked"));
+			lore.add(summaryValue(RPTexts.ERROR + "Locked"));
 		} else {
-			lore.add(t(RPTexts.MUTED + "Click to change"));
+			lore.add(summaryValue(RPTexts.MUTED + "Click to change"));
 		}
 		if (editing && !"clues".equalsIgnoreCase(stageId)) {
 			Stage stage = StageLoader.getById(stageId);
 			String lockLore = StageEditLock.lockLore(stage, character);
 			if (lockLore != null && !locked) {
-				lore.add(t(lockLore));
+				lore.add(summaryValue(lockLore));
 			}
 		}
 		ItemStack item;
@@ -300,7 +301,11 @@ public class InventoryManager {
 		switch (entryKey.toLowerCase()) {
 			case "name" -> {
 				item = new ItemStack(Material.NAME_TAG, 1);
-				lore.add(0, character.getName() != null ? character.getName() : t(RPTexts.MUTED + "Not set"));
+				if (character.getName() != null && !character.getName().isBlank()) {
+					lore.add(0, summaryValue(RPTexts.WHITE + character.getName()));
+				} else {
+					lore.add(0, summaryValue(RPTexts.MUTED + "Not set"));
+				}
 			}
 			case "class" -> {
 				item = new ItemStack(Material.NETHERITE_SWORD, 1);
@@ -310,41 +315,55 @@ public class InventoryManager {
 							&& playerClass.getIcon().getType() != Material.AIR) {
 						item = playerClass.getIcon().clone();
 					}
-					lore.add(0, playerClass != null ? playerClass.getName() : t(RPTexts.MUTED + character.getMMOClass()));
+					String className = playerClass != null
+						? playerClass.getName()
+						: character.getMMOClass();
+					lore.add(0, summaryValue(RPTexts.WHITE + className));
 				} else {
-					lore.add(0, t(RPTexts.MUTED + "Not selected"));
+					lore.add(0, summaryValue(RPTexts.MUTED + "Not selected"));
 				}
 			}
 			case "race" -> {
+				item = new ItemStack(Material.PLAYER_HEAD, 1);
 				if (character.getRace() != null) {
-					item = new ItemStack(Material.PLAYER_HEAD, 1);
-					lore.add(0, character.getRace().getName());
+					lore.add(0, summaryValue(RPTexts.WHITE + character.getRace().getName()));
 				} else {
-					item = new ItemStack(Material.PLAYER_HEAD, 1);
-					lore.add(0, t(RPTexts.MUTED + "Not selected"));
+					lore.add(0, summaryValue(RPTexts.MUTED + "Not selected"));
 				}
 			}
 			case "age" -> {
 				item = new ItemStack(Material.CLOCK, 1);
 				lore.clear();
-				lore.add(t(RPTexts.MUTED + "Age: " + RPTexts.WARN + PersonaService.resolveAge(character)));
-				lore.add(t(RPTexts.MUTED + "Birthday: " + RPTexts.WARN + PersonaService.resolveBirthday(character)));
-				lore.add(t(RPTexts.MUTED + "Click to change"));
+				lore.add(summaryValue(RPTexts.MUTED + "Age: " + RPTexts.WARN
+					+ PersonaService.resolveAge(character)));
+				lore.add(summaryValue(RPTexts.MUTED + "Birthday: " + RPTexts.WARN
+					+ PersonaService.resolveBirthday(character)));
+				lore.add(summaryValue(RPTexts.MUTED + "Click to change"));
 			}
 			case "description" -> {
 				item = new ItemStack(Material.WRITABLE_BOOK, 1);
 				String description = character.getPersonaDescription();
 				if (description == null || description.isBlank()) {
-					lore.add(0, t(RPTexts.MUTED + "Not set"));
+					lore.add(0, summaryValue(RPTexts.MUTED + "Not set"));
 				} else {
 					lore.addAll(0, wrapSummaryText(description, 40));
 				}
 			}
 			case "clues" -> {
 				item = new ItemStack(Material.BOOK, 1);
-				lore.add(0, t(character.getPlayerClues().size() + "/" + character.getCluesNeeded()));
-				lore.add(1, t(RPTexts.COMMAND + "/rpcharacter clues"));
-				lore.remove(t(RPTexts.MUTED + "Click to change"));
+				lore.add(0, summaryValue(RPTexts.WHITE
+					+ character.getPlayerClues().size() + "/" + character.getCluesNeeded()));
+				lore.add(1, summaryValue(RPTexts.COMMAND + "/rpcharacter clues"));
+				lore.removeIf(line -> line != null && line.contains("Click to change"));
+			}
+			case "attributes" -> {
+				item = new ItemStack(Material.PAPER, 1);
+				List<String> attrLines = buildAttributeSummaryLines(character);
+				if (attrLines.isEmpty()) {
+					lore.add(0, summaryValue(RPTexts.MUTED + "Not selected"));
+				} else {
+					lore.addAll(0, attrLines);
+				}
 			}
 			default -> {
 				if ("clues".equalsIgnoreCase(stageId)) {
@@ -360,20 +379,72 @@ public class InventoryManager {
 				}
 				item = new ItemStack(Material.PAPER, 1);
 				if (traitNames.isEmpty()) {
-					lore.add(0, t(RPTexts.MUTED + "Not selected"));
+					lore.add(0, summaryValue(RPTexts.MUTED + "Not selected"));
 				} else {
-					lore.add(0, RPTexts.joinFormatted(traitNames, ", "));
+					int insertAt = 0;
+					for (String traitName : traitNames) {
+						lore.add(insertAt++, summaryValue(RPTexts.WHITE + traitName));
+					}
 				}
 			}
 		}
 
 		ItemMeta meta = item.getItemMeta();
 		if (meta != null) {
-			meta.setDisplayName(t(RPTexts.WARN + label));
+			meta.setDisplayName(summaryValue(RPTexts.WARN + label));
 			meta.setLore(lore);
 			item.setItemMeta(meta);
 		}
 		return item;
+	}
+
+	private String summaryValue(String colouredBody) {
+		return t(RPTexts.RESET + colouredBody);
+	}
+
+	private List<String> buildAttributeSummaryLines(RPCharacter character) {
+		List<String> lines = new ArrayList<>();
+		List<String> attrs = Cache.attributes;
+		if (attrs == null || attrs.isEmpty()) {
+			return lines;
+		}
+		for (String attr : attrs) {
+			if (attr == null || attr.isBlank()) {
+				continue;
+			}
+			int rank = 0;
+			int maxCheck = 16;
+			for (Stage stage : StageLoader.oList) {
+				if (stage instanceof AttributesStage attributes) {
+					maxCheck = Math.max(1, attributes.getMaxRank());
+					break;
+				}
+			}
+			for (int n = 1; n <= maxCheck; n++) {
+				if (hasTraitId(character, AttributesStage.traitId(attr, n))) {
+					rank = n;
+				} else {
+					break;
+				}
+			}
+			if (rank > 0) {
+				lines.add(summaryValue(RPTexts.WHITE
+					+ MmoCoreAttributeHelper.displayName(attr) + " +" + rank));
+			}
+		}
+		return lines;
+	}
+
+	private static boolean hasTraitId(RPCharacter character, String id) {
+		if (character == null || character.getTraits() == null || id == null) {
+			return false;
+		}
+		for (Trait trait : character.getTraits()) {
+			if (trait.getId().equalsIgnoreCase(id)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private List<String> wrapSummaryText(String text, int width) {
@@ -382,7 +453,7 @@ public class InventoryManager {
 		StringBuilder current = new StringBuilder();
 		for (String word : words) {
 			if (current.length() + word.length() + 1 > width) {
-				lines.add(t(RPTexts.MUTED + current));
+				lines.add(summaryValue(RPTexts.MUTED + current));
 				current = new StringBuilder(word);
 			} else if (current.length() == 0) {
 				current.append(word);
@@ -391,7 +462,7 @@ public class InventoryManager {
 			}
 		}
 		if (current.length() > 0) {
-			lines.add(t(RPTexts.MUTED + current));
+			lines.add(summaryValue(RPTexts.MUTED + current));
 		}
 		return lines;
 	}
@@ -543,20 +614,26 @@ public class InventoryManager {
 		}
 	}
 
-	/** Fixed sheet slots: [minus, icon, plus] per attribute index 0..5. */
-	public static int[] attributeSheetSlots(int attrIndex) {
-		int[][] layout = {
-			{10, 11, 12},
-			{14, 15, 16},
-			{19, 20, 21},
-			{23, 24, 25},
-			{28, 29, 30},
-			{32, 33, 34}
-		};
-		if (attrIndex < 0 || attrIndex >= layout.length) {
+	/**
+	 * Vertical sheet slots for an attribute: [up, center, down] = center ± 9.
+	 * Prefer {@link AttributesStage#getSheetSlots(String)}.
+	 */
+	public static int[] attributeSheetSlots(AttributesStage s, String attr) {
+		if (s == null) {
 			return new int[] {-1, -1, -1};
 		}
-		return layout[attrIndex];
+		return s.getSheetSlots(attr);
+	}
+
+	/** @deprecated Use {@link #attributeSheetSlots(AttributesStage, String)}. */
+	@Deprecated
+	public static int[] attributeSheetSlots(int attrIndex) {
+		int[] centers = {20, 21, 22, 23, 24, 25};
+		if (attrIndex < 0 || attrIndex >= centers.length) {
+			return new int[] {-1, -1, -1};
+		}
+		int center = centers[attrIndex];
+		return new int[] {center - 9, center, center + 9};
 	}
 
 	public void attributesView(Player player, AttributesStage s, CharacterCreation cc) {
@@ -575,13 +652,17 @@ public class InventoryManager {
 			i.setItem(slot, null);
 		}
 		i.setItem(4, getAttributePointsHeader(s));
-		List<String> attrs = s.getAttributes();
-		for (int idx = 0; idx < attrs.size() && idx < 6; idx++) {
-			String attr = attrs.get(idx);
-			int[] slots = attributeSheetSlots(idx);
-			i.setItem(slots[0], getAttributeMinusItem(attr, s));
-			i.setItem(slots[1], getAttributeStatItem(attr, s));
-			i.setItem(slots[2], getAttributePlusItem(attr, s));
+		for (String attr : s.getAttributes()) {
+			int[] slots = s.getSheetSlots(attr);
+			if (slots[0] >= 0) {
+				i.setItem(slots[0], getAttributePlusItem(attr, s));
+			}
+			if (slots[1] >= 0) {
+				i.setItem(slots[1], getAttributeStatItem(attr, s));
+			}
+			if (slots[2] >= 0) {
+				i.setItem(slots[2], getAttributeMinusItem(attr, s));
+			}
 		}
 		if (cc != null) {
 			i.setItem(s.getSize() - 9, createCancelItem(cc));
@@ -594,12 +675,12 @@ public class InventoryManager {
 	public ItemStack getAttributePointsHeader(AttributesStage s) {
 		ItemStack i = new ItemStack(Material.EXPERIENCE_BOTTLE, Math.max(1, Math.min(64, s.getRemaining())));
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName(t(RPTexts.COMMAND + "Points remaining: " + s.getRemaining()
-			+ " / " + s.getPool()));
+		meta.setDisplayName(t(RPTexts.RESET + RPTexts.WARN + "Points remaining: "
+			+ s.getRemaining() + " / " + s.getPool()));
 		List<String> lore = new ArrayList<>();
-		lore.add(t(RPTexts.MUTED + "Spend exactly " + s.getPool() + " points."));
-		lore.add(t(RPTexts.MUTED + "Max +" + s.getMaxRank() + " per attribute."));
-		lore.add(t(RPTexts.MUTED + "Cost: 1st rank = 1, 2nd = 2."));
+		lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Spend exactly " + s.getPool() + " points."));
+		lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Max +" + s.getMaxRank() + " per attribute."));
+		lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Cost: 1 → 2 → 4 → 8 per rank."));
 		meta.setLore(lore);
 		i.setItemMeta(meta);
 		return i;
@@ -611,19 +692,35 @@ public class InventoryManager {
 		}
 		ItemStack i = new ItemStack(Material.GRAY_DYE, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName(t(RPTexts.ERROR + "CONFIRM"));
+		meta.setDisplayName(t(RPTexts.RESET + RPTexts.ERROR + "CONFIRM"));
 		List<String> lore = new ArrayList<>();
-		lore.add(t(RPTexts.MUTED + "Spend all points first ("
+		lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Spend all points first ("
 			+ s.getRemaining() + " left)."));
 		meta.setLore(lore);
 		i.setItemMeta(meta);
 		return i;
 	}
 
-	private ItemStack attributeActionItem(Material mat, String name, List<String> lore,
+	private ItemStack itemsAdderOrFallback(String itemsAdderPath, Material fallback) {
+		try {
+			ItemStack i = me.Plugins.TLibs.TLibs.getItemAPI().getCreator()
+				.getItemsAdderItem(itemsAdderPath);
+			if (i != null && i.getType() != Material.AIR) {
+				return i;
+			}
+		} catch (Throwable ignored) {
+			// fall through to vanilla
+		}
+		return new ItemStack(fallback, 1);
+	}
+
+	private ItemStack attributeActionItem(ItemStack base, String name, List<String> lore,
 		String attr, String action) {
-		ItemStack i = new ItemStack(mat, 1);
+		ItemStack i = base.clone();
 		ItemMeta meta = i.getItemMeta();
+		if (meta == null) {
+			return base;
+		}
 		meta.setDisplayName(name);
 		meta.setLore(lore);
 		NamespacedKey attrKey = new NamespacedKey(RPCharacters.plugin, "attr_id");
@@ -636,16 +733,21 @@ public class InventoryManager {
 
 	public ItemStack getAttributeMinusItem(String attr, AttributesStage s) {
 		int rank = s.getRank(attr);
+		String label = MmoCoreAttributeHelper.displayName(attr);
 		List<String> lore = new ArrayList<>();
 		if (rank <= 0) {
-			lore.add(t(RPTexts.MUTED + "Already at 0."));
+			lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Already at 0."));
 		} else {
-			lore.add(t(RPTexts.MUTED + "Refund " + AttributesStage.costForRank(rank)
-				+ " point(s)."));
+			lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Refund "
+				+ AttributesStage.costForRank(rank) + " point(s)."));
 		}
+		boolean can = rank > 0;
+		ItemStack base = can
+			? itemsAdderOrFallback("mcicons:icon_down_blue", Material.RED_CONCRETE)
+			: itemsAdderOrFallback("mcicons:icon_down_gray", Material.GRAY_CONCRETE);
 		return attributeActionItem(
-			rank > 0 ? Material.RED_CONCRETE : Material.GRAY_CONCRETE,
-			t(RPTexts.ERROR + "− " + WordUtils.capitalize(attr)),
+			base,
+			t(RPTexts.RESET + RPTexts.ERROR + "Decrease " + label),
 			lore,
 			attr,
 			"minus"
@@ -654,21 +756,25 @@ public class InventoryManager {
 
 	public ItemStack getAttributePlusItem(String attr, AttributesStage s) {
 		int rank = s.getRank(attr);
+		String label = MmoCoreAttributeHelper.displayName(attr);
 		List<String> lore = new ArrayList<>();
 		if (rank >= s.getMaxRank()) {
-			lore.add(t(RPTexts.MUTED + "Max rank reached."));
+			lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Max rank reached."));
 		} else {
 			int cost = AttributesStage.costForRank(rank + 1);
-			lore.add(t(RPTexts.MUTED + "Next rank costs " + cost + "."));
+			lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Next rank costs " + cost + "."));
 			if (s.getRemaining() < cost) {
-				lore.add(t(RPTexts.ERROR + "Not enough points."));
+				lore.add(t(RPTexts.RESET + RPTexts.ERROR + "Not enough points."));
 			}
 		}
 		boolean can = rank < s.getMaxRank()
 			&& s.getRemaining() >= AttributesStage.costForRank(rank + 1);
+		ItemStack base = can
+			? itemsAdderOrFallback("mcicons:icon_up_blue", Material.LIME_CONCRETE)
+			: itemsAdderOrFallback("mcicons:icon_up_gray", Material.GRAY_CONCRETE);
 		return attributeActionItem(
-			can ? Material.LIME_CONCRETE : Material.GRAY_CONCRETE,
-			t(RPTexts.SUCCESS + "+ " + WordUtils.capitalize(attr)),
+			base,
+			t(RPTexts.RESET + RPTexts.SUCCESS + "Increase " + label),
 			lore,
 			attr,
 			"plus"
@@ -677,18 +783,18 @@ public class InventoryManager {
 
 	public ItemStack getAttributeStatItem(String attr, AttributesStage s) {
 		int rank = s.getRank(attr);
+		String label = MmoCoreAttributeHelper.displayName(attr);
 		ItemStack i = new ItemStack(Material.PAPER, Math.max(1, rank));
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName(t(RPTexts.COMMAND + WordUtils.capitalize(attr)
-			+ " +" + rank));
+		meta.setDisplayName(t(RPTexts.RESET + RPTexts.WARN + label + " +" + rank));
 		List<String> lore = new ArrayList<>();
-		lore.add(t(RPTexts.MUTED + "Current rank: +" + rank
+		lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Current rank: +" + rank
 			+ " / +" + s.getMaxRank()));
 		if (rank < s.getMaxRank()) {
-			lore.add(t(RPTexts.MUTED + "Next costs "
+			lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Next costs "
 				+ AttributesStage.costForRank(rank + 1) + "."));
 		}
-		lore.add(t(RPTexts.MUTED + "Points left: " + s.getRemaining()));
+		lore.add(t(RPTexts.RESET + RPTexts.MUTED + "Points left: " + s.getRemaining()));
 		NamespacedKey attrKey = new NamespacedKey(RPCharacters.plugin, "attr_id");
 		meta.getPersistentDataContainer().set(attrKey, PersistentDataType.STRING, attr);
 		meta.setLore(lore);
@@ -1054,7 +1160,7 @@ public class InventoryManager {
 	public ItemStack getConfirmItem() {
 		ItemStack i = new ItemStack(Material.LIME_DYE, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName(t(RPTexts.SUCCESS + "CONFIRM"));
+		meta.setDisplayName(t(RPTexts.RESET + RPTexts.SUCCESS + "CONFIRM"));
 		i.setItemMeta(meta);
 		return i;
 	}
@@ -1125,24 +1231,18 @@ public class InventoryManager {
 			PlayerClass playerClass = MMOCore.plugin.classManager.get(s.getId());
 			if (playerClass != null && playerClass.getIcon() != null && playerClass.getIcon().getType() != Material.AIR) {
 				i = playerClass.getIcon().clone();
-				if (s.isSelected()) {
-					ItemMeta iconMeta = i.getItemMeta();
-					if (iconMeta != null) {
-						iconMeta.setDisplayName(t(RPTexts.SUCCESS + s.getName()));
-						i.setItemMeta(iconMeta);
-					}
-				}
 			}
 			ItemMeta classMeta = i.getItemMeta();
 			if (classMeta != null) {
-				classMeta.setDisplayName(t((s.isSelected() ? RPTexts.SUCCESS : "") + s.getName()));
+				String nameColour = s.isSelected() ? RPTexts.SUCCESS : RPTexts.WHITE;
+				classMeta.setDisplayName(t(RPTexts.RESET + nameColour + s.getName()));
 				List<String> lore = new ArrayList<>();
 				if (playerClass != null) {
 					lore.addAll(MmoCoreClassGuiHelper.buildClassLore(playerClass));
 				}
 				if (s.isSelected()) {
 					lore.add(RPTexts.spacer());
-					lore.add(t(RPTexts.SUCCESS + "Selected"));
+					lore.add(t(RPTexts.RESET + RPTexts.SUCCESS + "Selected"));
 				}
 				classMeta.setLore(lore);
 				i.setItemMeta(classMeta);

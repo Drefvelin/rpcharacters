@@ -19,12 +19,16 @@ import net.tfminecraft.RPCharacters.Managers.InventoryManager;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
+import net.tfminecraft.RPCharacters.mmocore.MmoCoreAttributeHelper;
 
 /**
  * Creation point-buy sheet: spend exactly {@code points} across attributes
- * with cost of the n-th rank = n, max rank per attribute from config.
+ * with cost of the n-th rank = 2^(n-1) (1, 2, 4, 8, …), max rank per attribute from config.
  */
 public class AttributesStage extends Stage {
+
+	/** Default center slots for legacy string-list config (vertical up/down = ±9). */
+	private static final int[] DEFAULT_CENTER_SLOTS = {20, 21, 22, 23, 24, 25};
 
 	private static final Map<String, String> ATTR_ABBR = Map.of(
 		"strength", "str",
@@ -40,6 +44,8 @@ public class AttributesStage extends Stage {
 	private final int size;
 	private final String key;
 	private final List<String> attributes;
+	/** Center inventory slot per attribute id (creation order preserved in {@link #attributes}). */
+	private final Map<String, Integer> attributeSlots;
 
 	private final Map<String, Integer> ranks = new LinkedHashMap<>();
 	private int remaining;
@@ -49,21 +55,23 @@ public class AttributesStage extends Stage {
 		copyBaseFields(s);
 		this.key = config.getString("key", "attributes");
 		this.pool = config.contains("points") ? config.getInt("points") : 12;
-		this.maxRank = config.contains("max-rank") ? config.getInt("max-rank") : 2;
-		this.size = config.contains("gui-size") ? config.getInt("gui-size") : 36;
+		this.maxRank = config.contains("max-rank") ? config.getInt("max-rank") : 4;
+		this.size = config.contains("gui-size") ? config.getInt("gui-size") : 54;
 		this.attributes = new ArrayList<>();
-		if (config.contains("attributes")) {
-			for (String a : config.getStringList("attributes")) {
-				if (a != null && !a.isBlank()) {
-					this.attributes.add(a.trim().toLowerCase(Locale.ROOT));
-				}
-			}
-		}
+		this.attributeSlots = new LinkedHashMap<>();
+		parseAttributes(config);
 		if (this.attributes.isEmpty()) {
+			int idx = 0;
 			for (String a : Cache.attributes) {
-				if (a != null && !a.isBlank()) {
-					this.attributes.add(a.trim().toLowerCase(Locale.ROOT));
+				if (a == null || a.isBlank()) {
+					continue;
 				}
+				String id = a.trim().toLowerCase(Locale.ROOT);
+				if (!acceptAttribute(id)) {
+					continue;
+				}
+				this.attributes.add(id);
+				this.attributeSlots.put(id, defaultCenterSlot(idx++));
 			}
 		}
 		resetRanks();
@@ -77,8 +85,74 @@ public class AttributesStage extends Stage {
 		this.maxRank = another.maxRank;
 		this.size = another.size;
 		this.attributes = new ArrayList<>(another.attributes);
+		this.attributeSlots = new LinkedHashMap<>(another.attributeSlots);
 		resetRanks();
 		this.active = false;
+	}
+
+	private void parseAttributes(ConfigurationSection config) {
+		if (!config.contains("attributes")) {
+			return;
+		}
+		ConfigurationSection map = config.getConfigurationSection("attributes");
+		if (map != null) {
+			int idx = 0;
+			for (String rawKey : map.getKeys(false)) {
+				String id = rawKey.trim().toLowerCase(Locale.ROOT);
+				if (!acceptAttribute(id)) {
+					continue;
+				}
+				int slot = -1;
+				ConfigurationSection entry = map.getConfigurationSection(rawKey);
+				if (entry != null && entry.contains("slot")) {
+					slot = entry.getInt("slot");
+				} else if (map.isInt(rawKey)) {
+					slot = map.getInt(rawKey);
+				}
+				if (slot < 0 || slot >= size) {
+					slot = defaultCenterSlot(idx);
+					RPCharacters.plugin.getLogger().warning(
+						"[attributes] " + id + " missing/invalid slot; using " + slot
+					);
+				}
+				this.attributes.add(id);
+				this.attributeSlots.put(id, slot);
+				idx++;
+			}
+			return;
+		}
+		int idx = 0;
+		for (String a : config.getStringList("attributes")) {
+			if (a == null || a.isBlank()) {
+				continue;
+			}
+			String id = a.trim().toLowerCase(Locale.ROOT);
+			if (!acceptAttribute(id)) {
+				continue;
+			}
+			this.attributes.add(id);
+			this.attributeSlots.put(id, defaultCenterSlot(idx++));
+		}
+	}
+
+	private boolean acceptAttribute(String id) {
+		if (id == null || id.isEmpty()) {
+			return false;
+		}
+		if (!MmoCoreAttributeHelper.exists(id)) {
+			RPCharacters.plugin.getLogger().warning(
+				"[attributes] unknown MMOCore attribute '" + id + "' — skipped"
+			);
+			return false;
+		}
+		return true;
+	}
+
+	private static int defaultCenterSlot(int index) {
+		if (index >= 0 && index < DEFAULT_CENTER_SLOTS.length) {
+			return DEFAULT_CENTER_SLOTS[index];
+		}
+		return 22;
 	}
 
 	private void resetRanks() {
@@ -121,6 +195,29 @@ public class AttributesStage extends Stage {
 		return attributes;
 	}
 
+	/** Center slot for attribute, or -1 if unknown. */
+	public int getCenterSlot(String attr) {
+		Integer slot = attributeSlots.get(normalize(attr));
+		return slot == null ? -1 : slot;
+	}
+
+	/**
+	 * Vertical sheet slots: [up, center, down] using center ± 9.
+	 * Returns {-1,-1,-1} if center is unset or out of bounds.
+	 */
+	public int[] getSheetSlots(String attr) {
+		int center = getCenterSlot(attr);
+		if (center < 0 || center >= size) {
+			return new int[] {-1, -1, -1};
+		}
+		int up = center - 9;
+		int down = center + 9;
+		if (up < 0 || down >= size) {
+			return new int[] {-1, center, -1};
+		}
+		return new int[] {up, center, down};
+	}
+
 	public int getRank(String attr) {
 		return ranks.getOrDefault(normalize(attr), 0);
 	}
@@ -134,9 +231,12 @@ public class AttributesStage extends Stage {
 		return abbrevFor(attr) + rank;
 	}
 
-	/** Cost to purchase the n-th rank (1-based). */
+	/** Cost to purchase the n-th rank (1-based): 1, 2, 4, 8, … */
 	public static int costForRank(int rank) {
-		return Math.max(0, rank);
+		if (rank < 1) {
+			return 0;
+		}
+		return 1 << (rank - 1);
 	}
 
 	public int spentPoints() {
@@ -194,11 +294,12 @@ public class AttributesStage extends Stage {
 		}
 		for (String attr : attributes) {
 			int rank = 0;
-			if (hasTraitId(character, traitId(attr, 1))) {
-				rank++;
-			}
-			if (hasTraitId(character, traitId(attr, 2))) {
-				rank++;
+			for (int n = 1; n <= maxRank; n++) {
+				if (hasTraitId(character, traitId(attr, n))) {
+					rank = n;
+				} else {
+					break;
+				}
 			}
 			ranks.put(attr, Math.min(rank, maxRank));
 		}

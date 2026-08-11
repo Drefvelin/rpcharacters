@@ -27,7 +27,7 @@ import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.enums.Status;
-import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
+import net.tfminecraft.RPCharacters.identity.NameColour;
 
 /**
  * Pull pending web creates from ProvinceSystem and persist into RPCharacters data.
@@ -237,10 +237,39 @@ public final class CharacterIngestService {
 		);
 		character.setGender(gender);
 		character.setPersonaDescription(description);
-		String birthday = AgeCalculator.birthdayFromAge(age, FantasyCalendar.getCurrentDate());
+		List<String> nameColours = new ArrayList<>();
+		Object coloursRaw = payload.get("name_colours");
+		if (coloursRaw instanceof JSONArray colourArr) {
+			for (Object entry : colourArr) {
+				if (entry != null) {
+					String code = entry.toString().trim();
+					if (!code.isEmpty()) {
+						nameColours.add(code);
+					}
+				}
+			}
+		}
+		if (!nameColours.isEmpty()) {
+			character.setNameColour(NameColour.of(nameColours));
+		}
+		String birthday = stringOf(payload.get("birthday"));
+		if (birthday.isBlank() || FantasyCalendar.fromIso(birthday) == null) {
+			String salt = stringOf(payload.get("client_request_id"));
+			if (salt.isBlank()) {
+				salt = createId;
+			}
+			birthday = AgeCalculator.birthdayFromAge(
+				age, FantasyCalendar.getCurrentDate(), salt
+			);
+		}
 		character.setBirthday(birthday);
 		character.setCreatedAtEpochSeconds((int) Instant.now().getEpochSecond());
 		character.update();
+
+		Object eighteenRaw = payload.get("eighteen");
+		if (eighteenRaw instanceof Boolean) {
+			pd.setEighteen((Boolean) eighteenRaw);
+		}
 
 		pd.addCharacter(character);
 

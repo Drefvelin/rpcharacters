@@ -152,17 +152,37 @@ public class CommandManager implements Listener, CommandExecutor{
 				return true;
 			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("edit") && args.length == 1) {
 				if(CreationManager.activeCreators.containsKey(p) && !CreationManager.activeCreators.get(p).isEditing()) {
-					RPTexts.send(p, RPTexts.ERROR + "You are busy creating a character");
+					if (CreationManager.activeCreators.get(p).isPreview()) {
+						RPTexts.send(p, RPTexts.ERROR + "You are busy previewing a stage");
+					} else {
+						RPTexts.send(p, RPTexts.ERROR + "You are busy creating a character");
+					}
 					return true;
 				}
 				CreationManager.initiateEdit(p);
 				return true;
 			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("edit") && args.length == 2) {
 				if(CreationManager.activeCreators.containsKey(p) && !CreationManager.activeCreators.get(p).isEditing()) {
-					RPTexts.send(p, RPTexts.ERROR + "You are busy creating a character");
+					if (CreationManager.activeCreators.get(p).isPreview()) {
+						RPTexts.send(p, RPTexts.ERROR + "You are busy previewing a stage");
+					} else {
+						RPTexts.send(p, RPTexts.ERROR + "You are busy creating a character");
+					}
 					return true;
 				}
 				CreationManager.initiateEditEntry(p, args[1]);
+				return true;
+			} else if (cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("stage")
+					&& args.length >= 2 && args[1].equalsIgnoreCase("preview")) {
+				if (!Permissions.isAdmin(sender)) {
+					RPTexts.sendPrefixed(p, RPTexts.ERROR + "You do not have access to this command");
+					return true;
+				}
+				if (args.length != 3) {
+					RPTexts.send(p, RPTexts.ERROR + "Usage: /rpcharacter stage preview <stageId>");
+					return true;
+				}
+				CreationManager.initiateStagePreview(p, args[2]);
 				return true;
 			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("setclass") && args.length == 3) {
 				Player argPlayer = Bukkit.getPlayerExact(args[1]);

@@ -14,6 +14,7 @@ import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
+import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 
 /**
  * Push a player's character roster mirror to ProvinceSystem.
@@ -74,9 +75,23 @@ public final class RosterSyncService {
 		}
 		root.put("characters", characters);
 
-		// Per-player slot entitlement only while online (LP requires a Player).
+		// Per-player entitlements only while online (LP requires a Player).
 		if (online != null) {
 			root.put("max_alive_characters", CharacterSlotService.getMaxAliveCharacters(online));
+			root.put("name_colour_stops", Integer.valueOf(PermissionGroupService.getNameColourStops(online)));
+		}
+
+		// Player-level 18+ attestation (skip age stages once answered, Yes or No).
+		boolean realAgeSet = pd.getCompletedStages().contains("creation_age_set_stage")
+			|| pd.getCompletedStages().contains("age_stage");
+		if (realAgeSet) {
+			root.put("real_age_set", Boolean.TRUE);
+			root.put("eighteen", Boolean.valueOf(pd.isEighteen()));
+		}
+
+		// Account wall-clock created-at for evil unlock gating on the web wizard.
+		if (pd.getCreatedAtEpochSeconds() > 0) {
+			root.put("account_created_at_epoch", Integer.valueOf(pd.getCreatedAtEpochSeconds()));
 		}
 
 		ProvinceSystemClient.SimpleResult result = ProvinceSystemClient.pushRoster(root.toJSONString());

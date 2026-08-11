@@ -53,6 +53,8 @@ public class ConfigLoader implements LoaderInterface{
         Cache.defaultCluesRequired = config.getInt("default-clues-required",
         		config.getInt("required-clues", 2));
         Cache.evilCluesRequired = config.getInt("evil-clues-required", Cache.evilCluesRequired);
+        Cache.evilMinAccountAgeHours = Math.max(0,
+        		config.getInt("evil-min-account-age-hours", Cache.evilMinAccountAgeHours));
         if (config.isConfigurationSection("character-description")) {
             Cache.characterDescriptionMinLength = config.getInt("character-description.length-minimum",
                     Cache.characterDescriptionMinLength);

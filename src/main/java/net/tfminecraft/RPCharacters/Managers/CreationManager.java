@@ -62,9 +62,26 @@ public class CreationManager implements Listener{
 		activeCreators.put(p, cc);
 	}
 
-	public static void initiateEdit(Player p) {
+	public static void initiateStagePreview(Player p, String stageId) {
+		if (p == null) {
+			return;
+		}
 		if (activeCreators.containsKey(p)) {
 			RPTexts.send(p, RPTexts.ERROR + "You already have an active character session.");
+			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+			return;
+		}
+		CharacterCreation.forStagePreview(p, stageId);
+	}
+
+	public static void initiateEdit(Player p) {
+		if (activeCreators.containsKey(p)) {
+			CharacterCreation existing = activeCreators.get(p);
+			if (existing != null && existing.isPreview()) {
+				RPTexts.send(p, RPTexts.ERROR + "You are busy previewing a stage.");
+			} else {
+				RPTexts.send(p, RPTexts.ERROR + "You already have an active character session.");
+			}
 			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 			return;
 		}
@@ -119,6 +136,10 @@ public class CreationManager implements Listener{
 			return;
 		}
 		CharacterCreation existing = activeCreators.get(p);
+		if (existing.isPreview()) {
+			RPTexts.send(p, RPTexts.ERROR + "You are busy previewing a stage.");
+			return;
+		}
 		if (!existing.isEditing()) {
 			RPTexts.send(p, RPTexts.ERROR + "You are busy creating a character.");
 			return;
@@ -137,7 +158,8 @@ public class CreationManager implements Listener{
 
 	public static boolean isDraftCharacter(Player player, String characterId) {
 		CharacterCreation cc = activeCreators.get(player);
-		return cc != null && !cc.isEditing() && cc.getCharacter().getId().equals(characterId);
+		return cc != null && !cc.isEditing() && !cc.isPreview()
+				&& cc.getCharacter().getId().equals(characterId);
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -302,7 +324,9 @@ public class CreationManager implements Listener{
 		}
 		p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
 		if ("confirm".equals(action)) {
-			if (cc.isEditing()) {
+			if (cc.isPreview()) {
+				cc.endPreview();
+			} else if (cc.isEditing()) {
 				cc.closeEditSession();
 			} else {
 				cc.finish();
@@ -310,12 +334,20 @@ public class CreationManager implements Listener{
 			return;
 		}
 		if ("clues".equals(action)) {
+			if (cc.isPreview()) {
+				RPTexts.send(p, RPTexts.ERROR + "Preview is one stage only. Confirm or cancel to exit.");
+				return;
+			}
 			InventoryManager inv = new InventoryManager();
 			CreationGuiContext context = cc.isEditing() ? CreationGuiContext.EDIT_SUMMARY : CreationGuiContext.CREATION_SUMMARY;
 			inv.cluesView(p, cc.getCharacter(), context, cc);
 			return;
 		}
 		if (action.startsWith("edit:")) {
+			if (cc.isPreview()) {
+				RPTexts.send(p, RPTexts.ERROR + "Preview is one stage only. Confirm or cancel to exit.");
+				return;
+			}
 			String stageId = action.substring("edit:".length());
 			Stage stage = StageLoader.getById(stageId);
 			if (stage != null && !StageEditLock.canEdit(p, stage, cc.getCharacter())) {
@@ -453,6 +485,13 @@ public class CreationManager implements Listener{
 			return;
 		}
 		CharacterCreation cc = activeCreators.get(p);
+		if (cc.isPreview()) {
+			if (h.isOverridden()) {
+				return;
+			}
+			cc.endPreview();
+			return;
+		}
 		Stage activeStage = cc.getActiveStage();
 		if(activeStage instanceof SelectionStage) {
 			SelectionStage s = (SelectionStage) activeStage;
