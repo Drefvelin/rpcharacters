@@ -743,7 +743,13 @@ public class CharacterCreation {
 
 		if (!CharacterSlotService.hasFreeSlot(p, pd)) {
 
-			RPTexts.send(p, RPTexts.ERROR + "No free character slot.");
+			RPTexts.send(p, RPTexts.ERROR + "No free character slot. A web create may have taken it.");
+
+			cancel();
+
+			p.closeInventory();
+
+			net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(p);
 
 			return;
 
@@ -760,6 +766,8 @@ public class CharacterCreation {
 		pd.addCharacter(character);
 
 		pd.setActiveCharacter(character);
+
+		net.tfminecraft.RPCharacters.kit.KitService.onCharacterCreated(p, pd, character);
 
 		RPCharacters.getPlayerManager().reevaluateFreeze(p);
 

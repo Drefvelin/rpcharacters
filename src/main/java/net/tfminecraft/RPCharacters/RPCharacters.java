@@ -32,6 +32,7 @@ import net.tfminecraft.RPCharacters.Managers.ClueInputManager;
 import net.tfminecraft.RPCharacters.Loaders.ClueDiscoveryLoader;
 import net.tfminecraft.RPCharacters.Loaders.MagnifyingGlassLoader;
 import net.tfminecraft.RPCharacters.Loaders.InjuryPoolLoader;
+import net.tfminecraft.RPCharacters.Loaders.KitLoader;
 import net.tfminecraft.RPCharacters.Loaders.PermadeathZoneLoader;
 import net.tfminecraft.RPCharacters.Managers.CommandManager;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
@@ -122,6 +123,7 @@ public class RPCharacters extends JavaPlugin{
 	private final MagnifyingGlassLoader magnifyingGlassLoader = new MagnifyingGlassLoader();
 	private final PermadeathZoneLoader permadeathZoneLoader = new PermadeathZoneLoader();
 	private final InjuryPoolLoader injuryPoolLoader = new InjuryPoolLoader();
+	private final KitLoader kitLoader = new KitLoader();
 	
 	@Override
 	public void onEnable() {
@@ -146,6 +148,7 @@ public class RPCharacters extends JavaPlugin{
 	}
 	@Override
 	public void onDisable() {
+		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.stopPeriodicPull();
 		ProtocolLibBridge.shutdown();
 		SpeechBubbleManager.get().shutdown();
 		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().shutdown();
@@ -198,6 +201,7 @@ public class RPCharacters extends JavaPlugin{
 		SpeechBubbleManager.get().startTicks();
 		ProtocolLibBridge.init(this);
 		FakeBubbleManager.get().startTicks();
+		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.startPeriodicPull(this);
 	}
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
@@ -233,9 +237,10 @@ public class RPCharacters extends JavaPlugin{
 		injuryPoolLoader.load(new File(getDataFolder(), "injuries.yml"));
 		StageLoader.oList.clear();
 		stageLoader.load(new File(getDataFolder(), "stages.yml"));
+		kitLoader.loadPreferred(getDataFolder());
 		WorldGuardBridge.init();
 		net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService.pushAsync(this);
-		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.pullAsync(this);
+		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.tryPullAsync(this);
 	}
 	
 	public void createFolders() {
@@ -249,6 +254,8 @@ public class RPCharacters extends JavaPlugin{
 		subFolder = new File(getDataFolder(), "data/characterdata");
 		if(!subFolder.exists()) subFolder.mkdir();
 		subFolder = new File(getDataFolder(), "professions");
+		if(!subFolder.exists()) subFolder.mkdir();
+		subFolder = new File(getDataFolder(), "assets");
 		if(!subFolder.exists()) subFolder.mkdir();
 	}
 	
@@ -271,7 +278,8 @@ public class RPCharacters extends JavaPlugin{
 				"permission-groups.yml",
 				"professions.yml",
 				"zones.yml",
-				"injuries.yml"
+				"injuries.yml",
+				"kits.yml"
 				};
 		for(String s : files) {
 			File newConfigFile = new File(getDataFolder(), s);
@@ -279,6 +287,11 @@ public class RPCharacters extends JavaPlugin{
 	        	newConfigFile.getParentFile().mkdirs();
 	            saveResource(s, false);
 	        }
+		}
+		File knifeSkin = new File(getDataFolder(), "assets/knife_skin.png");
+		if (!knifeSkin.exists()) {
+			knifeSkin.getParentFile().mkdirs();
+			saveResource("assets/knife_skin.png", false);
 		}
 		String[] professionFiles = {
 				"alchemist.yml",

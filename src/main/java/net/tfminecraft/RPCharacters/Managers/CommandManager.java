@@ -66,17 +66,23 @@ public class CommandManager implements Listener, CommandExecutor{
 				return true;
 			}
 			RPTexts.send(sender, RPTexts.COMMAND + "Syncing creation catalog…");
-			Bukkit.getScheduler().runTaskAsynchronously(RPCharacters.plugin, () -> {
-				var result = net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService.pushNow();
-				Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> {
-					if (result.ok) {
-						RPTexts.send(sender, RPTexts.SUCCESS + "Creation catalog synced: stages="
-							+ result.stages + " races=" + result.races
-							+ " traits=" + result.traits + " classes=" + result.classes);
-					} else {
-						RPTexts.send(sender, RPTexts.ERROR + "Catalog sync failed: "
-							+ (result.error != null ? result.error : "unknown"));
-					}
+			// Build on main thread (editable_kit ItemStack preview), then PUT async.
+			Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> {
+				String json = net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService
+					.buildPayloadJson();
+				Bukkit.getScheduler().runTaskAsynchronously(RPCharacters.plugin, () -> {
+					var result = net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService
+						.pushJson(json);
+					Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> {
+						if (result.ok) {
+							RPTexts.send(sender, RPTexts.SUCCESS + "Creation catalog synced: stages="
+								+ result.stages + " races=" + result.races
+								+ " traits=" + result.traits + " classes=" + result.classes);
+						} else {
+							RPTexts.send(sender, RPTexts.ERROR + "Catalog sync failed: "
+								+ (result.error != null ? result.error : "unknown"));
+						}
+					});
 				});
 			});
 			return true;
@@ -91,7 +97,7 @@ public class CommandManager implements Listener, CommandExecutor{
 				return true;
 			}
 			RPTexts.send(sender, RPTexts.COMMAND + "Pulling pending web character creates…");
-			net.tfminecraft.RPCharacters.ingest.CharacterIngestService.pullAsync(RPCharacters.plugin);
+			net.tfminecraft.RPCharacters.ingest.CharacterIngestService.forcePullAsync(RPCharacters.plugin);
 			RPTexts.send(sender, RPTexts.SUCCESS + "Pending sync started (see console for results).");
 			return true;
 		}
@@ -102,7 +108,14 @@ public class CommandManager implements Listener, CommandExecutor{
 
 		Player p = (Player) sender;
 		if(args.length == 0) return true;
-			if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("create") && args.length == 1) {
+			if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("kit")) {
+				if (args.length < 2 || args[1] == null || args[1].isBlank()) {
+					RPTexts.send(p, RPTexts.ERROR + "Usage: /rpcharacter kit <id>");
+					return true;
+				}
+				net.tfminecraft.RPCharacters.kit.KitService.tryClaim(p, args[1]);
+				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("create") && args.length == 1) {
 				if(CreationManager.activeCreators.containsKey(p)) {
 					RPTexts.send(p, RPTexts.ERROR + "You are already creating a character");
 					return true;

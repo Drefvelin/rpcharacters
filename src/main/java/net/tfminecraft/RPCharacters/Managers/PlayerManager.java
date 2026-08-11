@@ -299,11 +299,9 @@ public class PlayerManager implements Listener{
 	public void onJoin(PlayerJoinEvent e) {
 		Player p = e.getPlayer();
 		initiatePlayer(p);
-		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.pullForPlayerAsync(
+		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.tryPullForPlayerAsync(
 			RPCharacters.plugin, p.getUniqueId()
 		);
-		// Push roster so website learns real_age_set / slots even if no new character was finished.
-		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(p);
 	}
 	@EventHandler
 	public void onLeave(PlayerQuitEvent e) {
@@ -346,6 +344,11 @@ public class PlayerManager implements Listener{
 			ClassService.applyFreeSkillPoints(p);
 			net.tfminecraft.RPCharacters.clues.discovery.InvestigationPointService.bootstrap(p);
 			reevaluateFreeze(p);
+			if (pd.hasActiveCharacter()) {
+				net.tfminecraft.RPCharacters.kit.KitCustomiseApplyService.applyStoredForPlayer(
+						p, pd.getActiveCharacter()
+				);
+			}
 		}
 	}
 	public void confirmClick(Player p, RPCharacter c, ConfirmType t) {

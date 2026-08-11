@@ -52,6 +52,10 @@ public class CreationManager implements Listener{
 			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 			return;
 		}
+		// Prefer landing any waiting web creates before opening in-game creator.
+		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.tryPullForPlayerAsync(
+			net.tfminecraft.RPCharacters.RPCharacters.plugin, p.getUniqueId()
+		);
 		if(PermissionGroupService.hasCharacterSwitchCooldown(p, pd) && pd.getCharacters(Status.ALIVE).size() > 0 && !p.hasPermission("rpcharacters.no_cooldown")) {
 			RPTexts.send(p, RPTexts.ERROR + "You are on cooldown from switching characters");
 			p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);

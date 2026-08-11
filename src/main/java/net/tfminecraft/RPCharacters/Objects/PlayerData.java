@@ -32,6 +32,8 @@ public class PlayerData {
 	private int investigationPoints = -1;
 	private Long lastInvestigationRegenMs;
 	private boolean permadeathTutorialDismissed;
+	/** Per grant-kit id → last successful claim epoch ms. */
+	private final Map<String, Long> lastKitClaimAtMs = new HashMap<>();
 	
 	public PlayerData(Player p) {
 		this.p = p;
@@ -191,6 +193,42 @@ public class PlayerData {
 
 	public void clearCharacterSwitchCooldown() {
 		lastCharacterSwitchAtMs = null;
+	}
+
+	public Map<String, Long> getLastKitClaimAtMsMap() {
+		return lastKitClaimAtMs;
+	}
+
+	public Long getLastKitClaimAtMs(String kitId) {
+		if (kitId == null || kitId.isBlank()) {
+			return null;
+		}
+		return lastKitClaimAtMs.get(kitId.trim().toLowerCase(java.util.Locale.ROOT));
+	}
+
+	public void setLastKitClaimAtMs(String kitId, Long atMs) {
+		if (kitId == null || kitId.isBlank()) {
+			return;
+		}
+		String id = kitId.trim().toLowerCase(java.util.Locale.ROOT);
+		if (atMs == null || atMs <= 0L) {
+			lastKitClaimAtMs.remove(id);
+		} else {
+			lastKitClaimAtMs.put(id, atMs);
+		}
+	}
+
+	/** Legacy: starter kit last claim. */
+	public Long getLastKitGrantAtMs() {
+		return getLastKitClaimAtMs(net.tfminecraft.RPCharacters.Loaders.KitLoader.DEFAULT_KIT_ID);
+	}
+
+	/** Legacy: starter kit last claim. */
+	public void setLastKitGrantAtMs(Long lastKitGrantAtMs) {
+		setLastKitClaimAtMs(
+				net.tfminecraft.RPCharacters.Loaders.KitLoader.DEFAULT_KIT_ID,
+				lastKitGrantAtMs
+		);
 	}
 
 	public Player getPlayer() {

@@ -123,6 +123,59 @@ public final class ProvinceSystemClient {
 		return request("POST", "/characters/plugin/applied", jsonBody);
 	}
 
+	/** GET /characters/plugin/lore-items/pending */
+	public static SimpleResult fetchPendingLoreItems() {
+		return request("GET", "/characters/plugin/lore-items/pending", null);
+	}
+
+	/** GET /characters/plugin/lore-items/claim-status?player_uuid=&character_id=&kit_id= */
+	public static SimpleResult fetchLoreItemClaimStatus(
+			String playerUuid,
+			String characterId,
+			String kitId
+	) {
+		if (playerUuid == null || playerUuid.isBlank() || characterId == null || characterId.isBlank()) {
+			return SimpleResult.fail("player_uuid and character_id are required");
+		}
+		try {
+			String kit = (kitId == null || kitId.isBlank()) ? "starter" : kitId.trim();
+			String q = "?player_uuid=" + java.net.URLEncoder.encode(playerUuid.trim(), StandardCharsets.UTF_8)
+					+ "&character_id=" + java.net.URLEncoder.encode(characterId.trim(), StandardCharsets.UTF_8)
+					+ "&kit_id=" + java.net.URLEncoder.encode(kit, StandardCharsets.UTF_8);
+			return request("GET", "/characters/plugin/lore-items/claim-status" + q, null);
+		} catch (Exception e) {
+			return SimpleResult.fail(e.getMessage() != null ? e.getMessage() : "encode failed");
+		}
+	}
+
+	/** @deprecated use {@link #fetchLoreItemClaimStatus(String, String, String)} */
+	public static SimpleResult fetchLoreItemClaimStatus(String playerUuid, String characterId) {
+		return fetchLoreItemClaimStatus(playerUuid, characterId, "starter");
+	}
+
+	public static boolean claimStatusPendingSkin(String body) {
+		if (body == null || body.isBlank()) {
+			return false;
+		}
+		String lower = body.toLowerCase();
+		// cheap parse: "pending_skin": true
+		int idx = lower.indexOf("\"pending_skin\"");
+		if (idx < 0) {
+			return false;
+		}
+		int colon = lower.indexOf(':', idx);
+		if (colon < 0) {
+			return false;
+		}
+		String rest = lower.substring(colon + 1).trim();
+		return rest.startsWith("true");
+	}
+
+	/** POST /characters/plugin/lore-items/applied */
+	public static SimpleResult ackLoreItems(String jsonBody) {
+		return request("POST", "/characters/plugin/lore-items/applied", jsonBody);
+	}
+
 	/** PUT /characters/plugin/roster */
 	public static SimpleResult pushRoster(String jsonBody) {
 		return request("PUT", "/characters/plugin/roster", jsonBody);
@@ -145,6 +198,34 @@ public final class ProvinceSystemClient {
 				return out;
 			}
 			JSONArray arr = (JSONArray) creates;
+			for (Object row : arr) {
+				if (row instanceof JSONObject) {
+					out.add((JSONObject) row);
+				}
+			}
+		} catch (Exception ignored) {
+			// caller treats empty as no pending
+		}
+		return out;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static List<JSONObject> parsePendingLoreItems(String body) {
+		List<JSONObject> out = new ArrayList<>();
+		if (body == null || body.isBlank()) {
+			return out;
+		}
+		try {
+			JSONParser parser = new JSONParser();
+			Object parsed = parser.parse(body);
+			if (!(parsed instanceof JSONObject)) {
+				return out;
+			}
+			Object items = ((JSONObject) parsed).get("items");
+			if (!(items instanceof JSONArray)) {
+				return out;
+			}
+			JSONArray arr = (JSONArray) items;
 			for (Object row : arr) {
 				if (row instanceof JSONObject) {
 					out.add((JSONObject) row);

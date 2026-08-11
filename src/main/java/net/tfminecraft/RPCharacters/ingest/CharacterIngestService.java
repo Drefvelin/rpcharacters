@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -28,6 +30,7 @@ import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.enums.Status;
 import net.tfminecraft.RPCharacters.identity.NameColour;
+import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 
 /**
  * Pull pending web creates from ProvinceSystem and persist into RPCharacters data.
@@ -35,8 +38,85 @@ import net.tfminecraft.RPCharacters.identity.NameColour;
 public final class CharacterIngestService {
 
 	private static final Database DB = new Database();
+	/** Minimum gap between non-forced pending pulls (join / reload / timer). */
+	private static final long PULL_COOLDOWN_MS = 15_000L;
+	private static final long PERIODIC_PULL_TICKS = 20L * 15L;
+
+	private static final AtomicLong lastPullAtMs = new AtomicLong(0L);
+	private static volatile BukkitTask periodicTask;
 
 	private CharacterIngestService() {}
+
+	/**
+	 * Pull if the 15s cooldown has elapsed. Used by join, reload, and the timer.
+	 */
+	public static void tryPullAsync(JavaPlugin plugin) {
+		if (plugin == null) {
+			return;
+		}
+		long now = System.currentTimeMillis();
+		long prev = lastPullAtMs.get();
+		if (now - prev < PULL_COOLDOWN_MS) {
+			return;
+		}
+		if (!lastPullAtMs.compareAndSet(prev, now)) {
+			return;
+		}
+		pullAsync(plugin);
+	}
+
+	/**
+	 * Always pull (admin {@code /rpcharacter pending sync}). Updates cooldown stamp.
+	 */
+	public static void forcePullAsync(JavaPlugin plugin) {
+		if (plugin == null) {
+			return;
+		}
+		lastPullAtMs.set(System.currentTimeMillis());
+		pullAsync(plugin);
+	}
+
+	/**
+	 * Per-player pull respecting the same global cooldown; always pushes roster after
+	 * (or immediately if the pull is skipped).
+	 */
+	public static void tryPullForPlayerAsync(JavaPlugin plugin, UUID playerUuid) {
+		if (plugin == null || playerUuid == null) {
+			return;
+		}
+		long now = System.currentTimeMillis();
+		long prev = lastPullAtMs.get();
+		if (now - prev < PULL_COOLDOWN_MS) {
+			RosterSyncService.pushRosterAsync(playerUuid);
+			return;
+		}
+		if (!lastPullAtMs.compareAndSet(prev, now)) {
+			RosterSyncService.pushRosterAsync(playerUuid);
+			return;
+		}
+		pullForPlayerAsync(plugin, playerUuid);
+	}
+
+	public static void startPeriodicPull(JavaPlugin plugin) {
+		if (plugin == null) {
+			return;
+		}
+		stopPeriodicPull();
+		periodicTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
+			plugin,
+			() -> tryPullAsync(plugin),
+			PERIODIC_PULL_TICKS,
+			PERIODIC_PULL_TICKS
+		);
+	}
+
+	public static void stopPeriodicPull() {
+		BukkitTask task = periodicTask;
+		periodicTask = null;
+		if (task != null) {
+			task.cancel();
+		}
+	}
 
 	public static void pullAsync(JavaPlugin plugin) {
 		if (plugin == null) {
@@ -46,21 +126,21 @@ public final class CharacterIngestService {
 			ProvinceSystemClient.SimpleResult pending = ProvinceSystemClient.fetchPendingCreates();
 			if (!pending.ok) {
 				plugin.getLogger().warning("[character-ingest] pending fetch failed: " + pending.error);
-				return;
-			}
-			List<JSONObject> creates = ProvinceSystemClient.parsePendingCreates(pending.body);
-			if (creates.isEmpty()) {
-				return;
-			}
-			List<JSONObject> results = applyAllOnMain(plugin, creates);
-			if (!results.isEmpty()) {
-				ProvinceSystemClient.SimpleResult ack = ProvinceSystemClient.ackCreates(buildAckJson(results));
-				if (!ack.ok) {
-					plugin.getLogger().warning("[character-ingest] ack failed: " + ack.error);
-				} else {
-					plugin.getLogger().info("[character-ingest] processed " + results.size() + " pending create(s)");
+			} else {
+				List<JSONObject> creates = ProvinceSystemClient.parsePendingCreates(pending.body);
+				if (!creates.isEmpty()) {
+					List<JSONObject> results = applyAllOnMain(plugin, creates);
+					if (!results.isEmpty()) {
+						ProvinceSystemClient.SimpleResult ack = ProvinceSystemClient.ackCreates(buildAckJson(results));
+						if (!ack.ok) {
+							plugin.getLogger().warning("[character-ingest] ack failed: " + ack.error);
+						} else {
+							plugin.getLogger().info("[character-ingest] processed " + results.size() + " pending create(s)");
+						}
+					}
 				}
 			}
+			KitCustomiseIngestService.pullNow(plugin);
 		});
 	}
 
@@ -86,6 +166,7 @@ public final class CharacterIngestService {
 			if (!results.isEmpty()) {
 				ProvinceSystemClient.ackCreates(buildAckJson(results));
 			}
+			KitCustomiseIngestService.pullNow(plugin);
 			RosterSyncService.pushRosterNow(playerUuid);
 		});
 	}
@@ -276,6 +357,8 @@ public final class CharacterIngestService {
 		if (online != null && !pd.hasActiveCharacter()) {
 			pd.setActiveCharacter(character);
 		}
+
+		net.tfminecraft.RPCharacters.kit.KitService.onCharacterCreated(online, pd, character);
 
 		if (inManager && online != null) {
 			RPCharacters.getPlayerManager().savePlayer(online);

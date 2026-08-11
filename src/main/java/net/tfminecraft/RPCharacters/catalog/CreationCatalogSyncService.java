@@ -23,9 +23,12 @@ import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
+import net.tfminecraft.RPCharacters.Loaders.KitLoader;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
+import net.tfminecraft.RPCharacters.kit.KitDefinition;
+import net.tfminecraft.RPCharacters.kit.KitItemDefinition;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeModifier;
 import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
@@ -33,6 +36,7 @@ import net.tfminecraft.RPCharacters.Objects.PermissionGroupDefinition;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.api.ProvinceSystemClient;
+import net.tfminecraft.RPCharacters.kit.EditableKitPreviewBuilder;
 import net.tfminecraft.RPCharacters.mmocore.MmoCoreClassGuiHelper;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 
@@ -60,6 +64,10 @@ public final class CreationCatalogSyncService {
 		appendValidation(sb);
 		sb.append(',');
 		appendSlotLimits(sb);
+		sb.append(',');
+		appendKits(sb);
+		sb.append(',');
+		appendEditableKit(sb);
 
 		sb.append('}');
 		return sb.toString();
@@ -440,27 +448,122 @@ public final class CreationCatalogSyncService {
 		sb.append("]}");
 	}
 
+	/** Nested kits from kits.yml (all items; editable flagged). */
+	private static void appendKits(StringBuilder sb) {
+		sb.append("\"kits\":[");
+		boolean first = true;
+		for (KitDefinition kit : KitLoader.getKits().values()) {
+			if (kit == null || kit.getId().isEmpty()) {
+				continue;
+			}
+			if (!first) {
+				sb.append(',');
+			}
+			first = false;
+			sb.append('{');
+			appendField(sb, "id", kit.getId(), true);
+			appendField(sb, "display_name", kit.getDisplayName(), false);
+			sb.append(",\"cooldown_hours\":").append(kit.getCooldownHours());
+			sb.append(",\"once_per_character\":").append(kit.isOncePerCharacter());
+			sb.append(",\"items\":[");
+			boolean firstItem = true;
+			for (KitItemDefinition item : kit.getItems()) {
+				if (item == null || item.getPath() == null || item.getPath().isBlank()) {
+					continue;
+				}
+				if (!firstItem) {
+					sb.append(',');
+				}
+				firstItem = false;
+				sb.append('{');
+				appendField(sb, "path", item.getPath(), true);
+				sb.append(",\"amount\":").append(item.getAmount());
+				if (item.isEditable()) {
+					sb.append(",\"editable\":true");
+				}
+				sb.append('}');
+			}
+			sb.append("]}");
+		}
+		sb.append(']');
+	}
+
+	/**
+	 * Flat editable kit rows (compat). Preview resolution uses Bukkit ItemMeta — call
+	 * {@link #buildPayloadJson()} on the main thread.
+	 */
+	private static void appendEditableKit(StringBuilder sb) {
+		sb.append("\"editable_kit\":[");
+		boolean first = true;
+		for (EditableKitPreviewBuilder.Row row : EditableKitPreviewBuilder.build()) {
+			if (!first) {
+				sb.append(',');
+			}
+			first = false;
+			sb.append('{');
+			appendField(sb, "kit_key", row.getKitKey(), true);
+			appendField(sb, "path", row.getPath(), false);
+			sb.append(",\"amount\":").append(row.getAmount());
+			if (row.getGrantKitId() != null && !row.getGrantKitId().isBlank()) {
+				appendField(sb, "kit_id", row.getGrantKitId(), false);
+			}
+			appendField(sb, "skin_png", row.getSkinPng(), false);
+			appendField(sb, "base_set", row.getBaseSet(), false);
+			EditableKitPreviewBuilder.Preview preview = row.getPreview();
+			if (preview != null) {
+				sb.append(",\"preview\":{");
+				appendField(sb, "display_name", preview.getDisplayName(), true);
+				sb.append(',');
+				appendStringList(sb, "lore", preview.getLore());
+				appendField(sb, "material", preview.getMaterial(), false);
+				if (preview.getCustomModelData() != null) {
+					sb.append(",\"custom_model_data\":").append(preview.getCustomModelData());
+				}
+				sb.append('}');
+			}
+			sb.append('}');
+		}
+		sb.append(']');
+	}
+
 	public static void pushAsync(JavaPlugin plugin) {
 		if (plugin == null) {
 			return;
 		}
-		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-			ProvinceSystemClient.CatalogPushResult result = pushNow();
-			Logger log = plugin.getLogger();
-			if (result.ok) {
-				log.info("[creation-catalog] synced to ProvinceSystem: stages="
-					+ result.stages
-					+ " races=" + result.races
-					+ " traits=" + result.traits
-					+ " classes=" + result.classes);
-			} else {
-				log.warning("[creation-catalog] sync failed: " + result.error);
-			}
-		});
+		Runnable buildThenPush = () -> {
+			String json = buildPayloadJson();
+			Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+				ProvinceSystemClient.CatalogPushResult result =
+					ProvinceSystemClient.pushCreationCatalog(json);
+				logPushResult(plugin.getLogger(), result);
+			});
+		};
+		if (Bukkit.isPrimaryThread()) {
+			buildThenPush.run();
+		} else {
+			Bukkit.getScheduler().runTask(plugin, buildThenPush);
+		}
 	}
 
+	/** Build payload then PUT. Must run on the main thread (ItemStack preview). */
 	public static ProvinceSystemClient.CatalogPushResult pushNow() {
 		return ProvinceSystemClient.pushCreationCatalog(buildPayloadJson());
+	}
+
+	public static ProvinceSystemClient.CatalogPushResult pushJson(String jsonBody) {
+		return ProvinceSystemClient.pushCreationCatalog(jsonBody);
+	}
+
+	private static void logPushResult(Logger log, ProvinceSystemClient.CatalogPushResult result) {
+		if (result.ok) {
+			log.info("[creation-catalog] synced to ProvinceSystem: stages="
+				+ result.stages
+				+ " races=" + result.races
+				+ " traits=" + result.traits
+				+ " classes=" + result.classes);
+		} else {
+			log.warning("[creation-catalog] sync failed: " + result.error);
+		}
 	}
 
 	public static void pushAsyncFromPlugin() {

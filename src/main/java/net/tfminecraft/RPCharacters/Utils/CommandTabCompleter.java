@@ -39,6 +39,7 @@ public class CommandTabCompleter implements TabCompleter {
 		if (args.length == 1) {
 			List<String> completions = new ArrayList<>();
 			completions.add("create");
+			completions.add("kit");
 			completions.add("next");
 			completions.add("menu");
 			completions.add("cancel");
@@ -80,6 +81,11 @@ public class CommandTabCompleter implements TabCompleter {
 		List<String> completions = new ArrayList<>();
 
 		if (args.length == 2) {
+			if (args[0].equalsIgnoreCase("kit")) {
+				return filter(new ArrayList<>(
+						net.tfminecraft.RPCharacters.Loaders.KitLoader.kitIds()
+				), args[1]);
+			}
 			if (args[0].equalsIgnoreCase("catalog") && Permissions.isAdmin(sender)) {
 				return filter(List.of("sync"), args[1]);
 			}

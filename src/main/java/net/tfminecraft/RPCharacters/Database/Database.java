@@ -126,6 +126,11 @@ public class Database {
 				if (json.containsKey("permadeath-tutorial-dismissed")) {
 					pd.setPermadeathTutorialDismissed(Boolean.parseBoolean((String) json.get("permadeath-tutorial-dismissed")));
 				}
+				if (json.containsKey("last-kit-claims")) {
+					loadLastKitClaims(pd, json.get("last-kit-claims"));
+				} else if (json.containsKey("last-kit-grant-ms")) {
+					pd.setLastKitGrantAtMs(((Number) json.get("last-kit-grant-ms")).longValue());
+				}
 				loadCharacters(pd);
 				return pd;
 			} catch (Exception ex) {
@@ -191,6 +196,11 @@ public class Database {
 			loadInvestigationPoints(pd, json);
 			if (json.containsKey("permadeath-tutorial-dismissed")) {
 				pd.setPermadeathTutorialDismissed(Boolean.parseBoolean((String) json.get("permadeath-tutorial-dismissed")));
+			}
+			if (json.containsKey("last-kit-claims")) {
+				loadLastKitClaims(pd, json.get("last-kit-claims"));
+			} else if (json.containsKey("last-kit-grant-ms")) {
+				pd.setLastKitGrantAtMs(((Number) json.get("last-kit-grant-ms")).longValue());
 			}
 			loadCharacters(pd);
 			return pd;
@@ -310,6 +320,15 @@ public class Database {
 			}
 			if (pd.hasDismissedPermadeathTutorial()) {
 				defaults.put("permadeath-tutorial-dismissed", "true");
+			}
+			if (!pd.getLastKitClaimAtMsMap().isEmpty()) {
+				JSONObject claims = new JSONObject();
+				for (var entry : pd.getLastKitClaimAtMsMap().entrySet()) {
+					if (entry.getKey() != null && entry.getValue() != null) {
+						claims.put(entry.getKey(), entry.getValue());
+					}
+				}
+				defaults.put("last-kit-claims", claims);
 			}
         	for(RPCharacter c : pd.getCharacters()) {
         		saveCharacter(pd, c);
@@ -543,6 +562,60 @@ public class Database {
 		if (characterJson.containsKey("hidden")) {
 			character.setHidden(Boolean.parseBoolean(characterJson.get("hidden").toString()));
 		}
+		if (characterJson.containsKey("kit-statuses")) {
+			Object raw = characterJson.get("kit-statuses");
+			if (raw instanceof JSONObject statuses) {
+				for (Object keyObj : statuses.keySet()) {
+					String kitId = keyObj.toString();
+					Object val = statuses.get(keyObj);
+					if (val == null) {
+						continue;
+					}
+					character.setKitStatus(
+							kitId,
+							net.tfminecraft.RPCharacters.kit.KitStatus.fromStorage(val.toString())
+					);
+				}
+			}
+		} else if (characterJson.containsKey("kit-status")) {
+			character.setKitStatus(
+					net.tfminecraft.RPCharacters.kit.KitStatus.fromStorage(characterJson.get("kit-status").toString())
+			);
+		}
+		if (characterJson.containsKey("kit-customisations")) {
+			Object raw = characterJson.get("kit-customisations");
+			if (raw instanceof JSONObject kitJson) {
+				for (Object keyObj : kitJson.keySet()) {
+					String kitKey = keyObj.toString();
+					Object entryObj = kitJson.get(keyObj);
+					if (!(entryObj instanceof JSONObject entry)) {
+						continue;
+					}
+					String displayName = entry.containsKey("display-name")
+							? String.valueOf(entry.get("display-name"))
+							: "";
+					String skinSlug = entry.containsKey("skin-slug")
+							? String.valueOf(entry.get("skin-slug"))
+							: null;
+					String path = entry.containsKey("path")
+							? String.valueOf(entry.get("path"))
+							: "";
+					List<String> lore = new ArrayList<>();
+					if (entry.get("lore") instanceof JSONArray loreArr) {
+						for (Object line : loreArr) {
+							if (line != null) {
+								lore.add(line.toString());
+							}
+						}
+					}
+					character.putKitCustomise(
+							new net.tfminecraft.RPCharacters.kit.KitCustomiseData(
+									kitKey, displayName, lore, skinSlug, path
+							)
+					);
+				}
+			}
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -570,6 +643,59 @@ public class Database {
 		}
 		if (character.isHidden()) {
 			defaults.put("hidden", "true");
+		}
+		if (!character.getKitStatuses().isEmpty()) {
+			JSONObject statuses = new JSONObject();
+			for (var entry : character.getKitStatuses().entrySet()) {
+				if (entry.getKey() != null && entry.getValue() != null) {
+					statuses.put(entry.getKey(), entry.getValue().toStorage());
+				}
+			}
+			defaults.put("kit-statuses", statuses);
+			// Legacy scalar for starter
+			var starter = character.getKitStatus();
+			if (starter != null) {
+				defaults.put("kit-status", starter.toStorage());
+			}
+		}
+		if (!character.getKitCustomisations().isEmpty()) {
+			JSONObject kitJson = new JSONObject();
+			for (var entry : character.getKitCustomisations().entrySet()) {
+				var data = entry.getValue();
+				if (data == null) {
+					continue;
+				}
+				JSONObject one = new JSONObject();
+				one.put("display-name", data.getDisplayName() != null ? data.getDisplayName() : "");
+				JSONArray loreArr = new JSONArray();
+				for (String line : data.getLore()) {
+					loreArr.add(line);
+				}
+				one.put("lore", loreArr);
+				if (data.getSkinSlug() != null && !data.getSkinSlug().isBlank()) {
+					one.put("skin-slug", data.getSkinSlug());
+				}
+				if (data.getPath() != null && !data.getPath().isBlank()) {
+					one.put("path", data.getPath());
+				}
+				kitJson.put(data.getKitKey(), one);
+			}
+			defaults.put("kit-customisations", kitJson);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void loadLastKitClaims(PlayerData pd, Object raw) {
+		if (!(raw instanceof JSONObject claims) || pd == null) {
+			return;
+		}
+		for (Object keyObj : claims.keySet()) {
+			String kitId = keyObj != null ? keyObj.toString() : "";
+			Object val = claims.get(keyObj);
+			if (kitId.isBlank() || !(val instanceof Number)) {
+				continue;
+			}
+			pd.setLastKitClaimAtMs(kitId, ((Number) val).longValue());
 		}
 	}
 

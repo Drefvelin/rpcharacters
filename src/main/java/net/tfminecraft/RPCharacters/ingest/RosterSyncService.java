@@ -10,9 +10,13 @@ import org.json.simple.JSONObject;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.api.ProvinceSystemClient;
 import net.tfminecraft.RPCharacters.Database.Database;
+import net.tfminecraft.RPCharacters.Loaders.KitLoader;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
+import net.tfminecraft.RPCharacters.kit.KitDefinition;
+import net.tfminecraft.RPCharacters.kit.KitService;
+import net.tfminecraft.RPCharacters.kit.KitStatus;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 
@@ -71,17 +75,53 @@ public final class RosterSyncService {
 			if (c.getCreatedAtEpochSeconds() > 0) {
 				row.put("created_at", String.valueOf(c.getCreatedAtEpochSeconds()));
 			}
+			JSONObject statuses = new JSONObject();
+			for (var entry : c.getKitStatuses().entrySet()) {
+				if (entry.getKey() != null && entry.getValue() != null) {
+					statuses.put(entry.getKey(), entry.getValue().toStorage());
+				}
+			}
+			if (!statuses.isEmpty()) {
+				row.put("kit_statuses", statuses);
+			}
+			KitStatus starter = c.getKitStatus(KitLoader.DEFAULT_KIT_ID);
+			if (starter != null) {
+				row.put("kit_status", starter.toStorage());
+			}
 			characters.add(row);
 		}
 		root.put("characters", characters);
 
-		// Per-player entitlements only while online (LP requires a Player).
+		JSONObject cooldowns = new JSONObject();
+		for (KitDefinition kit : KitLoader.getKits().values()) {
+			if (kit == null) {
+				continue;
+			}
+			JSONObject one = new JSONObject();
+			one.put(
+					"seconds_remaining",
+					Integer.valueOf((int) (KitService.cooldownRemainingMs(pd, kit.getId()) / 1000L))
+			);
+			one.put("hours", Integer.valueOf(kit.getCooldownHours()));
+			cooldowns.put(kit.getId(), one);
+		}
+		if (!cooldowns.isEmpty()) {
+			root.put("kit_cooldowns", cooldowns);
+		}
+		root.put(
+			"kit_cooldown_seconds_remaining",
+			Integer.valueOf((int) (KitService.cooldownRemainingMs(pd, KitLoader.DEFAULT_KIT_ID) / 1000L))
+		);
+		root.put(
+			"kit_cooldown_hours",
+			Integer.valueOf(KitLoader.getCooldownHours())
+		);
+
 		if (online != null) {
 			root.put("max_alive_characters", CharacterSlotService.getMaxAliveCharacters(online));
 			root.put("name_colour_stops", Integer.valueOf(PermissionGroupService.getNameColourStops(online)));
 		}
 
-		// Player-level 18+ attestation (skip age stages once answered, Yes or No).
 		boolean realAgeSet = pd.getCompletedStages().contains("creation_age_set_stage")
 			|| pd.getCompletedStages().contains("age_stage");
 		if (realAgeSet) {
@@ -89,15 +129,16 @@ public final class RosterSyncService {
 			root.put("eighteen", Boolean.valueOf(pd.isEighteen()));
 		}
 
-		// Account wall-clock created-at for evil unlock gating on the web wizard.
+		long accountAge = 0L;
 		if (pd.getCreatedAtEpochSeconds() > 0) {
-			root.put("account_created_at_epoch", Integer.valueOf(pd.getCreatedAtEpochSeconds()));
+			accountAge = Math.max(0L, System.currentTimeMillis() / 1000L - pd.getCreatedAtEpochSeconds());
 		}
+		root.put("account_age_seconds", Long.valueOf(accountAge));
 
 		ProvinceSystemClient.SimpleResult result = ProvinceSystemClient.pushRoster(root.toJSONString());
-		if (!result.ok && RPCharacters.plugin != null) {
+		if (!result.ok) {
 			RPCharacters.plugin.getLogger().warning(
-				"[character-roster] push failed for " + playerUuid + ": " + result.error
+					"[roster] push failed for " + playerUuid + ": " + result.error
 			);
 		}
 	}

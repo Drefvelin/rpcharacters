@@ -1,0 +1,23 @@
+kits:
+  starter:
+    display-name: Starter
+    cooldown-hours: 48
+    once-per-character: true
+    items:
+      - path: m.tools.IRON_HUNTING_KNIFE
+        amount: 1
+        editable:
+          skin-png: knife_skin
+          base-set: knives
+      - path: m.currency.GOLD_COIN
+        amount: 32
+      - path: m.foods.CHURRO
+        amount: 256
+      - path: v.OAK_BOAT
+        amount: 1
+      - path: v.WRITABLE_BOOK
+        amount: 1
+      - path: v.BUNDLE
+        amount: 1
+      - path: v.WHITE_BED
+        amount: 1

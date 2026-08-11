@@ -57,6 +57,11 @@ public class RPCharacter {
 	private String alias;
 	private String slug;
 	private boolean hidden;
+	/** Per grant-kit id. Empty/missing kit = legacy never claim for that kit. */
+	private final Map<String, net.tfminecraft.RPCharacters.kit.KitStatus> kitStatuses =
+			new HashMap<>();
+	private final Map<String, net.tfminecraft.RPCharacters.kit.KitCustomiseData> kitCustomisations =
+			new HashMap<>();
 	private NameColour nameColour;
 	private boolean nameColourStaffOverride;
 	private String gender;
@@ -237,6 +242,50 @@ public class RPCharacter {
 
 	public void setHidden(boolean hidden) {
 		this.hidden = hidden;
+	}
+
+	public Map<String, net.tfminecraft.RPCharacters.kit.KitStatus> getKitStatuses() {
+		return kitStatuses;
+	}
+
+	public net.tfminecraft.RPCharacters.kit.KitStatus getKitStatus(String kitId) {
+		if (kitId == null || kitId.isBlank()) {
+			return null;
+		}
+		return kitStatuses.get(kitId.trim().toLowerCase(java.util.Locale.ROOT));
+	}
+
+	/** Legacy: starter kit status. */
+	public net.tfminecraft.RPCharacters.kit.KitStatus getKitStatus() {
+		return getKitStatus(net.tfminecraft.RPCharacters.Loaders.KitLoader.DEFAULT_KIT_ID);
+	}
+
+	public void setKitStatus(String kitId, net.tfminecraft.RPCharacters.kit.KitStatus status) {
+		if (kitId == null || kitId.isBlank()) {
+			return;
+		}
+		String id = kitId.trim().toLowerCase(java.util.Locale.ROOT);
+		if (status == null) {
+			kitStatuses.remove(id);
+		} else {
+			kitStatuses.put(id, status);
+		}
+	}
+
+	/** Legacy: set starter kit status. */
+	public void setKitStatus(net.tfminecraft.RPCharacters.kit.KitStatus kitStatus) {
+		setKitStatus(net.tfminecraft.RPCharacters.Loaders.KitLoader.DEFAULT_KIT_ID, kitStatus);
+	}
+
+	public Map<String, net.tfminecraft.RPCharacters.kit.KitCustomiseData> getKitCustomisations() {
+		return kitCustomisations;
+	}
+
+	public void putKitCustomise(net.tfminecraft.RPCharacters.kit.KitCustomiseData data) {
+		if (data == null || data.getKitKey() == null || data.getKitKey().isBlank()) {
+			return;
+		}
+		kitCustomisations.put(data.getKitKey().toLowerCase(), data);
 	}
 
 	public String getAlias() {
