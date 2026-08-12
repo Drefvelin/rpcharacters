@@ -34,6 +34,11 @@ public final class PermissionGroupService {
 		return resolvePerk(player, PermissionGroupDefinition.KEY_MAX_ALIVE_CHARACTERS, Aggregation.MAX);
 	}
 
+	/** Swappable wardrobe skins (base + extras). Masked is separate and always available. */
+	public static int getWardrobeSkinSlots(Player player) {
+		return resolvePerk(player, PermissionGroupDefinition.KEY_WARDROBE_SKIN_SLOTS, Aggregation.MAX);
+	}
+
 	public static boolean canUseNameColour(Player player) {
 		return getNameColourStops(player) > 0;
 	}

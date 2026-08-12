@@ -148,18 +148,50 @@ public final class ProvinceSystemClient {
 		}
 	}
 
+	/**
+	 * DELETE /characters/plugin/lore-items/customisations?player_uuid=&character_id=&kit_id=
+	 */
+	public static SimpleResult clearLoreItemCustomisations(
+			String playerUuid,
+			String characterId,
+			String kitId
+	) {
+		if (playerUuid == null || playerUuid.isBlank()
+				|| characterId == null || characterId.isBlank()
+				|| kitId == null || kitId.isBlank()) {
+			return SimpleResult.fail("player_uuid, character_id, and kit_id are required");
+		}
+		try {
+			String q = "?player_uuid=" + java.net.URLEncoder.encode(playerUuid.trim(), StandardCharsets.UTF_8)
+					+ "&character_id=" + java.net.URLEncoder.encode(characterId.trim(), StandardCharsets.UTF_8)
+					+ "&kit_id=" + java.net.URLEncoder.encode(kitId.trim(), StandardCharsets.UTF_8);
+			return request("DELETE", "/characters/plugin/lore-items/customisations" + q, null);
+		} catch (Exception e) {
+			return SimpleResult.fail(e.getMessage() != null ? e.getMessage() : "encode failed");
+		}
+	}
+
 	/** @deprecated use {@link #fetchLoreItemClaimStatus(String, String, String)} */
 	public static SimpleResult fetchLoreItemClaimStatus(String playerUuid, String characterId) {
 		return fetchLoreItemClaimStatus(playerUuid, characterId, "starter");
 	}
 
 	public static boolean claimStatusPendingSkin(String body) {
-		if (body == null || body.isBlank()) {
+		return claimStatusFlagTrue(body, "pending_skin");
+	}
+
+	public static boolean claimStatusPendingPack(String body) {
+		return claimStatusFlagTrue(body, "pending_pack");
+	}
+
+	/** Cheap JSON flag parse: {@code "flag": true}. */
+	static boolean claimStatusFlagTrue(String body, String flag) {
+		if (body == null || body.isBlank() || flag == null || flag.isBlank()) {
 			return false;
 		}
 		String lower = body.toLowerCase();
-		// cheap parse: "pending_skin": true
-		int idx = lower.indexOf("\"pending_skin\"");
+		String key = "\"" + flag.toLowerCase() + "\"";
+		int idx = lower.indexOf(key);
 		if (idx < 0) {
 			return false;
 		}
@@ -179,6 +211,148 @@ public final class ProvinceSystemClient {
 	/** PUT /characters/plugin/roster */
 	public static SimpleResult pushRoster(String jsonBody) {
 		return request("PUT", "/characters/plugin/roster", jsonBody);
+	}
+
+	/** GET /characters/plugin/wardrobe/{playerUuid}/{characterId} */
+	public static SimpleResult fetchWardrobe(String playerUuid, String characterId) {
+		String uuid = sanitizePathSegment(playerUuid);
+		String cid = sanitizePathSegment(characterId);
+		if (uuid == null || cid == null) {
+			return SimpleResult.fail("invalid player or character id");
+		}
+		return request(
+			"GET",
+			"/characters/plugin/wardrobe/" + uuid + "/" + cid,
+			null
+		);
+	}
+
+	/**
+	 * PATCH /characters/plugin/wardrobe/{playerUuid}/{characterId}/active
+	 * {@code slot} null clears active.
+	 */
+	public static SimpleResult setWardrobeActive(
+		String playerUuid,
+		String characterId,
+		String slot
+	) {
+		String uuid = sanitizePathSegment(playerUuid);
+		String cid = sanitizePathSegment(characterId);
+		if (uuid == null || cid == null) {
+			return SimpleResult.fail("invalid player or character id");
+		}
+		String body;
+		if (slot == null || slot.isBlank()) {
+			body = "{\"slot\":null}";
+		} else {
+			String safe = slot.trim().toLowerCase();
+			body = "{\"slot\":\"" + jsonEscape(safe) + "\"}";
+		}
+		return request(
+			"PATCH",
+			"/characters/plugin/wardrobe/" + uuid + "/" + cid + "/active",
+			body
+		);
+	}
+
+	/**
+	 * POST /characters/plugin/wardrobe/{playerUuid}/{characterId}/ack
+	 * Clears apply_pending for slots after pull + apply.
+	 */
+	public static SimpleResult ackWardrobe(
+		String playerUuid,
+		String characterId,
+		java.util.List<String> slots
+	) {
+		String uuid = sanitizePathSegment(playerUuid);
+		String cid = sanitizePathSegment(characterId);
+		if (uuid == null || cid == null) {
+			return SimpleResult.fail("invalid player or character id");
+		}
+		StringBuilder sb = new StringBuilder("{\"slots\":[");
+		boolean first = true;
+		if (slots != null) {
+			for (String slot : slots) {
+				if (slot == null || slot.isBlank()) {
+					continue;
+				}
+				if (!first) {
+					sb.append(',');
+				}
+				first = false;
+				sb.append('"').append(jsonEscape(slot.trim().toLowerCase())).append('"');
+			}
+		}
+		sb.append("]}");
+		return request(
+			"POST",
+			"/characters/plugin/wardrobe/" + uuid + "/" + cid + "/ack",
+			sb.toString()
+		);
+	}
+
+	private static String sanitizePathSegment(String raw) {
+		if (raw == null) {
+			return null;
+		}
+		String s = raw.trim();
+		if (s.isEmpty() || s.contains("/") || s.contains("\\") || s.contains("..")) {
+			return null;
+		}
+		return s;
+	}
+
+	private static String jsonEscape(String raw) {
+		if (raw == null) {
+			return "";
+		}
+		return raw
+			.replace("\\", "\\\\")
+			.replace("\"", "\\\"");
+	}
+
+	/**
+	 * PUT /characters/plugin/kit-skins/{name} — raw PNG bytes for default kit preview.
+	 * {@code name} is the skin_png stem (no path, no .png suffix).
+	 */
+	public static SimpleResult putKitSkin(String name, byte[] pngBytes) {
+		String stem = sanitizeKitSkinStem(name);
+		if (stem == null) {
+			return SimpleResult.fail("invalid kit skin name");
+		}
+		if (pngBytes == null || pngBytes.length == 0) {
+			return SimpleResult.fail("empty kit skin body");
+		}
+		return requestBytes(
+			"PUT",
+			"/characters/plugin/kit-skins/" + stem,
+			pngBytes,
+			"image/png"
+		);
+	}
+
+	private static String sanitizeKitSkinStem(String name) {
+		if (name == null) {
+			return null;
+		}
+		String raw = name.trim();
+		if (raw.toLowerCase().endsWith(".png")) {
+			raw = raw.substring(0, raw.length() - 4).trim();
+		}
+		if (raw.isEmpty() || raw.contains("/") || raw.contains("\\") || raw.contains("..")) {
+			return null;
+		}
+		for (int i = 0; i < raw.length(); i++) {
+			char c = raw.charAt(i);
+			if (Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == '.') {
+				continue;
+			}
+			return null;
+		}
+		if (raw.startsWith(".") || raw.endsWith(".")) {
+			return null;
+		}
+		return raw;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -238,6 +412,23 @@ public final class ProvinceSystemClient {
 	}
 
 	private static SimpleResult request(String method, String path, String jsonBody) {
+		byte[] bytes = jsonBody == null
+			? null
+			: jsonBody.getBytes(StandardCharsets.UTF_8);
+		return requestBytes(
+			method,
+			path,
+			bytes,
+			jsonBody == null ? null : "application/json"
+		);
+	}
+
+	private static SimpleResult requestBytes(
+		String method,
+		String path,
+		byte[] body,
+		String contentType
+	) {
 		String base = Cache.charactersApiBaseUrl;
 		String key = Cache.charactersApiPluginKey;
 		if (base == null || base.isEmpty() || key == null || key.isEmpty()) {
@@ -258,13 +449,14 @@ public final class ProvinceSystemClient {
 			connection.setRequestProperty("X-Plugin-Key", key);
 			connection.setRequestProperty("Accept", "application/json");
 
-			if (jsonBody != null) {
+			if (body != null) {
 				connection.setDoOutput(true);
-				connection.setRequestProperty("Content-Type", "application/json");
-				byte[] bytes = jsonBody.getBytes(StandardCharsets.UTF_8);
-				connection.setFixedLengthStreamingMode(bytes.length);
+				if (contentType != null && !contentType.isEmpty()) {
+					connection.setRequestProperty("Content-Type", contentType);
+				}
+				connection.setFixedLengthStreamingMode(body.length);
 				try (OutputStream out = connection.getOutputStream()) {
-					out.write(bytes);
+					out.write(body);
 				}
 			}
 

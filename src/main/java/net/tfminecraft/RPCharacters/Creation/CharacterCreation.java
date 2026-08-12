@@ -609,6 +609,16 @@ public class CharacterCreation {
 
 		}
 
+		if (!s.runsInGame()) {
+
+			currentStage++;
+
+			runStage();
+
+			return;
+
+		}
+
 		if(s instanceof InfoStage) {
 
 			InfoStage info = (InfoStage) s;
@@ -776,6 +786,8 @@ public class CharacterCreation {
 		CreationManager.activeCreators.remove(p);
 
 		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(p);
+
+		net.tfminecraft.RPCharacters.wardrobe.WardrobeService.refreshActiveAsync(p);
 
 		p.closeInventory();
 

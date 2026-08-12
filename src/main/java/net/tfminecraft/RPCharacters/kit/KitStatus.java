@@ -1,7 +1,8 @@
 package net.tfminecraft.RPCharacters.kit;
 
 /**
- * Per-character starter kit state. Missing/null on disk = legacy (never grant).
+ * Per-character kit claim state. Missing/null on disk is treated as eligible on
+ * claim (lazy stamp) so pre-kit characters match website customise rules.
  */
 public enum KitStatus {
 	ELIGIBLE,

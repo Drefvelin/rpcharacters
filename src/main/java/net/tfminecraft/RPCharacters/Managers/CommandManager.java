@@ -35,6 +35,7 @@ import net.tfminecraft.RPCharacters.command.CharCommand;
 import net.tfminecraft.RPCharacters.enums.Status;
 import net.tfminecraft.RPCharacters.identity.TempAliasService;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
+import net.tfminecraft.RPCharacters.wardrobe.WardrobeCommand;
 
 public class CommandManager implements Listener, CommandExecutor{
 	public String cmd1 = "rpcharacter";
@@ -47,6 +48,9 @@ public class CommandManager implements Listener, CommandExecutor{
 		}
 		if (args.length >= 1 && CharCommand.isPersonaSubcommand(args[0])) {
 			return CharCommand.handle(sender, label, args);
+		}
+		if (args.length >= 1 && args[0].equalsIgnoreCase(WardrobeCommand.SUBCOMMAND)) {
+			return WardrobeCommand.handle(sender, label, args);
 		}
 		if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
 			if (!Permissions.isAdmin(sender)) {
@@ -99,6 +103,66 @@ public class CommandManager implements Listener, CommandExecutor{
 			RPTexts.send(sender, RPTexts.COMMAND + "Pulling pending web character creates…");
 			net.tfminecraft.RPCharacters.ingest.CharacterIngestService.forcePullAsync(RPCharacters.plugin);
 			RPTexts.send(sender, RPTexts.SUCCESS + "Pending sync started (see console for results).");
+			return true;
+		}
+		if (args.length >= 1 && args[0].equalsIgnoreCase("reclaimkit")) {
+			if (!Permissions.isAdmin(sender)) {
+				RPTexts.send(sender, RPTexts.ERROR + "You do not have permission to use this command.");
+				return true;
+			}
+			if (args.length < 4) {
+				RPTexts.send(sender, RPTexts.ERROR
+						+ "Usage: /rpcharacter reclaimkit <player> <character_id> <kit_id>");
+				return true;
+			}
+			Player target = Bukkit.getPlayerExact(args[1]);
+			if (target == null || !target.isOnline()) {
+				RPTexts.send(sender, RPTexts.ERROR
+						+ "Player must be online: '" + args[1] + "'.");
+				return true;
+			}
+			net.tfminecraft.RPCharacters.kit.KitService.ResetResult result =
+					net.tfminecraft.RPCharacters.kit.KitService.reclaimKit(
+							target, args[2], args[3]
+					);
+			if (!result.ok) {
+				RPTexts.send(sender, RPTexts.ERROR + result.message);
+				return true;
+			}
+			RPTexts.send(sender, RPTexts.SUCCESS + result.message);
+			return true;
+		}
+		if (args.length >= 1 && args[0].equalsIgnoreCase("resetkit")) {
+			if (!Permissions.isAdmin(sender)) {
+				RPTexts.send(sender, RPTexts.ERROR + "You do not have permission to use this command.");
+				return true;
+			}
+			if (args.length < 4) {
+				RPTexts.send(sender, RPTexts.ERROR
+						+ "Usage: /rpcharacter resetkit <player> <character_id> <kit_id>");
+				return true;
+			}
+			Player target = Bukkit.getPlayerExact(args[1]);
+			if (target == null || !target.isOnline()) {
+				RPTexts.send(sender, RPTexts.ERROR
+						+ "Player must be online: '" + args[1] + "'.");
+				return true;
+			}
+			net.tfminecraft.RPCharacters.kit.KitService.ResetResult result =
+					net.tfminecraft.RPCharacters.kit.KitService.resetKit(
+							target, args[2], args[3]
+					);
+			if (!result.ok) {
+				RPTexts.send(sender, RPTexts.ERROR + result.message);
+				return true;
+			}
+			RPTexts.send(sender, RPTexts.SUCCESS + result.message);
+			if (!result.psWipeOk) {
+				RPTexts.send(sender, RPTexts.WARN
+						+ "ProvinceSystem customise wipe failed: "
+						+ (result.psWipeError != null ? result.psWipeError : "unknown")
+						+ " — in-game reset applied; site drafts may remain until wipe succeeds.");
+			}
 			return true;
 		}
 		if (!(sender instanceof Player)) {
@@ -596,6 +660,9 @@ public class CommandManager implements Listener, CommandExecutor{
 
         event.setCancelled(true);
         RPTexts.send(event.getPlayer(), RPTexts.ERROR + "You cannot use other commands when you have no character, only "
-				+ RPTexts.COMMAND + "/rpcharacter");
+				+ RPTexts.COMMAND + "/rpcharacter"
+				+ RPTexts.ERROR + " (skins: "
+				+ RPTexts.COMMAND + "/rpcharacter wardrobe"
+				+ RPTexts.ERROR + ")");
     }
 }

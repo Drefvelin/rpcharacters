@@ -9,6 +9,7 @@ import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
+import net.tfminecraft.RPCharacters.Creation.Stages.WardrobeStage;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Utils.DurationParser;
 import net.tfminecraft.RPCharacters.enums.StageType;
@@ -30,7 +31,10 @@ public class Stage {
 	private Integer requireAccountAgeHoursMin;
 	/** Exclusive maximum account-age hours, or null if unset. */
 	private Integer requireAccountAgeHoursMax;
-	
+
+	/** Creation client: both (default), web-only, or game-only. */
+	private String platform = "both";
+
 	public long getLockTimeMs() {
 		return lockTimeMs;
 	}
@@ -53,6 +57,34 @@ public class Stage {
 
 	public void setRequireAccountAgeHoursMax(Integer requireAccountAgeHoursMax) {
 		this.requireAccountAgeHoursMax = requireAccountAgeHoursMax;
+	}
+
+	public String getPlatform() {
+		return platform != null && !platform.isBlank() ? platform : "both";
+	}
+
+	public void setPlatform(String platform) {
+		if (platform == null || platform.isBlank()) {
+			this.platform = "both";
+			return;
+		}
+		String p = platform.trim().toLowerCase();
+		if (!p.equals("web") && !p.equals("game") && !p.equals("both")) {
+			p = "both";
+		}
+		this.platform = p;
+	}
+
+	/** True if this stage should run during in-game creation. */
+	public boolean runsInGame() {
+		String p = getPlatform();
+		return p.equals("both") || p.equals("game");
+	}
+
+	/** True if this stage should run on the website wizard. */
+	public boolean runsOnWeb() {
+		String p = getPlatform();
+		return p.equals("both") || p.equals("web");
 	}
 
 	/**
@@ -84,6 +116,7 @@ public class Stage {
 		setLockTimeMs(source.getLockTimeMs());
 		setRequireAccountAgeHoursMin(source.getRequireAccountAgeHoursMin());
 		setRequireAccountAgeHoursMax(source.getRequireAccountAgeHoursMax());
+		setPlatform(source.getPlatform());
 	}
 
 	public boolean autoNext() {
@@ -145,6 +178,9 @@ public class Stage {
 		if (config.contains("require-account-age-hours-max")) {
 			s.setRequireAccountAgeHoursMax(config.getInt("require-account-age-hours-max"));
 		}
+		if (config.contains("platform")) {
+			s.setPlatform(config.getString("platform"));
+		}
 		StageType type = StageType.valueOf(config.getString("type").toUpperCase());
 		s.setCancelled(false);
 		if(type.equals(StageType.INFO)) {
@@ -161,6 +197,8 @@ public class Stage {
 			return new ClueStage(s, config);
 		} else if(type.equals(StageType.SUMMARY)) {
 			return new SummaryStage(s, config);
+		} else if(type.equals(StageType.WARDROBE)) {
+			return new WardrobeStage(s, config);
 		}
 		return s;
 	}
@@ -187,6 +225,9 @@ public class Stage {
 		} else if(another instanceof SummaryStage) {
 			SummaryStage s = (SummaryStage) another;
 			return new SummaryStage(s);
+		} else if(another instanceof WardrobeStage) {
+			WardrobeStage s = (WardrobeStage) another;
+			return new WardrobeStage(s);
 		}
 		return null;
 	}

@@ -100,9 +100,22 @@ public final class KitService {
 		}
 
 		KitStatus status = character.getKitStatus(kitId);
+		RPCharacters.plugin.getLogger().info(
+				"[kit-claim] start player=" + player.getName()
+						+ " char=" + character.getId()
+						+ " kit=" + kitId
+						+ " status=" + (status != null ? status.toStorage() : "null")
+		);
+		// Missing status = pre-kit / never stamped. Website treats that as eligible
+		// for customise; claim must match (CE /tfmc starter is retired).
 		if (status == null) {
-			RPTexts.send(player, RPTexts.ERROR + "This character cannot claim that kit.");
-			return;
+			status = KitStatus.ELIGIBLE;
+			character.setKitStatus(kitId, status);
+			RPCharacters.plugin.getLogger().info(
+					"[kit-claim] stamped missing status as eligible for "
+							+ player.getName() + " char=" + character.getId()
+							+ " kit=" + kitId
+			);
 		}
 		if (kit.isOncePerCharacter()) {
 			if (status == KitStatus.GRANTED) {
@@ -128,28 +141,91 @@ public final class KitService {
 				net.tfminecraft.RPCharacters.api.ProvinceSystemClient.fetchLoreItemClaimStatus(
 						playerUuid, characterId, kitId
 				);
-		if (claimStatus.ok
+		boolean pendingSkin = claimStatus.ok
 				&& net.tfminecraft.RPCharacters.api.ProvinceSystemClient.claimStatusPendingSkin(
 						claimStatus.body
-				)) {
+				);
+		boolean pendingPack = claimStatus.ok
+				&& net.tfminecraft.RPCharacters.api.ProvinceSystemClient.claimStatusPendingPack(
+						claimStatus.body
+				);
+		if (claimStatus.ok) {
+			String body = claimStatus.body != null ? claimStatus.body : "";
+			String snippet = body.length() > 400 ? body.substring(0, 400) + "…" : body;
+			RPCharacters.plugin.getLogger().info(
+					"[kit-claim] claim-status ok pending_skin=" + pendingSkin
+							+ " pending_pack=" + pendingPack
+							+ " body=" + snippet
+			);
+		} else {
+			RPCharacters.plugin.getLogger().warning(
+					"[kit-claim] claim-status failed for " + player.getName()
+							+ " kit=" + kitId + ": " + claimStatus.error
+			);
+		}
+		if (pendingSkin) {
 			RPTexts.send(player, RPTexts.WARN
 					+ "A custom kit item is still waiting for approval.");
 			return;
 		}
-		if (!claimStatus.ok) {
-			RPCharacters.plugin.getLogger().warning(
-					"Kit claim status check failed for " + player.getName()
-							+ " kit=" + kitId + ": " + claimStatus.error
-			);
+		if (pendingPack) {
+			RPTexts.send(player, RPTexts.WARN
+					+ "A custom kit skin is still pending pack. "
+					+ "It will be added within 24 hours — try claiming again after that.");
+			return;
 		}
 
 		net.tfminecraft.RPCharacters.ingest.KitCustomiseIngestService
 				.ingestReadyForCharacterOnMain(player, character);
 
+		List<String> editableKeys = kit.editableKitKeys();
+		int customiseCount = 0;
+		for (KitCustomiseData data : character.getKitCustomisations().values()) {
+			if (data == null || data.getKitKey().isBlank()) {
+				continue;
+			}
+			if (!editableKeys.contains(data.getKitKey())) {
+				continue;
+			}
+			customiseCount++;
+			int loreSize = data.getLore() != null ? data.getLore().size() : 0;
+			RPCharacters.plugin.getLogger().info(
+					"[kit-claim] stamped customise kit_key=" + data.getKitKey()
+							+ " display_name=" + data.getDisplayName()
+							+ " lore_lines=" + loreSize
+							+ " skin_slug=" + data.getSkinSlug()
+							+ " path=" + data.getPath()
+			);
+		}
+		RPCharacters.plugin.getLogger().info(
+				"[kit-claim] after ingest editable customise count=" + customiseCount
+						+ " editable_keys=" + editableKeys
+		);
+
+		for (KitCustomiseData data : character.getKitCustomisations().values()) {
+			if (data == null || data.getKitKey().isBlank()) {
+				continue;
+			}
+			if (!editableKeys.contains(data.getKitKey())) {
+				continue;
+			}
+			boolean present = KitCustomiseApplyService.isSkinPresent(data);
+			RPCharacters.plugin.getLogger().info(
+					"[kit-claim] skin-ready kit_key=" + data.getKitKey()
+							+ " skin_slug=" + data.getSkinSlug()
+							+ " present=" + present
+			);
+		}
+		if (!KitCustomiseApplyService.requiredSkinsReady(character, editableKeys)) {
+			RPTexts.send(player, RPTexts.WARN
+					+ "Kit is not ready yet, awaiting skins.");
+			return;
+		}
+
 		List<KitItemDefinition> definitions = kit.getItems();
 		if (definitions.isEmpty()) {
 			RPCharacters.plugin.getLogger().warning(
-					"Kit claim skipped for " + player.getName() + ": kit '" + kitId + "' has no items."
+					"[kit-claim] skipped for " + player.getName() + ": kit '" + kitId + "' has no items."
 			);
 			RPTexts.send(player, RPTexts.ERROR + "That kit is not configured. Contact staff.");
 			return;
@@ -160,7 +236,7 @@ public final class KitService {
 			List<ItemStack> built = buildStacks(def);
 			if (built.isEmpty()) {
 				RPCharacters.plugin.getLogger().warning(
-						"Kit '" + kitId + "' could not build path '" + def.getPath()
+						"[kit-claim] kit '" + kitId + "' could not build path '" + def.getPath()
 								+ "' for " + player.getName() + " — skipped line."
 				);
 				continue;
@@ -169,7 +245,7 @@ public final class KitService {
 		}
 		if (stacks.isEmpty()) {
 			RPCharacters.plugin.getLogger().warning(
-					"Kit claim aborted for " + player.getName() + " kit=" + kitId + ": no stacks produced."
+					"[kit-claim] aborted for " + player.getName() + " kit=" + kitId + ": no stacks produced."
 			);
 			RPTexts.send(player, RPTexts.ERROR + "That kit could not be built. Contact staff.");
 			return;
@@ -196,13 +272,16 @@ public final class KitService {
 		RPCharacters.getPlayerManager().savePlayer(player);
 		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(player);
 
-		List<String> editableKeys = kit.editableKitKeys();
 		for (KitCustomiseData data : character.getKitCustomisations().values()) {
 			if (data == null || data.getKitKey().isBlank()) {
 				continue;
 			}
 			if (editableKeys.contains(data.getKitKey())) {
-				KitCustomiseApplyService.applyToInventory(player, data);
+				boolean replaced = KitCustomiseApplyService.applyToInventory(player, data);
+				RPCharacters.plugin.getLogger().info(
+						"[kit-claim] applyToInventory kit_key=" + data.getKitKey()
+								+ " replaced=" + replaced
+				);
 			}
 		}
 
@@ -210,6 +289,157 @@ public final class KitService {
 		if (dropped) {
 			RPTexts.send(player, RPTexts.WARN + "Some kit items did not fit and were dropped at your feet.");
 		}
+	}
+
+	/**
+	 * Staff reset: restore claimability for one character + kit; clear cooldown and
+	 * customisations. Caller must ensure target is online with loaded PlayerData.
+	 */
+	public static final class ResetResult {
+		public final boolean ok;
+		public final String message;
+		public final boolean psWipeOk;
+		public final String psWipeError;
+
+		private ResetResult(boolean ok, String message, boolean psWipeOk, String psWipeError) {
+			this.ok = ok;
+			this.message = message;
+			this.psWipeOk = psWipeOk;
+			this.psWipeError = psWipeError;
+		}
+
+		public static ResetResult fail(String message) {
+			return new ResetResult(false, message, true, null);
+		}
+
+		public static ResetResult ok(String message, boolean psWipeOk, String psWipeError) {
+			return new ResetResult(true, message, psWipeOk, psWipeError);
+		}
+	}
+
+	private static final class ResolvedKitTarget {
+		final PlayerData pd;
+		final RPCharacter character;
+		final KitDefinition kit;
+		final String kitId;
+		final String label;
+
+		ResolvedKitTarget(
+				PlayerData pd,
+				RPCharacter character,
+				KitDefinition kit,
+				String kitId,
+				String label
+		) {
+			this.pd = pd;
+			this.character = character;
+			this.kit = kit;
+			this.kitId = kitId;
+			this.label = label;
+		}
+	}
+
+	/**
+	 * Resolve player + public character id (slug) + kit. UUID character id accepted as fallback.
+	 */
+	private static Object resolveKitTarget(Player target, String characterIdRaw, String kitIdRaw, String usage) {
+		if (target == null || !target.isOnline()) {
+			return ResetResult.fail("Player must be online.");
+		}
+		String characterRef = characterIdRaw != null ? characterIdRaw.trim() : "";
+		String kitId = kitIdRaw != null ? kitIdRaw.trim().toLowerCase(Locale.ROOT) : "";
+		if (characterRef.isEmpty() || kitId.isEmpty()) {
+			return ResetResult.fail(usage);
+		}
+		KitDefinition kit = KitLoader.getKit(kitId);
+		if (kit == null) {
+			return ResetResult.fail("Unknown kit id '" + kitId + "'.");
+		}
+		if (!PlayerManager.exists(target)) {
+			return ResetResult.fail("No character data loaded for " + target.getName() + ".");
+		}
+		PlayerData pd = PlayerManager.get(target);
+		if (pd == null) {
+			return ResetResult.fail("No character data loaded for " + target.getName() + ".");
+		}
+		RPCharacter character = pd.getCharacterBySlug(characterRef);
+		if (character == null) {
+			character = pd.getCharacterById(characterRef);
+		}
+		if (character == null) {
+			return ResetResult.fail(
+					"Character '" + characterRef + "' not found for " + target.getName() + "."
+			);
+		}
+		String label = character.getSlug() != null && !character.getSlug().isBlank()
+				? character.getSlug()
+				: character.getId();
+		return new ResolvedKitTarget(pd, character, kit, kitId, label);
+	}
+
+	/**
+	 * Staff: make kit claimable again. Keeps in-game and ProvinceSystem customisations.
+	 */
+	public static ResetResult reclaimKit(Player target, String characterIdRaw, String kitIdRaw) {
+		Object resolved = resolveKitTarget(
+				target,
+				characterIdRaw,
+				kitIdRaw,
+				"Usage: /rpcharacter reclaimkit <player> <character_id> <kit_id>"
+		);
+		if (resolved instanceof ResetResult fail) {
+			return fail;
+		}
+		ResolvedKitTarget t = (ResolvedKitTarget) resolved;
+		t.character.setKitStatus(t.kitId, KitStatus.ELIGIBLE);
+		t.pd.setLastKitClaimAtMs(t.kitId, null);
+		RPCharacters.getPlayerManager().savePlayer(target);
+		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(target);
+		return ResetResult.ok(
+				"Reclaimed kit '" + t.kitId + "' for " + target.getName()
+						+ " character " + t.label + " (customisations kept).",
+				true,
+				null
+		);
+	}
+
+	/**
+	 * Staff: full wipe — reclaimable + clear in-game and ProvinceSystem customisations.
+	 */
+	public static ResetResult resetKit(Player target, String characterIdRaw, String kitIdRaw) {
+		Object resolved = resolveKitTarget(
+				target,
+				characterIdRaw,
+				kitIdRaw,
+				"Usage: /rpcharacter resetkit <player> <character_id> <kit_id>"
+		);
+		if (resolved instanceof ResetResult fail) {
+			return fail;
+		}
+		ResolvedKitTarget t = (ResolvedKitTarget) resolved;
+
+		t.character.setKitStatus(t.kitId, KitStatus.ELIGIBLE);
+		t.pd.setLastKitClaimAtMs(t.kitId, null);
+		for (String key : t.kit.editableKitKeys()) {
+			t.character.removeKitCustomise(key);
+		}
+		RPCharacters.getPlayerManager().savePlayer(target);
+		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushRosterForPlayer(target);
+
+		String playerUuid = target.getUniqueId().toString();
+		net.tfminecraft.RPCharacters.api.ProvinceSystemClient.SimpleResult wipe =
+				net.tfminecraft.RPCharacters.api.ProvinceSystemClient.clearLoreItemCustomisations(
+						playerUuid, t.character.getId(), t.kitId
+				);
+		String msg = "Reset kit '" + t.kitId + "' for " + target.getName()
+				+ " character " + t.label + " (customisations wiped).";
+		if (!wipe.ok) {
+			RPCharacters.plugin.getLogger().warning(
+					"[resetkit] ProvinceSystem customise wipe failed: " + wipe.error
+			);
+			return ResetResult.ok(msg, false, wipe.error);
+		}
+		return ResetResult.ok(msg, true, null);
 	}
 
 	private static List<ItemStack> buildStacks(KitItemDefinition def) {

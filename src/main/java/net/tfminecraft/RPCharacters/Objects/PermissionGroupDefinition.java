@@ -9,6 +9,7 @@ public final class PermissionGroupDefinition {
 	public static final String KEY_NAME_COLOUR_STOPS = "name-colour-stops";
 	public static final String KEY_CHARACTER_SWITCH_COOLDOWN_DAYS = "character-switch-cooldown-days";
 	public static final String KEY_MAX_ALIVE_CHARACTERS = "max-alive-characters";
+	public static final String KEY_WARDROBE_SKIN_SLOTS = "wardrobe-skin-slots";
 
 	private final String id;
 	private final String permission;

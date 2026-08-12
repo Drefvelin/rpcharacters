@@ -9,6 +9,8 @@ kits:
         editable:
           skin-png: knife_skin
           base-set: knives
+          2d-template: handheld
+          3d-template: item_3d
       - path: m.currency.GOLD_COIN
         amount: 32
       - path: m.foods.CHURRO
@@ -17,6 +19,10 @@ kits:
         amount: 1
       - path: v.WRITABLE_BOOK
         amount: 1
+        editable:
+          skin-png: journal_skin
+          base-set: books
+          2d-template: book
       - path: v.BUNDLE
         amount: 1
       - path: v.WHITE_BED

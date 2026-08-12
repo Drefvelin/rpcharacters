@@ -20,6 +20,9 @@ public class Trait {
 		this.id = key;
 		this.name = StringFormatter.formatHex(config.getString("name"));
 		for(String s : config.getStringList("description")) {
+			if (s == null || s.isBlank()) {
+				continue;
+			}
 			desc.add(StringFormatter.formatHex(s));
 		}
 		if (config.contains("gained-message")) {

@@ -619,9 +619,17 @@ public class Database {
 							}
 						}
 					}
+					List<String> styles = new ArrayList<>();
+					if (entry.get("name-styles") instanceof JSONArray sarr) {
+						for (Object s : sarr) {
+							if (s != null && !s.toString().isBlank()) {
+								styles.add(s.toString().trim().toLowerCase());
+							}
+						}
+					}
 					character.putKitCustomise(
 							new net.tfminecraft.RPCharacters.kit.KitCustomiseData(
-									kitKey, displayName, lore, skinSlug, path, iaNamespace, colours
+									kitKey, displayName, lore, skinSlug, path, iaNamespace, colours, styles
 							)
 					);
 				}
@@ -698,6 +706,13 @@ public class Database {
 						carr.add(c);
 					}
 					one.put("name-colours", carr);
+				}
+				if (data.getNameStyles() != null && !data.getNameStyles().isEmpty()) {
+					JSONArray sarr = new JSONArray();
+					for (String s : data.getNameStyles()) {
+						sarr.add(s);
+					}
+					one.put("name-styles", sarr);
 				}
 				kitJson.put(data.getKitKey(), one);
 			}

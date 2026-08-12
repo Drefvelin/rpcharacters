@@ -1,17 +1,28 @@
 package net.tfminecraft.RPCharacters.kit;
 
 /**
- * Phase 3 reserved fields on an editable kit line. Unused by grant.
- * Custom skins are player submissions (Discord review → ps_items), not staff categories.
+ * Editable fields on a kit line. Custom skins are player submissions
+ * (Discord review → ps_items), not staff categories.
  */
 public final class KitEditableSpec {
 
 	private final String skinPng;
 	private final String baseSet;
+	private final String twoDTemplate;
+	/** Null when 3D is disallowed. */
+	private final String threeDTemplate;
 
-	public KitEditableSpec(String skinPng, String baseSet) {
-		this.skinPng = skinPng;
-		this.baseSet = baseSet;
+	public KitEditableSpec(
+			String skinPng,
+			String baseSet,
+			String twoDTemplate,
+			String threeDTemplate
+	) {
+		this.skinPng = skinPng != null ? skinPng.trim() : "";
+		this.baseSet = baseSet != null ? baseSet.trim() : "";
+		this.twoDTemplate = twoDTemplate != null ? twoDTemplate.trim() : "";
+		String t3 = threeDTemplate != null ? threeDTemplate.trim() : "";
+		this.threeDTemplate = t3.isEmpty() ? null : t3;
 	}
 
 	public String getSkinPng() {
@@ -20,5 +31,14 @@ public final class KitEditableSpec {
 
 	public String getBaseSet() {
 		return baseSet;
+	}
+
+	public String get2dTemplate() {
+		return twoDTemplate;
+	}
+
+	/** Null when the kit line has no 3d-template. */
+	public String get3dTemplate() {
+		return threeDTemplate;
 	}
 }

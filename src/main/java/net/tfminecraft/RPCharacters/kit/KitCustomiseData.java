@@ -17,6 +17,7 @@ public final class KitCustomiseData {
 	/** ItemsAdder namespace (tfmc_submissions or tfmc_armorshop). */
 	private final String iaNamespace;
 	private final List<String> nameColours;
+	private final List<String> nameStyles;
 
 	public KitCustomiseData(
 			String kitKey,
@@ -25,7 +26,7 @@ public final class KitCustomiseData {
 			String skinSlug,
 			String path
 	) {
-		this(kitKey, displayName, lore, skinSlug, path, null, null);
+		this(kitKey, displayName, lore, skinSlug, path, null, null, null);
 	}
 
 	public KitCustomiseData(
@@ -36,7 +37,7 @@ public final class KitCustomiseData {
 			String path,
 			String iaNamespace
 	) {
-		this(kitKey, displayName, lore, skinSlug, path, iaNamespace, null);
+		this(kitKey, displayName, lore, skinSlug, path, iaNamespace, null, null);
 	}
 
 	public KitCustomiseData(
@@ -47,6 +48,19 @@ public final class KitCustomiseData {
 			String path,
 			String iaNamespace,
 			List<String> nameColours
+	) {
+		this(kitKey, displayName, lore, skinSlug, path, iaNamespace, nameColours, null);
+	}
+
+	public KitCustomiseData(
+			String kitKey,
+			String displayName,
+			List<String> lore,
+			String skinSlug,
+			String path,
+			String iaNamespace,
+			List<String> nameColours,
+			List<String> nameStyles
 	) {
 		this.kitKey = kitKey != null ? kitKey.trim() : "";
 		this.displayName = displayName != null ? displayName : "";
@@ -59,6 +73,9 @@ public final class KitCustomiseData {
 		this.iaNamespace = ns.isEmpty() ? "tfmc_submissions" : ns;
 		this.nameColours = nameColours != null
 				? Collections.unmodifiableList(new ArrayList<>(nameColours))
+				: List.of();
+		this.nameStyles = nameStyles != null
+				? Collections.unmodifiableList(new ArrayList<>(nameStyles))
 				: List.of();
 	}
 
@@ -88,5 +105,9 @@ public final class KitCustomiseData {
 
 	public List<String> getNameColours() {
 		return nameColours;
+	}
+
+	public List<String> getNameStyles() {
+		return nameStyles;
 	}
 }

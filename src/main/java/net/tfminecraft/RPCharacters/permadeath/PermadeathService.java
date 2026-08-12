@@ -150,6 +150,7 @@ public final class PermadeathService {
 				RPCharacter replacement = pd.getCharacters(Status.ALIVE).get(0);
 				pd.setActiveCharacter(replacement);
 				replacementName = replacement.getName();
+				net.tfminecraft.RPCharacters.wardrobe.WardrobeService.refreshActiveAsync(player);
 			}
 		}
 

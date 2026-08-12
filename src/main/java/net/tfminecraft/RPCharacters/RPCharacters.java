@@ -72,6 +72,8 @@ import net.tfminecraft.RPCharacters.speechbubble.SpeechBubbleListener;
 import net.tfminecraft.RPCharacters.speechbubble.SpeechBubbleManager;
 import net.tfminecraft.RPCharacters.speechbubble.fake.FakeBubbleManager;
 import net.tfminecraft.RPCharacters.speechbubble.fake.ProtocolLibBridge;
+import net.tfminecraft.RPCharacters.wardrobe.WardrobeListener;
+import net.tfminecraft.RPCharacters.wardrobe.WardrobeService;
 
 public class RPCharacters extends JavaPlugin{
 	public static RPCharacters plugin;
@@ -100,6 +102,7 @@ public class RPCharacters extends JavaPlugin{
 	private final ProfessionCommandHandler professionCommandHandler = new ProfessionCommandHandler();
 	private final SpeechBubbleListener speechBubbleListener = new SpeechBubbleListener();
 	private final ChatChannelCommandHandler chatChannelCommandHandler = new ChatChannelCommandHandler();
+	private final WardrobeListener wardrobeListener = new WardrobeListener();
 	
 	private final ConfigLoader configLoader = new ConfigLoader();
 	private final StageLoader stageLoader = new StageLoader();
@@ -149,6 +152,7 @@ public class RPCharacters extends JavaPlugin{
 	@Override
 	public void onDisable() {
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.stopPeriodicPull();
+		WardrobeService.stopSoftRefresh();
 		ProtocolLibBridge.shutdown();
 		SpeechBubbleManager.get().shutdown();
 		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().shutdown();
@@ -194,6 +198,7 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(professionListener, this);
 		getServer().getPluginManager().registerEvents(professionEffectService, this);
 		getServer().getPluginManager().registerEvents(speechBubbleListener, this);
+		getServer().getPluginManager().registerEvents(wardrobeListener, this);
 	}
 	public void startManagers() {
 		playerManager.start();
@@ -202,6 +207,7 @@ public class RPCharacters extends JavaPlugin{
 		ProtocolLibBridge.init(this);
 		FakeBubbleManager.get().startTicks();
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.startPeriodicPull(this);
+		WardrobeService.startSoftRefresh(this);
 	}
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
@@ -293,6 +299,11 @@ public class RPCharacters extends JavaPlugin{
 			knifeSkin.getParentFile().mkdirs();
 			saveResource("assets/knife_skin.png", false);
 		}
+		File journalSkin = new File(getDataFolder(), "assets/journal_skin.png");
+		if (!journalSkin.exists()) {
+			journalSkin.getParentFile().mkdirs();
+			saveResource("assets/journal_skin.png", false);
+		}
 		String[] professionFiles = {
 				"alchemist.yml",
 				"smith.yml",
@@ -314,6 +325,8 @@ public class RPCharacters extends JavaPlugin{
 	public void reload() {
 		loadConfigs();
 		ProfessionCommandHandler.reapplyActiveCharacterPerms();
+		// Catalog + pending pull already run inside loadConfigs(); also refresh website sheets.
+		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushAllOnlineAsync();
 	}
 
 	public void reloadConfigs(CommandSender sender) {
@@ -324,7 +337,7 @@ public class RPCharacters extends JavaPlugin{
 		}
 		try {
 			reload();
-			getLogger().info("Config reload complete.");
+			getLogger().info("Config reload complete (catalog + online roster sync kicked).");
 			if (sender != null) {
 				RPTexts.sendPrefixed(sender, RPTexts.WARN + "Reloading complete!");
 			}

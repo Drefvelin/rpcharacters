@@ -21,6 +21,7 @@ import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.command.CharCommand;
 import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
+import net.tfminecraft.RPCharacters.wardrobe.WardrobeCommand;
 
 public class CommandTabCompleter implements TabCompleter {
 
@@ -45,13 +46,17 @@ public class CommandTabCompleter implements TabCompleter {
 			completions.add("cancel");
 			completions.add("edit");
 			completions.add("clues");
+			completions.add("wardrobe");
 			completions.addAll(PERSONA_SUBCOMMANDS);
 			if (Permissions.isAdmin(sender)) {
 				completions.add("reload");
 				completions.add("catalog");
 				completions.add("pending");
+				completions.add("reclaimkit");
+				completions.add("resetkit");
 				completions.add("stage");
 				completions.add("setclass");
+				completions.add("seteighteen");
 				completions.add("skipcooldown");
 				completions.add("addtrait");
 				completions.add("removetrait");
@@ -99,6 +104,8 @@ public class CommandTabCompleter implements TabCompleter {
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					completions.add(online.getName());
 				}
+			} else if (args[0].equalsIgnoreCase("wardrobe") && sender instanceof Player) {
+				return WardrobeCommand.tabComplete((Player) sender, args);
 			} else if (args[0].equalsIgnoreCase("clues") && Permissions.isAdmin(sender)) {
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					completions.add(online.getName());
@@ -106,6 +113,16 @@ public class CommandTabCompleter implements TabCompleter {
 			} else if (args[0].equalsIgnoreCase("edit")) {
 				completions.addAll(net.tfminecraft.RPCharacters.Creation.SummaryEditSupport.getEditEntryKeys());
 			} else if (args[0].equalsIgnoreCase("setclass")) {
+				for (Player online : Bukkit.getOnlinePlayers()) {
+					completions.add(online.getName());
+				}
+			} else if (args[0].equalsIgnoreCase("seteighteen") && Permissions.isAdmin(sender)) {
+				for (Player online : Bukkit.getOnlinePlayers()) {
+					completions.add(online.getName());
+				}
+			} else if ((args[0].equalsIgnoreCase("resetkit")
+					|| args[0].equalsIgnoreCase("reclaimkit"))
+					&& Permissions.isAdmin(sender)) {
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					completions.add(online.getName());
 				}
@@ -162,6 +179,25 @@ public class CommandTabCompleter implements TabCompleter {
 				completions.addAll(CLEAR);
 			} else if (args[0].equalsIgnoreCase("setclass")) {
 				completions.add("className");
+			} else if (args[0].equalsIgnoreCase("seteighteen") && Permissions.isAdmin(sender)) {
+				completions.add("true");
+				completions.add("false");
+			} else if ((args[0].equalsIgnoreCase("resetkit")
+					|| args[0].equalsIgnoreCase("reclaimkit"))
+					&& Permissions.isAdmin(sender)) {
+				Player target = Bukkit.getPlayerExact(args[1]);
+				if (target != null) {
+					PlayerData pd = PlayerManager.get(target);
+					if (pd != null) {
+						for (RPCharacter character : pd.getCharacters()) {
+							if (character != null
+									&& character.getSlug() != null
+									&& !character.getSlug().isBlank()) {
+								completions.add(character.getSlug());
+							}
+						}
+					}
+				}
 			} else if (args[0].equalsIgnoreCase("addtrait") || args[0].equalsIgnoreCase("removetrait")) {
 				for (Trait trait : TraitLoader.get()) {
 					completions.add(trait.getId());
@@ -185,6 +221,15 @@ public class CommandTabCompleter implements TabCompleter {
 			}
 
 			return filter(completions, args[2]);
+		}
+
+		if (args.length == 4
+				&& (args[0].equalsIgnoreCase("resetkit")
+						|| args[0].equalsIgnoreCase("reclaimkit"))
+				&& Permissions.isAdmin(sender)) {
+			return filter(new ArrayList<>(
+					net.tfminecraft.RPCharacters.Loaders.KitLoader.kitIds()
+			), args[3]);
 		}
 
 		return Collections.emptyList();

@@ -66,6 +66,8 @@ public final class EditableKitPreviewBuilder {
 		private final int amount;
 		private final String skinPng;
 		private final String baseSet;
+		private final String twoDTemplate;
+		private final String threeDTemplate;
 		private final Preview preview;
 
 		public Row(
@@ -75,6 +77,8 @@ public final class EditableKitPreviewBuilder {
 				int amount,
 				String skinPng,
 				String baseSet,
+				String twoDTemplate,
+				String threeDTemplate,
 				Preview preview
 		) {
 			this.grantKitId = grantKitId != null ? grantKitId : "";
@@ -83,6 +87,9 @@ public final class EditableKitPreviewBuilder {
 			this.amount = amount;
 			this.skinPng = skinPng != null ? skinPng : "";
 			this.baseSet = baseSet != null ? baseSet : "";
+			this.twoDTemplate = twoDTemplate != null ? twoDTemplate : "";
+			String t3 = threeDTemplate != null ? threeDTemplate.trim() : "";
+			this.threeDTemplate = t3.isEmpty() ? null : t3;
 			this.preview = preview;
 		}
 
@@ -108,6 +115,14 @@ public final class EditableKitPreviewBuilder {
 
 		public String getBaseSet() {
 			return baseSet;
+		}
+
+		public String get2dTemplate() {
+			return twoDTemplate;
+		}
+
+		public String get3dTemplate() {
+			return threeDTemplate;
 		}
 
 		public Preview getPreview() {
@@ -137,6 +152,8 @@ public final class EditableKitPreviewBuilder {
 						def.getAmount(),
 						editable.getSkinPng(),
 						editable.getBaseSet(),
+						editable.get2dTemplate(),
+						editable.get3dTemplate(),
 						resolvePreview(path)
 				));
 			}

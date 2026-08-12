@@ -89,9 +89,20 @@ public final class KitCustomiseIngestService {
 				ProvinceSystemClient.fetchPendingLoreItems();
 		if (!pending.ok) {
 			RPCharacters.plugin.getLogger().warning(
-					"[kit-customise] claim pull failed: " + pending.error
+					"[kit-customise] claim-pull failed: " + pending.error
 			);
 			return;
+		}
+		String body = pending.body != null ? pending.body : "";
+		if (body.isBlank()) {
+			RPCharacters.plugin.getLogger().info(
+					"[kit-customise] claim-pull empty body char=" + characterId
+							+ " uuid=" + playerUuid
+			);
+		} else {
+			RPCharacters.plugin.getLogger().info(
+					"[kit-customise] claim-pull body=" + body
+			);
 		}
 		List<JSONObject> all = ProvinceSystemClient.parsePendingLoreItems(pending.body);
 		List<JSONObject> mine = new ArrayList<>();
@@ -105,18 +116,53 @@ public final class KitCustomiseIngestService {
 				mine.add(row);
 			}
 		}
+		RPCharacters.plugin.getLogger().info(
+				"[kit-customise] claim-pull total=" + all.size()
+						+ " matched=" + mine.size()
+						+ " char=" + characterId
+						+ " uuid=" + playerUuid
+		);
 		if (mine.isEmpty()) {
+			RPCharacters.plugin.getLogger().info(
+					"[kit-customise] claim-pull no ready rows for char="
+							+ characterId + " uuid=" + playerUuid
+			);
 			return;
 		}
 		List<JSONObject> results = new ArrayList<>();
 		for (JSONObject row : mine) {
-			results.add(applyOne(row));
+			String kitKey = stringOf(row.get("kit_key"));
+			String displayName = stringOf(row.get("display_name"));
+			String skinSlug = stringOf(row.get("skin_slug"));
+			String path = stringOf(row.get("path"));
+			int loreLines = 0;
+			Object loreObj = row.get("lore");
+			if (loreObj instanceof JSONArray arr) {
+				loreLines = arr.size();
+			}
+			JSONObject result = applyOne(row);
+			results.add(result);
+			Object ok = result.get("ok");
+			Object err = result.get("error");
+			RPCharacters.plugin.getLogger().info(
+					"[kit-customise] claim-pull apply kit_key=" + kitKey
+							+ " display_name=" + displayName
+							+ " lore_lines=" + loreLines
+							+ " skin_slug=" + (skinSlug.isBlank() ? null : skinSlug)
+							+ " path=" + path
+							+ " ok=" + ok
+							+ (err != null ? " error=" + err : "")
+			);
 		}
 		ProvinceSystemClient.SimpleResult ack =
 				ProvinceSystemClient.ackLoreItems(buildAckJson(results));
 		if (!ack.ok) {
 			RPCharacters.plugin.getLogger().warning(
-					"[kit-customise] claim ack failed: " + ack.error
+					"[kit-customise] claim-pull ack failed: " + ack.error
+			);
+		} else {
+			RPCharacters.plugin.getLogger().info(
+					"[kit-customise] claim-pull ack ok results=" + results.size()
 			);
 		}
 	}
@@ -225,8 +271,17 @@ public final class KitCustomiseIngestService {
 					}
 				}
 			}
+			List<String> styles = new ArrayList<>();
+			Object stylesObj = row.get("name_styles");
+			if (stylesObj instanceof JSONArray sarr) {
+				for (Object s : sarr) {
+					if (s != null && !s.toString().isBlank()) {
+						styles.add(s.toString().trim().toLowerCase());
+					}
+				}
+			}
 			KitCustomiseData data = new KitCustomiseData(
-					kitKey, displayName, lore, skinSlug, path, iaNamespace, colours
+					kitKey, displayName, lore, skinSlug, path, iaNamespace, colours, styles
 			);
 			character.putKitCustomise(data);
 

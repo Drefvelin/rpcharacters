@@ -356,6 +356,7 @@ public final class CharacterIngestService {
 
 		if (online != null && !pd.hasActiveCharacter()) {
 			pd.setActiveCharacter(character);
+			net.tfminecraft.RPCharacters.wardrobe.WardrobeService.refreshActiveAsync(online);
 		}
 
 		net.tfminecraft.RPCharacters.kit.KitService.onCharacterCreated(online, pd, character);

@@ -112,9 +112,17 @@ public class RPCharacter {
 		desc = new ArrayList<>();
 		for(Trait t : traits) {
 			if(Cache.backgroundTraitTypes.contains(t.getTraitData().getKey())) {
-				desc.add(" ");
+				java.util.List<String> loreLines = new java.util.ArrayList<>();
 				for(String s : t.getDesc()) {
-					desc.add(s);
+					if (s != null && !s.isBlank()) {
+						loreLines.add(s);
+					}
+				}
+				if (!loreLines.isEmpty()) {
+					// if (!desc.isEmpty()) {
+					// 	desc.add(" ");
+					// }
+					desc.addAll(loreLines);
 				}
 			}
 			attributeData.mergeFrom(t.getTraitData().getAttributeData());
@@ -286,6 +294,13 @@ public class RPCharacter {
 			return;
 		}
 		kitCustomisations.put(data.getKitKey().toLowerCase(), data);
+	}
+
+	public void removeKitCustomise(String kitKey) {
+		if (kitKey == null || kitKey.isBlank()) {
+			return;
+		}
+		kitCustomisations.remove(kitKey.trim().toLowerCase(java.util.Locale.ROOT));
 	}
 
 	public String getAlias() {

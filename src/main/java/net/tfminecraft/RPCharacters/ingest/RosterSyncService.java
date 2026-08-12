@@ -13,12 +13,13 @@ import net.Indyuce.mmocore.api.player.profess.PlayerClass;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.api.ProvinceSystemClient;
-import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Creation.Stages.AttributesStage;
 import net.tfminecraft.RPCharacters.Database.Database;
 import net.tfminecraft.RPCharacters.Loaders.KitLoader;
-import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
+import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
+import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeModifier;
+import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
@@ -51,6 +52,18 @@ public final class RosterSyncService {
 			return;
 		}
 		pushRosterAsync(player.getUniqueId());
+	}
+
+	/** Push roster for every online player (e.g. after {@code /rpcharacter reload}). */
+	public static void pushAllOnlineAsync() {
+		if (RPCharacters.plugin == null) {
+			return;
+		}
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			if (player != null) {
+				pushRosterAsync(player.getUniqueId());
+			}
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -131,6 +144,10 @@ public final class RosterSyncService {
 		if (online != null) {
 			root.put("max_alive_characters", CharacterSlotService.getMaxAliveCharacters(online));
 			root.put("name_colour_stops", Integer.valueOf(PermissionGroupService.getNameColourStops(online)));
+			root.put(
+				"wardrobe_skin_slots",
+				Integer.valueOf(PermissionGroupService.getWardrobeSkinSlots(online))
+			);
 		}
 
 		boolean realAgeSet = pd.getCompletedStages().contains("creation_age_set_stage")
@@ -156,6 +173,11 @@ public final class RosterSyncService {
 
 	@SuppressWarnings("unchecked")
 	private static void appendSheetFields(JSONObject row, RPCharacter c) {
+		try {
+			c.update();
+		} catch (Throwable ignored) {
+			// fail-soft: use whatever AttributeData / desc already present
+		}
 		if (c.getRace() != null && c.getRace().getName() != null) {
 			String raceName = strip(c.getRace().getName());
 			if (!raceName.isBlank()) {
@@ -184,9 +206,17 @@ public final class RosterSyncService {
 		if (description != null && !description.isBlank()) {
 			row.put("description", description.trim());
 		}
-		JSONObject attributes = attributeRanks(c);
+		String background = backgroundText(c);
+		if (background != null && !background.isBlank()) {
+			row.put("background", background);
+		}
+		JSONObject attributes = attributeTotals(c);
 		if (!attributes.isEmpty()) {
 			row.put("attributes", attributes);
+		}
+		JSONArray experience = experienceModifierRows(c);
+		if (!experience.isEmpty()) {
+			row.put("experience_modifiers", experience);
 		}
 		JSONArray traits = traitRows(c);
 		if (!traits.isEmpty()) {
@@ -199,36 +229,72 @@ public final class RosterSyncService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static JSONObject attributeRanks(RPCharacter character) {
+	private static JSONObject attributeTotals(RPCharacter character) {
 		JSONObject out = new JSONObject();
-		java.util.List<String> attrs = Cache.attributes;
-		if (attrs == null || attrs.isEmpty() || character == null) {
+		if (character == null) {
 			return out;
 		}
-		int maxCheck = 16;
-		for (Stage stage : StageLoader.oList) {
-			if (stage instanceof AttributesStage attributes) {
-				maxCheck = Math.max(1, attributes.getMaxRank());
-				break;
-			}
+		AttributeData data = character.getAttributeData();
+		if (data == null || data.getModifiers() == null) {
+			return out;
 		}
-		for (String attr : attrs) {
-			if (attr == null || attr.isBlank()) {
+		for (AttributeModifier mod : data.getModifiers()) {
+			if (mod == null || mod.getType() == null || mod.getType().isBlank()) {
 				continue;
 			}
-			int rank = 0;
-			for (int n = 1; n <= maxCheck; n++) {
-				if (hasTraitId(character, AttributesStage.traitId(attr, n))) {
-					rank = n;
-				} else {
-					break;
-				}
-			}
-			if (rank > 0) {
-				out.put(attr.trim().toLowerCase(java.util.Locale.ROOT), Integer.valueOf(rank));
-			}
+			String key = mod.getType().trim().toLowerCase(java.util.Locale.ROOT);
+			out.put(key, Integer.valueOf(mod.getAmount()));
 		}
 		return out;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static JSONArray experienceModifierRows(RPCharacter character) {
+		JSONArray out = new JSONArray();
+		if (character == null) {
+			return out;
+		}
+		AttributeData data = character.getAttributeData();
+		if (data == null || data.getExperienceModifiers() == null) {
+			return out;
+		}
+		for (ExperienceModifier mod : data.getExperienceModifiers()) {
+			if (mod == null) {
+				continue;
+			}
+			String profession = mod.getProfession() != null ? mod.getProfession().trim() : "";
+			if (profession.isBlank()) {
+				continue;
+			}
+			JSONObject row = new JSONObject();
+			row.put("profession", profession.toLowerCase(java.util.Locale.ROOT));
+			String alias = mod.getAlias() != null ? strip(mod.getAlias()).trim() : "";
+			row.put("alias", alias.isBlank() ? profession : alias);
+			row.put("amount", Integer.valueOf(mod.getModifier()));
+			out.add(row);
+		}
+		return out;
+	}
+
+	private static String backgroundText(RPCharacter character) {
+		if (character == null || character.getDescription() == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (String line : character.getDescription()) {
+			if (line == null) {
+				continue;
+			}
+			String plain = strip(line).trim();
+			if (plain.isBlank()) {
+				continue;
+			}
+			if (sb.length() > 0) {
+				sb.append('\n');
+			}
+			sb.append(plain);
+		}
+		return sb.length() > 0 ? sb.toString() : null;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -237,24 +303,39 @@ public final class RosterSyncService {
 		if (character == null || character.getTraits() == null) {
 			return out;
 		}
+		java.util.List<String> editable = Cache.editableTraits;
 		for (Trait trait : character.getTraits()) {
 			if (trait == null || trait.getId() == null || trait.getTraitData() == null) {
 				continue;
 			}
 			String key = trait.getTraitData().getKey();
-			if (key != null && key.equalsIgnoreCase("injury")) {
+			if (key == null || key.isBlank()) {
 				continue;
 			}
-			// Skip pure attribute-rank traits (str1, dex2, …)
+			String keyNorm = key.trim().toLowerCase(java.util.Locale.ROOT);
+			if (keyNorm.equals("injury")) {
+				continue;
+			}
 			if (isAttributeRankTrait(trait.getId())) {
+				continue;
+			}
+			if (editable == null || editable.isEmpty()) {
+				continue;
+			}
+			boolean allowed = false;
+			for (String editableKey : editable) {
+				if (editableKey != null && editableKey.trim().equalsIgnoreCase(keyNorm)) {
+					allowed = true;
+					break;
+				}
+			}
+			if (!allowed) {
 				continue;
 			}
 			JSONObject row = new JSONObject();
 			row.put("id", trait.getId());
 			row.put("name", strip(trait.getName()));
-			if (key != null && !key.isBlank()) {
-				row.put("key", key.trim().toLowerCase(java.util.Locale.ROOT));
-			}
+			row.put("key", keyNorm);
 			out.add(row);
 		}
 		return out;
@@ -293,18 +374,6 @@ public final class RosterSyncService {
 			}
 			String abbrev = AttributesStage.abbrevFor(attr).toLowerCase(java.util.Locale.ROOT);
 			if (id.matches(java.util.regex.Pattern.quote(abbrev) + "[0-9]+")) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private static boolean hasTraitId(RPCharacter character, String id) {
-		if (character == null || character.getTraits() == null || id == null) {
-			return false;
-		}
-		for (Trait trait : character.getTraits()) {
-			if (trait.getId().equalsIgnoreCase(id)) {
 				return true;
 			}
 		}

@@ -4,6 +4,7 @@ defaults:
   name-colour-stops: 0
   character-switch-cooldown-days: 14
   max-alive-characters: 3
+  wardrobe-skin-slots: 1
 
 groups:
   noble:
@@ -13,6 +14,7 @@ groups:
     name-colour-stops: 1
     character-switch-cooldown-days: 10
     max-alive-characters: 3
+    wardrobe-skin-slots: 1
   gilded:
     tier: 2
     permission: rpchar.group.gilded
@@ -20,6 +22,7 @@ groups:
     name-colour-stops: 2
     character-switch-cooldown-days: 7
     max-alive-characters: 4
+    wardrobe-skin-slots: 2
   ascended:
     tier: 3
     permission: rpchar.group.ascended
@@ -27,6 +30,7 @@ groups:
     name-colour-stops: 20
     character-switch-cooldown-days: 5
     max-alive-characters: 5
+    wardrobe-skin-slots: 3
   legacy:
     tier: 4
     permission: rpchar.group.legacy
@@ -34,6 +38,7 @@ groups:
     name-colour-stops: 20
     character-switch-cooldown-days: 5
     max-alive-characters: 5
+    wardrobe-skin-slots: 3
   # Example staff-only group (not shown on locked slots):
   # helper:
   #   tier: 100

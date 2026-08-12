@@ -103,15 +103,24 @@ public final class KitLoader implements LoaderInterface {
 		int cooldown = Math.max(0, kitSec.getInt("cooldown-hours", 48));
 		boolean once = kitSec.getBoolean("once-per-character", true);
 		List<KitItemDefinition> items = parseItems(kitSec.getMapList("items"), id);
+		if (items == null) {
+			return null;
+		}
 		return new KitDefinition(id, display, cooldown, once, items);
 	}
 
 	private static KitDefinition parseLegacyFlat(FileConfiguration config) {
 		int cooldown = Math.max(0, config.getInt("cooldown-hours", 48));
 		List<KitItemDefinition> items = parseItems(config.getMapList("items"), DEFAULT_KIT_ID);
+		if (items == null) {
+			return null;
+		}
 		return new KitDefinition(DEFAULT_KIT_ID, "Starter", cooldown, true, items);
 	}
 
+	/**
+	 * @return item list, or {@code null} if the kit must be rejected (fail-loud)
+	 */
 	private static List<KitItemDefinition> parseItems(List<Map<?, ?>> rawItems, String kitId) {
 		List<KitItemDefinition> loaded = new ArrayList<>();
 		if (rawItems == null) {
@@ -140,14 +149,39 @@ public final class KitLoader implements LoaderInterface {
 			KitEditableSpec editable = null;
 			Object editableObj = map.get("editable");
 			if (editableObj instanceof Map<?, ?> editableMap) {
-				editable = new KitEditableSpec(
-						stringOf(editableMap.get("skin-png")),
-						stringOf(editableMap.get("base-set"))
-				);
+				editable = parseEditable(editableMap, kitId, path);
+				if (editable == null) {
+					return null;
+				}
 			}
 			loaded.add(new KitItemDefinition(path, amount, editable));
 		}
 		return loaded;
+	}
+
+	/**
+	 * @return spec, or {@code null} if editable is invalid (missing 2d-template)
+	 */
+	private static KitEditableSpec parseEditable(
+			Map<?, ?> editableMap,
+			String kitId,
+			String path
+	) {
+		String twoD = stringOf(editableMap.get("2d-template"));
+		if (twoD.isEmpty()) {
+			RPCharacters.plugin.getLogger().severe(
+					"Kit '" + kitId + "' editable item '" + path
+							+ "' missing required 2d-template — kit not loaded."
+			);
+			return null;
+		}
+		String threeD = stringOf(editableMap.get("3d-template"));
+		return new KitEditableSpec(
+				stringOf(editableMap.get("skin-png")),
+				stringOf(editableMap.get("base-set")),
+				twoD,
+				threeD.isEmpty() ? null : threeD
+		);
 	}
 
 	private static String stringOf(Object value) {

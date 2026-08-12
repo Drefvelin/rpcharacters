@@ -359,6 +359,26 @@ clue_entry_stage:
     repeat: true
     auto-next: true
     message: subtitle(§7Type clue {current}/{needed} in chat)
+creation_wardrobe_info_stage:
+    type: info
+    platform: game
+    repeat: false
+    interval: 60
+    auto-next: false
+    messages:
+        - "title(§aCharacter skins)"
+        - "subtitle(§eOptional player skins live on the website)"
+        - "subtitle(§eAfter create, open your character → Wardrobe)"
+        - "subtitle(§eIn-game swap with #32ed73/rpcharacter wardrobe)"
+        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
+creation_wardrobe_stage:
+    type: wardrobe
+    platform: web
+    repeat: false
+    auto-next: false
+    web-messages:
+        - "title(Character skins)"
+        - "subtitle(Optional. Upload a base skin, extras by rank, and a masked look. You can skip and edit later on your character page.)"
 creation_summary_stage:
     type: summary
     repeat: true

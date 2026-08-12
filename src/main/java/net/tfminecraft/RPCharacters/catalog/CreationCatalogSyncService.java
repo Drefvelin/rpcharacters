@@ -1,9 +1,13 @@
 package net.tfminecraft.RPCharacters.catalog;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
@@ -23,6 +27,7 @@ import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
+import net.tfminecraft.RPCharacters.Creation.Stages.WardrobeStage;
 import net.tfminecraft.RPCharacters.Loaders.KitLoader;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
@@ -91,6 +96,7 @@ public final class CreationCatalogSyncService {
 			sb.append(",\"order\":").append(order++);
 			sb.append(",\"repeat\":").append(stage.shouldRepeat());
 			sb.append(",\"auto_next\":").append(stage.autoNext());
+			appendField(sb, "platform", stage.getPlatform(), false);
 			if (stage.getLockTimeMs() > 0) {
 				sb.append(",\"lock_time_ms\":").append(stage.getLockTimeMs());
 			}
@@ -114,6 +120,12 @@ public final class CreationCatalogSyncService {
 					sb.append(',');
 					appendStringList(sb, "web_messages",
 						substituteHoursList(info.getWebMessages()));
+				}
+			} else if (stage instanceof WardrobeStage wardrobe) {
+				if (wardrobe.hasWebMessages()) {
+					sb.append(',');
+					appendStringList(sb, "web_messages",
+						substituteHoursList(wardrobe.getWebMessages()));
 				}
 			} else if (stage instanceof SetterStage setter) {
 				appendField(sb, "target", setter.getTarget(), false);
@@ -172,6 +184,9 @@ public final class CreationCatalogSyncService {
 		}
 		if (stage instanceof SummaryStage) {
 			return "summary";
+		}
+		if (stage instanceof WardrobeStage) {
+			return "wardrobe";
 		}
 		return "unknown";
 	}
@@ -418,8 +433,12 @@ public final class CreationCatalogSyncService {
 		int defaultColourStops = Cache.permissionGroupDefaults.getOrDefault(
 			PermissionGroupDefinition.KEY_NAME_COLOUR_STOPS, 0
 		);
+		int defaultWardrobeSlots = Cache.permissionGroupDefaults.getOrDefault(
+			PermissionGroupDefinition.KEY_WARDROBE_SKIN_SLOTS, 1
+		);
 		sb.append("\"max_alive_characters\":").append(defaultMax);
 		sb.append(",\"name_colour_stops\":").append(defaultColourStops);
+		sb.append(",\"wardrobe_skin_slots\":").append(defaultWardrobeSlots);
 		sb.append('}');
 		sb.append(",\"groups\":[");
 		boolean first = true;
@@ -434,7 +453,7 @@ public final class CreationCatalogSyncService {
 			sb.append('{');
 			appendField(sb, "id", group.getId(), true);
 			appendField(sb, "permission", group.getPermission(), false);
-			appendField(sb, "display_name", strip(group.getDisplayName()), false);
+			appendField(sb, "display_name", group.getDisplayName(), false);
 			sb.append(",\"tier\":").append(group.getTier());
 			sb.append(",\"visible\":").append(group.isVisible());
 			sb.append(",\"max_alive_characters\":").append(
@@ -442,6 +461,9 @@ public final class CreationCatalogSyncService {
 			);
 			sb.append(",\"name_colour_stops\":").append(
 				group.getPerk(PermissionGroupDefinition.KEY_NAME_COLOUR_STOPS, defaultColourStops)
+			);
+			sb.append(",\"wardrobe_skin_slots\":").append(
+				group.getPerk(PermissionGroupDefinition.KEY_WARDROBE_SKIN_SLOTS, defaultWardrobeSlots)
 			);
 			sb.append('}');
 		}
@@ -509,6 +531,10 @@ public final class CreationCatalogSyncService {
 			}
 			appendField(sb, "skin_png", row.getSkinPng(), false);
 			appendField(sb, "base_set", row.getBaseSet(), false);
+			appendField(sb, "2d_template", row.get2dTemplate(), false);
+			if (row.get3dTemplate() != null && !row.get3dTemplate().isBlank()) {
+				appendField(sb, "3d_template", row.get3dTemplate(), false);
+			}
 			EditableKitPreviewBuilder.Preview preview = row.getPreview();
 			if (preview != null) {
 				sb.append(",\"preview\":{");
@@ -532,10 +558,14 @@ public final class CreationCatalogSyncService {
 		}
 		Runnable buildThenPush = () -> {
 			String json = buildPayloadJson();
+			Set<String> skinStems = collectEditableSkinPngStems();
 			Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 				ProvinceSystemClient.CatalogPushResult result =
 					ProvinceSystemClient.pushCreationCatalog(json);
 				logPushResult(plugin.getLogger(), result);
+				if (result.ok) {
+					syncKitSkins(plugin, plugin.getLogger(), skinStems);
+				}
 			});
 		};
 		if (Bukkit.isPrimaryThread()) {
@@ -547,11 +577,29 @@ public final class CreationCatalogSyncService {
 
 	/** Build payload then PUT. Must run on the main thread (ItemStack preview). */
 	public static ProvinceSystemClient.CatalogPushResult pushNow() {
-		return ProvinceSystemClient.pushCreationCatalog(buildPayloadJson());
+		ProvinceSystemClient.CatalogPushResult result =
+			ProvinceSystemClient.pushCreationCatalog(buildPayloadJson());
+		if (result.ok && RPCharacters.plugin != null) {
+			syncKitSkins(
+				RPCharacters.plugin,
+				RPCharacters.plugin.getLogger(),
+				collectEditableSkinPngStems()
+			);
+		}
+		return result;
 	}
 
 	public static ProvinceSystemClient.CatalogPushResult pushJson(String jsonBody) {
-		return ProvinceSystemClient.pushCreationCatalog(jsonBody);
+		ProvinceSystemClient.CatalogPushResult result =
+			ProvinceSystemClient.pushCreationCatalog(jsonBody);
+		if (result.ok && RPCharacters.plugin != null) {
+			syncKitSkins(
+				RPCharacters.plugin,
+				RPCharacters.plugin.getLogger(),
+				collectEditableSkinPngStems()
+			);
+		}
+		return result;
 	}
 
 	private static void logPushResult(Logger log, ProvinceSystemClient.CatalogPushResult result) {
@@ -564,6 +612,82 @@ public final class CreationCatalogSyncService {
 		} else {
 			log.warning("[creation-catalog] sync failed: " + result.error);
 		}
+	}
+
+	/** Distinct skin_png stems from editable kit rows (no ItemStack work). */
+	static Set<String> collectEditableSkinPngStems() {
+		Set<String> stems = new LinkedHashSet<>();
+		for (KitDefinition kit : KitLoader.getKits().values()) {
+			if (kit == null) {
+				continue;
+			}
+			for (KitItemDefinition def : kit.getItems()) {
+				if (def == null || !def.isEditable() || def.getEditable() == null) {
+					continue;
+				}
+				String raw = def.getEditable().getSkinPng();
+				if (raw == null) {
+					continue;
+				}
+				String stem = raw.trim();
+				if (stem.isEmpty()) {
+					continue;
+				}
+				if (stem.toLowerCase(Locale.ROOT).endsWith(".png")) {
+					stem = stem.substring(0, stem.length() - 4).trim();
+				}
+				if (stem.isEmpty()
+					|| stem.contains("/")
+					|| stem.contains("\\")
+					|| stem.contains("..")) {
+					continue;
+				}
+				stems.add(stem);
+			}
+		}
+		return stems;
+	}
+
+	/**
+	 * Fail-soft: upload each assets/{stem}.png after a successful catalog JSON push.
+	 * Missing files warn and skip; HTTP failures do not roll back the catalog.
+	 */
+	static void syncKitSkins(JavaPlugin plugin, Logger log, Set<String> stems) {
+		if (plugin == null || log == null || stems == null || stems.isEmpty()) {
+			return;
+		}
+		File assetsDir = new File(plugin.getDataFolder(), "assets");
+		int ok = 0;
+		int missing = 0;
+		int failed = 0;
+		for (String stem : stems) {
+			File file = new File(assetsDir, stem + ".png");
+			if (!file.isFile()) {
+				log.warning("[creation-catalog] kit skin missing: assets/"
+					+ stem + ".png");
+				missing++;
+				continue;
+			}
+			try {
+				byte[] bytes = Files.readAllBytes(file.toPath());
+				ProvinceSystemClient.SimpleResult put =
+					ProvinceSystemClient.putKitSkin(stem, bytes);
+				if (put.ok) {
+					ok++;
+				} else {
+					failed++;
+					log.warning("[creation-catalog] kit skin upload failed for "
+						+ stem + ": " + put.error);
+				}
+			} catch (Exception e) {
+				failed++;
+				log.warning("[creation-catalog] kit skin read/upload failed for "
+					+ stem + ": " + e.getMessage());
+			}
+		}
+		log.info("[creation-catalog] kit skins synced: ok=" + ok
+			+ " missing=" + missing
+			+ " failed=" + failed);
 	}
 
 	public static void pushAsyncFromPlugin() {

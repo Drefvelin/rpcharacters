@@ -348,6 +348,7 @@ public class PlayerManager implements Listener{
 				net.tfminecraft.RPCharacters.kit.KitCustomiseApplyService.applyStoredForPlayer(
 						p, pd.getActiveCharacter()
 				);
+				net.tfminecraft.RPCharacters.wardrobe.WardrobeService.refreshActiveAsync(p);
 			}
 		}
 	}
@@ -363,6 +364,7 @@ public class PlayerManager implements Listener{
 			pd.setActiveCharacter(c);
 			net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().refreshViewer(p);
 			reevaluateFreeze(p);
+			net.tfminecraft.RPCharacters.wardrobe.WardrobeService.refreshActiveAsync(p);
 			InventoryManager inv = new InventoryManager();
 			inv.characterView(p, c);
 		} else if (t.equals(ConfirmType.REVIVE)) {
@@ -386,6 +388,7 @@ public class PlayerManager implements Listener{
 				if (owner.isOnline()) {
 					net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get()
 							.refreshViewer(owner);
+					net.tfminecraft.RPCharacters.wardrobe.WardrobeService.refreshActiveAsync(owner);
 				}
 			}
 			savePlayer(owner);
