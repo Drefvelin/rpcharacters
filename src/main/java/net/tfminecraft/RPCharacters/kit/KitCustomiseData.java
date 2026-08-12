@@ -14,6 +14,9 @@ public final class KitCustomiseData {
 	private final List<String> lore;
 	private final String skinSlug;
 	private final String path;
+	/** ItemsAdder namespace (tfmc_submissions or tfmc_armorshop). */
+	private final String iaNamespace;
+	private final List<String> nameColours;
 
 	public KitCustomiseData(
 			String kitKey,
@@ -22,6 +25,29 @@ public final class KitCustomiseData {
 			String skinSlug,
 			String path
 	) {
+		this(kitKey, displayName, lore, skinSlug, path, null, null);
+	}
+
+	public KitCustomiseData(
+			String kitKey,
+			String displayName,
+			List<String> lore,
+			String skinSlug,
+			String path,
+			String iaNamespace
+	) {
+		this(kitKey, displayName, lore, skinSlug, path, iaNamespace, null);
+	}
+
+	public KitCustomiseData(
+			String kitKey,
+			String displayName,
+			List<String> lore,
+			String skinSlug,
+			String path,
+			String iaNamespace,
+			List<String> nameColours
+	) {
 		this.kitKey = kitKey != null ? kitKey.trim() : "";
 		this.displayName = displayName != null ? displayName : "";
 		this.lore = lore != null
@@ -29,6 +55,11 @@ public final class KitCustomiseData {
 				: List.of();
 		this.skinSlug = skinSlug != null && !skinSlug.isBlank() ? skinSlug.trim() : null;
 		this.path = path != null ? path.trim() : "";
+		String ns = iaNamespace != null ? iaNamespace.trim() : "";
+		this.iaNamespace = ns.isEmpty() ? "tfmc_submissions" : ns;
+		this.nameColours = nameColours != null
+				? Collections.unmodifiableList(new ArrayList<>(nameColours))
+				: List.of();
 	}
 
 	public String getKitKey() {
@@ -49,5 +80,13 @@ public final class KitCustomiseData {
 
 	public String getPath() {
 		return path;
+	}
+
+	public String getIaNamespace() {
+		return iaNamespace;
+	}
+
+	public List<String> getNameColours() {
+		return nameColours;
 	}
 }

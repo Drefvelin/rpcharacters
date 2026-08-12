@@ -212,8 +212,21 @@ public final class KitCustomiseIngestService {
 				skinSlug = null;
 			}
 			String path = stringOf(row.get("path"));
+			String iaNamespace = stringOf(row.get("ia_namespace"));
+			if (iaNamespace.isBlank()) {
+				iaNamespace = "tfmc_submissions";
+			}
+			List<String> colours = new ArrayList<>();
+			Object coloursObj = row.get("name_colours");
+			if (coloursObj instanceof JSONArray carr) {
+				for (Object c : carr) {
+					if (c != null && !c.toString().isBlank()) {
+						colours.add(c.toString().trim());
+					}
+				}
+			}
 			KitCustomiseData data = new KitCustomiseData(
-					kitKey, displayName, lore, skinSlug, path
+					kitKey, displayName, lore, skinSlug, path, iaNamespace, colours
 			);
 			character.putKitCustomise(data);
 

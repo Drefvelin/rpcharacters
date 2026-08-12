@@ -600,6 +600,9 @@ public class Database {
 					String path = entry.containsKey("path")
 							? String.valueOf(entry.get("path"))
 							: "";
+					String iaNamespace = entry.containsKey("ia-namespace")
+							? String.valueOf(entry.get("ia-namespace"))
+							: "tfmc_submissions";
 					List<String> lore = new ArrayList<>();
 					if (entry.get("lore") instanceof JSONArray loreArr) {
 						for (Object line : loreArr) {
@@ -608,9 +611,17 @@ public class Database {
 							}
 						}
 					}
+					List<String> colours = new ArrayList<>();
+					if (entry.get("name-colours") instanceof JSONArray carr) {
+						for (Object c : carr) {
+							if (c != null && !c.toString().isBlank()) {
+								colours.add(c.toString().trim());
+							}
+						}
+					}
 					character.putKitCustomise(
 							new net.tfminecraft.RPCharacters.kit.KitCustomiseData(
-									kitKey, displayName, lore, skinSlug, path
+									kitKey, displayName, lore, skinSlug, path, iaNamespace, colours
 							)
 					);
 				}
@@ -677,6 +688,16 @@ public class Database {
 				}
 				if (data.getPath() != null && !data.getPath().isBlank()) {
 					one.put("path", data.getPath());
+				}
+				if (data.getIaNamespace() != null && !data.getIaNamespace().isBlank()) {
+					one.put("ia-namespace", data.getIaNamespace());
+				}
+				if (data.getNameColours() != null && !data.getNameColours().isEmpty()) {
+					JSONArray carr = new JSONArray();
+					for (String c : data.getNameColours()) {
+						carr.add(c);
+					}
+					one.put("name-colours", carr);
 				}
 				kitJson.put(data.getKitKey(), one);
 			}

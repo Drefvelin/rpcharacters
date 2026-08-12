@@ -15,6 +15,7 @@ import org.bukkit.persistence.PersistentDataType;
 import io.lumine.mythic.lib.api.item.NBTItem;
 import me.Plugins.TLibs.TLibs;
 import me.Plugins.TLibs.Objects.API.SubAPI.ArmorMerger;
+import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 
@@ -97,11 +98,16 @@ public final class KitCustomiseApplyService {
 		stack = stack.clone();
 
 		String slug = data.getSkinSlug();
+		String colouredName = formatDisplayName(data);
 		if (slug != null && !slug.isBlank()) {
-			String iaPath = "ia.tfmc_submissions:" + slug;
+			String ns = data.getIaNamespace();
+			if (ns == null || ns.isBlank()) {
+				ns = "tfmc_submissions";
+			}
+			String iaPath = "ia." + ns + ":" + slug;
 			Optional<String> name = Optional.empty();
-			if (data.getDisplayName() != null && !data.getDisplayName().isBlank()) {
-				name = Optional.of(data.getDisplayName());
+			if (colouredName != null && !colouredName.isBlank()) {
+				name = Optional.of(colouredName);
 			}
 			try {
 				ArmorMerger merger = TLibs.getItemAPI().getArmorMerger();
@@ -111,10 +117,10 @@ public final class KitCustomiseApplyService {
 						"[kit-customise] skin merge failed for " + slug + ": " + e.getMessage()
 				);
 			}
-		} else if (data.getDisplayName() != null && !data.getDisplayName().isBlank()) {
+		} else if (colouredName != null && !colouredName.isBlank()) {
 			ItemMeta meta = stack.getItemMeta();
 			if (meta != null) {
-				meta.setDisplayName(data.getDisplayName());
+				meta.setDisplayName(colouredName);
 				stack.setItemMeta(meta);
 			}
 		}
@@ -126,7 +132,12 @@ public final class KitCustomiseApplyService {
 				List<String> lore = meta.hasLore() && meta.getLore() != null
 						? new ArrayList<>(meta.getLore())
 						: new ArrayList<>();
-				lore.addAll(custom);
+				for (String line : custom) {
+					if (line == null || line.isBlank()) {
+						continue;
+					}
+					lore.add(formatLoreLine(line));
+				}
 				meta.setLore(lore);
 				stack.setItemMeta(meta);
 			}
@@ -141,6 +152,33 @@ public final class KitCustomiseApplyService {
 			stack.setItemMeta(meta);
 		}
 		return stack;
+	}
+
+	static String formatDisplayName(KitCustomiseData data) {
+		if (data == null || data.getDisplayName() == null || data.getDisplayName().isBlank()) {
+			return null;
+		}
+		String plain = data.getDisplayName().trim();
+		List<String> colours = data.getNameColours();
+		if (colours == null || colours.isEmpty()) {
+			return plain;
+		}
+		try {
+			return StringFormatter.applyColourGradient(plain, new ArrayList<>(colours));
+		} catch (Exception e) {
+			return plain;
+		}
+	}
+
+	static String formatLoreLine(String line) {
+		if (line == null) {
+			return "";
+		}
+		try {
+			return StringFormatter.formatHex(line.replace('&', '\u00A7'));
+		} catch (Exception e) {
+			return line;
+		}
 	}
 
 	static boolean matchesKitItem(ItemStack stack, String itemId, String kitKey) {
