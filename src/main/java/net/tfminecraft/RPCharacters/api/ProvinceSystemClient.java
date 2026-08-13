@@ -1,11 +1,5 @@
 package net.tfminecraft.RPCharacters.api;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +10,11 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import net.tfminecraft.RPCharacters.Cache;
-
 /**
- * Minimal HTTP client for ProvinceSystem characters plugin routes.
+ * Characters plugin routes via TFMCWeb {@link GatewayClient}.
  */
 public final class ProvinceSystemClient {
 
-	private static final int TIMEOUT_MS = 8000;
 	private static final Pattern INT_FIELD = Pattern.compile(
 		"\"(\\w+)\"\\s*:\\s*(-?\\d+)"
 	);
@@ -113,7 +104,7 @@ public final class ProvinceSystemClient {
 		);
 	}
 
-	/** GET /characters/plugin/pending — returns raw JSON body on success. */
+	/** GET /characters/plugin/pending — realm injected by TFMCWeb gateway. */
 	public static SimpleResult fetchPendingCreates() {
 		return request("GET", "/characters/plugin/pending", null);
 	}
@@ -427,15 +418,11 @@ public final class ProvinceSystemClient {
 	}
 
 	private static SimpleResult request(String method, String path, String jsonBody) {
-		byte[] bytes = jsonBody == null
-			? null
-			: jsonBody.getBytes(StandardCharsets.UTF_8);
-		return requestBytes(
-			method,
-			path,
-			bytes,
-			jsonBody == null ? null : "application/json"
-		);
+		GatewayClient.Result raw = GatewayClient.request(method, path, jsonBody);
+		if (raw.ok) {
+			return SimpleResult.success(raw.body);
+		}
+		return SimpleResult.fail(raw.error);
 	}
 
 	private static SimpleResult requestBytes(
@@ -444,88 +431,16 @@ public final class ProvinceSystemClient {
 		byte[] body,
 		String contentType
 	) {
-		String base = Cache.charactersApiBaseUrl;
-		String key = Cache.charactersApiPluginKey;
-		if (base == null || base.isEmpty() || key == null || key.isEmpty()) {
-			return SimpleResult.fail(
-				"Characters API is not configured (characters-api.base-url / plugin-key in config.yml)."
-			);
+		GatewayClient.Result raw = GatewayClient.requestBytes(
+			method,
+			path,
+			body,
+			contentType
+		);
+		if (raw.ok) {
+			return SimpleResult.success(raw.body);
 		}
-
-		HttpURLConnection connection = null;
-		try {
-			String root = base.endsWith("/") ? base.substring(0, base.length() - 1) : base;
-			@SuppressWarnings("deprecation")
-			URL url = new URL(root + path);
-			connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod(method);
-			connection.setConnectTimeout(TIMEOUT_MS);
-			connection.setReadTimeout(TIMEOUT_MS);
-			connection.setRequestProperty("X-Plugin-Key", key);
-			connection.setRequestProperty("Accept", "application/json");
-
-			if (body != null) {
-				connection.setDoOutput(true);
-				if (contentType != null && !contentType.isEmpty()) {
-					connection.setRequestProperty("Content-Type", contentType);
-				}
-				connection.setFixedLengthStreamingMode(body.length);
-				try (OutputStream out = connection.getOutputStream()) {
-					out.write(body);
-				}
-			}
-
-			int status = connection.getResponseCode();
-			String response = readBody(
-				status >= 200 && status < 300
-					? connection.getInputStream()
-					: connection.getErrorStream()
-			);
-
-			if (status >= 200 && status < 300) {
-				return SimpleResult.success(response);
-			}
-
-			String detail = jsonString(response, "detail");
-			if (detail == null || detail.isEmpty()) {
-				detail = response == null || response.isEmpty()
-					? ("HTTP " + status)
-					: response;
-			}
-			if (status == 401) {
-				return SimpleResult.fail(
-					"Unauthorized (check characters-api.plugin-key). " + detail
-				);
-			}
-			return SimpleResult.fail(detail);
-		} catch (Exception e) {
-			return SimpleResult.fail(
-				"Could not reach characters API: " + e.getMessage()
-			);
-		} finally {
-			if (connection != null) {
-				connection.disconnect();
-			}
-		}
-	}
-
-	private static String readBody(InputStream stream) throws Exception {
-		if (stream == null) {
-			return "";
-		}
-		StringBuilder sb = new StringBuilder();
-		try (BufferedReader reader = new BufferedReader(
-			new InputStreamReader(stream, StandardCharsets.UTF_8)
-		)) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				if (sb.length() > 0) {
-					sb.append('\n');
-				}
-				sb.append(line);
-			}
-		}
-		return sb.toString();
+		return SimpleResult.fail(raw.error);
 	}
 
 	private static int jsonInt(String json, String key) {

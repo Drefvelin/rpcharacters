@@ -57,10 +57,6 @@ public class Cache {
 
 	public static String continent = "Cerrith";
 
-	/** ProvinceSystem characters API (creation catalog sync). */
-	public static String charactersApiBaseUrl = "";
-	public static String charactersApiPluginKey = "";
-
 	public static String personaSetPermission = "rpchar.persona.set";
 	public static String personaNamecolourPermission = "rpchar.namecolour";
 	public static String personaDescriptionColorsPermission = "rpchar.persona.colors";

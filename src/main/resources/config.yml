@@ -73,8 +73,3 @@ clue-spawn-radius: 3
 conversation:
   reply-timeout-seconds: 30
   pair-cooldown-hours: 2
-
-# ProvinceSystem creation catalog sync (Step 19.02)
-characters-api:
-  base-url: "http://127.0.0.1:18001"
-  plugin-key: "dev-plugin-key"

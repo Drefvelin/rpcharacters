@@ -4,7 +4,7 @@ name: RPCharacters
 version: 1.0
 author: Drefvelin
 
-depend: [TLibs, MMOCore]
+depend: [TLibs, MMOCore, TFMCWeb]
 softdepend: [ProtocolLib, PlaceholderAPI, LuckPerms, WorldGuard]
 
 commands:
