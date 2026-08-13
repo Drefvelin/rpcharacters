@@ -565,6 +565,7 @@ public final class CreationCatalogSyncService {
 				logPushResult(plugin.getLogger(), result);
 				if (result.ok) {
 					syncKitSkins(plugin, plugin.getLogger(), skinStems);
+					syncMaskedTemplate(plugin, plugin.getLogger());
 				}
 			});
 		};
@@ -585,6 +586,7 @@ public final class CreationCatalogSyncService {
 				RPCharacters.plugin.getLogger(),
 				collectEditableSkinPngStems()
 			);
+			syncMaskedTemplate(RPCharacters.plugin, RPCharacters.plugin.getLogger());
 		}
 		return result;
 	}
@@ -598,6 +600,7 @@ public final class CreationCatalogSyncService {
 				RPCharacters.plugin.getLogger(),
 				collectEditableSkinPngStems()
 			);
+			syncMaskedTemplate(RPCharacters.plugin, RPCharacters.plugin.getLogger());
 		}
 		return result;
 	}
@@ -688,6 +691,34 @@ public final class CreationCatalogSyncService {
 		log.info("[creation-catalog] kit skins synced: ok=" + ok
 			+ " missing=" + missing
 			+ " failed=" + failed);
+	}
+
+	/**
+	 * Fail-soft: upload assets/masked.png as the auto-masked body template.
+	 */
+	static void syncMaskedTemplate(JavaPlugin plugin, Logger log) {
+		if (plugin == null || log == null) {
+			return;
+		}
+		File file = new File(plugin.getDataFolder(), "assets/masked.png");
+		if (!file.isFile()) {
+			log.warning("[creation-catalog] masked template missing: assets/masked.png");
+			return;
+		}
+		try {
+			byte[] bytes = Files.readAllBytes(file.toPath());
+			ProvinceSystemClient.SimpleResult put =
+				ProvinceSystemClient.putWardrobeMaskedTemplate(bytes);
+			if (put.ok) {
+				log.info("[creation-catalog] masked template synced");
+			} else {
+				log.warning("[creation-catalog] masked template upload failed: "
+					+ put.error);
+			}
+		} catch (Exception e) {
+			log.warning("[creation-catalog] masked template read/upload failed: "
+				+ e.getMessage());
+		}
 	}
 
 	public static void pushAsyncFromPlugin() {

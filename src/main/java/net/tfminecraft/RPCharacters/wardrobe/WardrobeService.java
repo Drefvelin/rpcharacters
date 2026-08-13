@@ -58,6 +58,14 @@ public final class WardrobeService {
 
 	/** Refresh + apply for the player's current active character (if any). */
 	public static void refreshActiveAsync(Player player) {
+		refreshActiveAsync(player, null);
+	}
+
+	/**
+	 * Refresh + apply. {@code onMainAfterSuccess} runs on the main thread after
+	 * a successful pull and cache put (may be null).
+	 */
+	public static void refreshActiveAsync(Player player, Runnable onMainAfterSuccess) {
 		if (player == null || !player.isOnline()) {
 			return;
 		}
@@ -69,10 +77,18 @@ public final class WardrobeService {
 		if (active == null) {
 			return;
 		}
-		refreshAsync(player, active.getId());
+		refreshAsync(player, active.getId(), onMainAfterSuccess);
 	}
 
 	public static void refreshAsync(Player player, String characterId) {
+		refreshAsync(player, characterId, null);
+	}
+
+	public static void refreshAsync(
+		Player player,
+		String characterId,
+		Runnable onMainAfterSuccess
+	) {
 		if (player == null || !player.isOnline() || characterId == null || characterId.isBlank()) {
 			return;
 		}
@@ -114,6 +130,9 @@ public final class WardrobeService {
 				applyFor(online);
 				if (!pendingSlots.isEmpty()) {
 					ackPendingAsync(uuid, cid, pendingSlots);
+				}
+				if (onMainAfterSuccess != null) {
+					onMainAfterSuccess.run();
 				}
 			});
 		});

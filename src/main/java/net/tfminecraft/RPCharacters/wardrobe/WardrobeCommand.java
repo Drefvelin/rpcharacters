@@ -14,7 +14,7 @@ import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 
 /**
- * /rpcharacter wardrobe — list / swap filled unlocked swappable skins.
+ * /rpcharacter wardrobe — GUI picker, or chat equip with a slot arg.
  */
 public final class WardrobeCommand {
 
@@ -34,6 +34,12 @@ public final class WardrobeCommand {
 			return true;
 		}
 
+		// args[0] is "wardrobe"; slot is args[1] when present
+		if (args.length <= 1) {
+			WardrobeGui.open(player);
+			return true;
+		}
+
 		WardrobeSnapshot snapshot = WardrobeCache.get(player);
 		if (snapshot == null) {
 			RPTexts.send(
@@ -41,12 +47,6 @@ public final class WardrobeCommand {
 				RPTexts.WARN + "Loading wardrobe… Try again in a moment."
 			);
 			WardrobeService.refreshActiveAsync(player);
-			return true;
-		}
-
-		// args[0] is "wardrobe"; slot is args[1] when present
-		if (args.length <= 1) {
-			listSlots(player, snapshot, label);
 			return true;
 		}
 
@@ -122,53 +122,6 @@ public final class WardrobeCommand {
 			match = id;
 		}
 		return match;
-	}
-
-	private static void listSlots(
-		Player player,
-		WardrobeSnapshot snapshot,
-		String label
-	) {
-		List<WardrobeSlotData> filled = new ArrayList<>();
-		for (String id : List.of(
-			WardrobeSnapshot.SLOT_BASE,
-			WardrobeSnapshot.SLOT_EXTRA_1,
-			WardrobeSnapshot.SLOT_EXTRA_2
-		)) {
-			WardrobeSlotData slot = snapshot.getSlot(id);
-			if (slot != null
-				&& slot.isUnlocked()
-				&& slot.isFilled()
-				&& slot.canApply()) {
-				filled.add(slot);
-			}
-		}
-		if (filled.isEmpty()) {
-			RPTexts.send(
-				player,
-				RPTexts.WARN
-					+ "No wardrobe skins ready. Upload them on the website "
-					+ "(character → Wardrobe)."
-			);
-			return;
-		}
-
-		String active = snapshot.getActiveSlot();
-		RPTexts.send(player, RPTexts.MUTED + "Your wardrobe skins:");
-		for (WardrobeSlotData slot : filled) {
-			boolean isActive = active != null
-				&& active.equalsIgnoreCase(slot.getSlot());
-			String mark = isActive ? RPTexts.SUCCESS + " (active)" : "";
-			RPTexts.send(
-				player,
-				RPTexts.MUTED + "- "
-					+ RPTexts.WARN + WardrobeService.labelForSlot(snapshot, slot.getSlot())
-					+ RPTexts.MUTED + " ["
-					+ RPTexts.COMMAND + "/" + label + " wardrobe " + slot.getSlot()
-					+ RPTexts.MUTED + "]"
-					+ mark
-			);
-		}
 	}
 
 	public static List<String> tabComplete(Player player, String[] args) {

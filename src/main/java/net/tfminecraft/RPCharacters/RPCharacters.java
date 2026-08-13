@@ -304,6 +304,11 @@ public class RPCharacters extends JavaPlugin{
 			journalSkin.getParentFile().mkdirs();
 			saveResource("assets/journal_skin.png", false);
 		}
+		File maskedSkin = new File(getDataFolder(), "assets/masked.png");
+		if (!maskedSkin.exists()) {
+			maskedSkin.getParentFile().mkdirs();
+			saveResource("assets/masked.png", false);
+		}
 		String[] professionFiles = {
 				"alchemist.yml",
 				"smith.yml",

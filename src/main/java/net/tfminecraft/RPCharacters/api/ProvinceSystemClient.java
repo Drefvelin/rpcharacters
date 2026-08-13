@@ -331,6 +331,21 @@ public final class ProvinceSystemClient {
 		);
 	}
 
+	/**
+	 * PUT /characters/plugin/wardrobe-templates/masked — body template for auto-masked.
+	 */
+	public static SimpleResult putWardrobeMaskedTemplate(byte[] pngBytes) {
+		if (pngBytes == null || pngBytes.length == 0) {
+			return SimpleResult.fail("empty masked template body");
+		}
+		return requestBytes(
+			"PUT",
+			"/characters/plugin/wardrobe-templates/masked",
+			pngBytes,
+			"image/png"
+		);
+	}
+
 	private static String sanitizeKitSkinStem(String name) {
 		if (name == null) {
 			return null;

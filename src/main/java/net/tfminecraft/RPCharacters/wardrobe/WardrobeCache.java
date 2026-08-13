@@ -7,12 +7,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.entity.Player;
 
 /**
- * Per-session wardrobe + original account textures.
+ * Per-session wardrobe + original account textures + last applied skin.
  */
 public final class WardrobeCache {
 
 	private static final Map<UUID, WardrobeSnapshot> SNAPSHOTS = new ConcurrentHashMap<>();
 	private static final Map<UUID, SkinTextures> ACCOUNT_SKINS = new ConcurrentHashMap<>();
+	private static final Map<UUID, SkinTextures> LAST_APPLIED = new ConcurrentHashMap<>();
 
 	private WardrobeCache() {}
 
@@ -40,6 +41,7 @@ public final class WardrobeCache {
 		}
 		SNAPSHOTS.remove(playerId);
 		ACCOUNT_SKINS.remove(playerId);
+		LAST_APPLIED.remove(playerId);
 	}
 
 	public static void clear(Player player) {
@@ -74,5 +76,23 @@ public final class WardrobeCache {
 
 	public static SkinTextures getAccountSkin(Player player) {
 		return player == null ? null : getAccountSkin(player.getUniqueId());
+	}
+
+	public static SkinTextures getLastApplied(UUID playerId) {
+		if (playerId == null) {
+			return null;
+		}
+		return LAST_APPLIED.get(playerId);
+	}
+
+	public static SkinTextures getLastApplied(Player player) {
+		return player == null ? null : getLastApplied(player.getUniqueId());
+	}
+
+	public static void setLastApplied(Player player, SkinTextures textures) {
+		if (player == null || textures == null || !textures.isValid()) {
+			return;
+		}
+		LAST_APPLIED.put(player.getUniqueId(), textures);
 	}
 }

@@ -27,4 +27,23 @@ public final class SkinTextures {
 			&& signature != null
 			&& !signature.isEmpty();
 	}
+
+	/** Same Mojang texture pair (skips redundant Paper profile applies). */
+	public boolean sameTextures(SkinTextures other) {
+		if (other == null) {
+			return false;
+		}
+		return sameTextures(other.value, other.signature);
+	}
+
+	public boolean sameTextures(String otherValue, String otherSignature) {
+		if (!isValid()
+			|| otherValue == null
+			|| otherValue.isEmpty()
+			|| otherSignature == null
+			|| otherSignature.isEmpty()) {
+			return false;
+		}
+		return value.equals(otherValue) && signature.equals(otherSignature);
+	}
 }

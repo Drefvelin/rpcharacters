@@ -70,6 +70,11 @@ public final class SkinApplyHelper {
 			|| signature == null || signature.isEmpty()) {
 			return false;
 		}
+		SkinTextures next = new SkinTextures(value, signature);
+		SkinTextures last = WardrobeCache.getLastApplied(player);
+		if (last != null && last.sameTextures(next)) {
+			return true;
+		}
 		try {
 			Object profile = player.getClass().getMethod("getPlayerProfile").invoke(player);
 			if (profile == null) {
@@ -100,6 +105,7 @@ public final class SkinApplyHelper {
 			player.getClass()
 				.getMethod("setPlayerProfile", profileIface)
 				.invoke(player, profile);
+			WardrobeCache.setLastApplied(player, next);
 			return true;
 		} catch (Throwable t) {
 			RPCharacters.plugin.getLogger().log(
