@@ -10,11 +10,11 @@ public final class AliasValidator {
 
 	public static String validate(String alias) {
 		if (alias == null) {
-			return RPTexts.format(RPTexts.ERROR + "Alias cannot be empty.");
+			return RPTexts.formatDisplay(RPTexts.ERROR + "Alias cannot be empty.");
 		}
 		String plain = ClueFormatter.stripColor(alias);
 		if (plain.isEmpty()) {
-			return RPTexts.format(RPTexts.ERROR + "Alias cannot be empty.");
+			return RPTexts.formatDisplay(RPTexts.ERROR + "Alias cannot be empty.");
 		}
 		String lengthError = validateLength(plain, "Alias");
 		if (lengthError != null) {
@@ -24,7 +24,7 @@ public final class AliasValidator {
 		for (int i = 0; i < plain.length(); i++) {
 			char c = plain.charAt(i);
 			if (!isAllowed(c, allowed)) {
-				return RPTexts.format(RPTexts.ERROR + "Alias contains disallowed character: "
+				return RPTexts.formatDisplay(RPTexts.ERROR + "Alias contains disallowed character: "
 						+ RPTexts.WARN + c);
 			}
 		}
@@ -33,11 +33,11 @@ public final class AliasValidator {
 
 	public static String validateCharacterName(String name) {
 		if (name == null || name.isBlank()) {
-			return RPTexts.format(RPTexts.ERROR + "Name cannot be empty.");
+			return RPTexts.formatDisplay(RPTexts.ERROR + "Name cannot be empty.");
 		}
 		String trimmed = name.trim();
 		if (containsColourCodes(trimmed)) {
-			return RPTexts.format(RPTexts.ERROR + "Colour codes are not allowed in character names. Use "
+			return RPTexts.formatDisplay(RPTexts.ERROR + "Colour codes are not allowed in character names. Use "
 					+ RPTexts.COMMAND + "/char namecolour " + RPTexts.ERROR + "for display colour.");
 		}
 		return validateLength(trimmed, "Name");
@@ -58,11 +58,11 @@ public final class AliasValidator {
 	public static String validateLength(String plain, String label) {
 		int length = plain.length();
 		if (length < Cache.personaDisplayNameMinLength) {
-			return RPTexts.format(RPTexts.ERROR + label + " must be at least "
+			return RPTexts.formatDisplay(RPTexts.ERROR + label + " must be at least "
 					+ Cache.personaDisplayNameMinLength + " characters.");
 		}
 		if (length > Cache.personaDisplayNameMaxLength) {
-			return RPTexts.format(RPTexts.ERROR + label + " cannot exceed "
+			return RPTexts.formatDisplay(RPTexts.ERROR + label + " cannot exceed "
 					+ Cache.personaDisplayNameMaxLength + " characters.");
 		}
 		return null;

@@ -34,8 +34,8 @@ import net.tfminecraft.RPCharacters.Utils.RPTexts;
 public final class ClueGiver {
 
 	private static final String CLUE_ITEM_PDC_KEY = "clue_item";
-	public static final String CLUE_ITEM_DISPLAY_NAME = RPTexts.format(RPTexts.WHITE + "You find a clue.");
-	public static final String CLUE_ITEM_FOOTER = RPTexts.format(RPTexts.WARN + "Click to remove");
+	public static final String CLUE_ITEM_DISPLAY_NAME = RPTexts.formatGui(RPTexts.WHITE + "You find a clue.");
+	public static final String CLUE_ITEM_FOOTER = RPTexts.formatGui(RPTexts.GUI_WARN + "Click to remove");
 
 	private ClueGiver() {}
 

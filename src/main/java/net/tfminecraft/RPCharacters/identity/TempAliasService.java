@@ -28,7 +28,7 @@ public final class TempAliasService {
 		}
 		PlayerData data = PlayerManager.get(player);
 		if (data == null) {
-			return RPTexts.format(RPTexts.ERROR + "Player data not loaded.");
+			return RPTexts.formatDisplay(RPTexts.ERROR + "Player data not loaded.");
 		}
 		data.setTempAlias(ClueFormatter.stripColor(input).trim());
 		return null;

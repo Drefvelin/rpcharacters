@@ -43,7 +43,7 @@ public class SetterStage extends Stage{
 
 	public void runMessage(Player p, String message) {
 		String type = message.split("\\(")[0];
-		String info = RPTexts.format(message.split("\\(")[1].replace(")", ""));
+		String info = RPTexts.formatGui(message.split("\\(")[1].replace(")", ""));
 		if(type.equalsIgnoreCase("title")) {
 			p.sendTitle(info, " ", 5, 50, 5);
 		} else if(type.equalsIgnoreCase("subtitle")) {

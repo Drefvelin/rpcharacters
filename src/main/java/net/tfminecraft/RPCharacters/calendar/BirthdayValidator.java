@@ -11,20 +11,20 @@ public final class BirthdayValidator {
 
 	public static String validateForCharacter(RPCharacter character, String birthdayIso) {
 		if (character == null) {
-			return RPTexts.format(RPTexts.ERROR + "No character found.");
+			return RPTexts.formatDisplay(RPTexts.ERROR + "No character found.");
 		}
 		if (birthdayIso == null || birthdayIso.isBlank()) {
-			return RPTexts.format(RPTexts.ERROR + "Invalid birthday.");
+			return RPTexts.formatDisplay(RPTexts.ERROR + "Invalid birthday.");
 		}
 		Race race = character.getRace();
 		if (race == null) {
-			return RPTexts.format(RPTexts.ERROR + "Select a race before setting a birthday.");
+			return RPTexts.formatDisplay(RPTexts.ERROR + "Select a race before setting a birthday.");
 		}
 		int age = AgeCalculator.computeAgeYears(birthdayIso, FantasyCalendar.getCurrentDate());
 		int ageMin = Cache.calendarAgeMinimum;
 		int ageMax = race.getAgeMax();
 		if (age < ageMin || age > ageMax) {
-			return RPTexts.format(RPTexts.ERROR + "Age must be between " + RPTexts.WARN + ageMin
+			return RPTexts.formatDisplay(RPTexts.ERROR + "Age must be between " + RPTexts.WARN + ageMin
 					+ " " + RPTexts.ERROR + "and " + RPTexts.WARN + ageMax + " " + RPTexts.ERROR + "for your race.");
 		}
 		return null;

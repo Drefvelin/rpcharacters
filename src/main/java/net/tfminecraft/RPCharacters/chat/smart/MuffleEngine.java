@@ -90,7 +90,7 @@ public final class MuffleEngine {
 
 	private static String formatPlaceholder(String placeholder) {
 		if (placeholder == null || placeholder.isEmpty()) {
-			return RPTexts.format(RPTexts.MUTED + "*muffled voices*");
+			return RPTexts.formatDisplay(RPTexts.MUTED + "*muffled voices*");
 		}
 		return StringFormatter.formatHex(placeholder.replace('&', '\u00A7'));
 	}

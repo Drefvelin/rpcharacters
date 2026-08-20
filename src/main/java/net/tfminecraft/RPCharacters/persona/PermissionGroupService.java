@@ -81,15 +81,15 @@ public final class PermissionGroupService {
 
 	public static Optional<String> validateNameColourHexes(Player player, List<String> hexArgs, boolean staffOverride) {
 		if (hexArgs == null || hexArgs.isEmpty()) {
-			return Optional.of(RPTexts.format(RPTexts.ERROR + "Provide at least one hex colour."));
+			return Optional.of(RPTexts.formatDisplay(RPTexts.ERROR + "Provide at least one hex colour."));
 		}
 		if (!staffOverride) {
 			int maxStops = getNameColourStops(player);
 			if (maxStops <= 0) {
-				return Optional.of(RPTexts.format(RPTexts.ERROR + "You do not have permission to change your name colour."));
+				return Optional.of(RPTexts.formatDisplay(RPTexts.ERROR + "You do not have permission to change your name colour."));
 			}
 			if (hexArgs.size() > maxStops) {
-				return Optional.of(RPTexts.format(RPTexts.ERROR + "You can use up to " + RPTexts.WARN + maxStops
+				return Optional.of(RPTexts.formatDisplay(RPTexts.ERROR + "You can use up to " + RPTexts.WARN + maxStops
 						+ " " + RPTexts.ERROR + "colour(s) with your rank."));
 			}
 		}

@@ -84,7 +84,7 @@ public class QuestionStage extends Stage{
 		}
 		Question q = questions.get(currentQuestion);
 		RPTexts.title(p, RPTexts.SUCCESS + "Question " + (currentQuestion + 1),
-				RPTexts.format(q.getQuestion()), 5, 60, 5);
+				RPTexts.formatGui(q.getQuestion()), 5, 60, 5);
 	}
 	
 	public void checkAnswer(String m, Player p, CharacterCreation cc) {

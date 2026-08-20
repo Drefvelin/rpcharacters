@@ -20,7 +20,7 @@ import net.tfminecraft.RPCharacters.Utils.RPTexts;
 public final class ProfessionInventoryManager {
 
 	private static String t(String raw) {
-		return RPTexts.format(raw);
+		return RPTexts.formatGui(raw);
 	}
 
 	public void openMainMenu(Player player) {
@@ -39,14 +39,14 @@ public final class ProfessionInventoryManager {
 			int freePoints = ProfessionPointService.getFreePoints(player, profession.getId());
 			List<String> lore = meta.getLore() != null ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
 			lore.add(RPTexts.spacer());
-			lore.add(t(RPTexts.WARN + "Free Points" + RPTexts.ACCENT + ": " + RPTexts.SUCCESS + freePoints));
+			lore.add(t(RPTexts.GUI_WARN + "Free Points" + RPTexts.GUI_ACCENT + ": " + RPTexts.GUI_SUCCESS + freePoints));
 			meta.setLore(lore);
 			menuItem.setItemMeta(meta);
 			inventory.setItem(slot++, menuItem);
 		}
 		ItemStack spentItem = new ItemStack(Material.EMERALD, 1);
 		ItemMeta spentMeta = spentItem.getItemMeta();
-		spentMeta.setDisplayName(t(RPTexts.SUCCESS + "Spent Points: " + character.getTotalSpentPoints() + "/"
+		spentMeta.setDisplayName(t(RPTexts.GUI_SUCCESS + "Spent Points: " + character.getTotalSpentPoints() + "/"
 				+ Cache.professionMaxSpendingPoints));
 		spentItem.setItemMeta(spentMeta);
 		inventory.setItem(26, spentItem);

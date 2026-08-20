@@ -457,12 +457,12 @@ public class RPCharacter {
 	public String getClueAddErrorMessage(ClueAddResult result) {
 		switch (result) {
 			case AT_MAX:
-				return RPTexts.format(RPTexts.ERROR + "You cannot have more than " + Cache.maxClues + " clues.");
+				return RPTexts.formatDisplay(RPTexts.ERROR + "You cannot have more than " + Cache.maxClues + " clues.");
 			case TOO_SHORT:
 			case TOO_LONG:
 				return ClueFormatter.lengthRangeMessage();
 			case DUPLICATE:
-				return RPTexts.format(RPTexts.ERROR + "You already have a clue like that.");
+				return RPTexts.formatDisplay(RPTexts.ERROR + "You already have a clue like that.");
 			default:
 				return null;
 		}

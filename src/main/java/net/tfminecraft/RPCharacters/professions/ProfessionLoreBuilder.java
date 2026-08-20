@@ -18,7 +18,7 @@ public final class ProfessionLoreBuilder {
 	private ProfessionLoreBuilder() {}
 
 	private static String t(String raw) {
-		return RPTexts.format(raw);
+		return RPTexts.formatGui(raw);
 	}
 
 	public static ItemStack buildUpgradeItem(ProfessionUpgradeDefinition upgrade, RPCharacter character) {
@@ -37,7 +37,7 @@ public final class ProfessionLoreBuilder {
 		appendCost(lore, upgrade);
 		if (unlocked) {
 			lore.add(" ");
-			lore.add(t(RPTexts.INFO + "UNLOCKED"));
+			lore.add(t(RPTexts.GUI_INFO + "UNLOCKED"));
 		}
 		return lore;
 	}
@@ -89,7 +89,7 @@ public final class ProfessionLoreBuilder {
 					: requirementId;
 			boolean met = character != null && character.hasProfessionUpgrade(requirementId);
 			if (met) {
-				lore.add(t(RPTexts.SUCCESS + "✔ " + displayName));
+				lore.add(t(RPTexts.GUI_SUCCESS + "✔ " + displayName));
 			} else {
 				lore.add(t(RPTexts.ERROR + "Requires " + displayName));
 			}
@@ -99,7 +99,7 @@ public final class ProfessionLoreBuilder {
 	private static void appendCost(List<String> lore, ProfessionUpgradeDefinition upgrade) {
 		lore.add(" ");
 		String pointLabel = upgrade.getCost() == 1 ? "Point" : "Points";
-		lore.add(t(RPTexts.WARN + "Cost: " + RPTexts.SUCCESS + upgrade.getCost() + " " + pointLabel));
+		lore.add(t(RPTexts.GUI_WARN + "Cost: " + RPTexts.GUI_SUCCESS + upgrade.getCost() + " " + pointLabel));
 	}
 }
 

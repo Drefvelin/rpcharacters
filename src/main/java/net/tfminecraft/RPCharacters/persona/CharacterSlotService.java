@@ -80,13 +80,13 @@ public final class CharacterSlotService {
 	public static String getUnlockRequirementLore(int slotIndex) {
 		Optional<PermissionGroupDefinition> group = getMinimumVisibleUnlockGroup(slotIndex);
 		if (group.isEmpty()) {
-			return RPTexts.format(RPTexts.MUTED + "Requires a higher rank");
+			return RPTexts.formatGui(RPTexts.MUTED + "Requires a higher rank");
 		}
 		String rawName = group.get().getDisplayName();
 		if (rawName == null || rawName.isBlank()) {
 			rawName = group.get().getId();
 		}
-		return RPTexts.format(RPTexts.MUTED + "Requires at least " + formatGroupDisplayName(rawName));
+		return RPTexts.formatGui(RPTexts.MUTED + "Requires at least " + formatGroupDisplayName(rawName));
 	}
 
 	static String formatGroupDisplayName(String raw) {

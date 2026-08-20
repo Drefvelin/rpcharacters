@@ -31,15 +31,15 @@ public final class PermadeathRisk {
 
 	public List<String> toLoreLines() {
 		List<String> lore = new ArrayList<>();
-		lore.add(RPTexts.format(RPTexts.MUTED + "------------------------"));
-		lore.add(RPTexts.format(RPTexts.WARN + "Permadeath Risk:"));
-		lore.add(RPTexts.format(RPTexts.MUTED + "On death in a permadeath zone:"));
+		lore.add(RPTexts.formatGui(RPTexts.MUTED + "------------------------"));
+		lore.add(RPTexts.formatGui(RPTexts.GUI_WARN + "Permadeath Risk:"));
+		lore.add(RPTexts.formatGui(RPTexts.MUTED + "On death in a permadeath zone:"));
 
 		if (injuryCount > 0) {
-			lore.add(RPTexts.format(RPTexts.MUTED + "Injuries: " + RPTexts.ERROR + "+" + chancePercent + "%"));
-			lore.add(RPTexts.format(RPTexts.MUTED + "Total chance: " + RPTexts.ERROR + chancePercent + "%"));
+			lore.add(RPTexts.formatGui(RPTexts.MUTED + "Injuries: " + RPTexts.MUTED + "+" + chancePercent + "%"));
+			lore.add(RPTexts.formatGui(RPTexts.MUTED + "Total chance: " + RPTexts.MUTED + chancePercent + "%"));
 		} else {
-			lore.add(RPTexts.format(RPTexts.MUTED + "Total chance: " + RPTexts.SUCCESS + "0%"));
+			lore.add(RPTexts.formatGui(RPTexts.MUTED + "Total chance: " + RPTexts.GUI_SUCCESS + "0%"));
 		}
 
 		return lore;

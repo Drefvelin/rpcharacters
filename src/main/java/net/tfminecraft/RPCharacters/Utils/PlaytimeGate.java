@@ -30,7 +30,7 @@ public final class PlaytimeGate {
 		PlayerData data = PlayerManager.get(player);
 		int have = data != null ? data.getAgeSeconds() : 0;
 		int remaining = Math.max(0, required - have);
-		return RPTexts.format(RPTexts.ERROR + "Need " + RPTexts.WARN + AgeFormatter.formatAge(required)
+		return RPTexts.formatDisplay(RPTexts.ERROR + "Need " + RPTexts.WARN + AgeFormatter.formatAge(required)
 				+ RPTexts.ERROR + " playtime. " + RPTexts.WARN + AgeFormatter.formatAge(remaining)
 				+ RPTexts.ERROR + " left.");
 	}
