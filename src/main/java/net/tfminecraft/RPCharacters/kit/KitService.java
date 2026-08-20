@@ -171,7 +171,7 @@ public final class KitService {
 		if (pendingPack) {
 			RPTexts.send(player, RPTexts.WARN
 					+ "A custom kit skin is still pending pack. "
-					+ "It will be added within 24 hours — try claiming again after that.");
+					+ "It will be added within 24 hours - try claiming again after that.");
 			return;
 		}
 

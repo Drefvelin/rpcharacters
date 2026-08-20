@@ -161,7 +161,7 @@ public class CommandManager implements Listener, CommandExecutor{
 				RPTexts.send(sender, RPTexts.WARN
 						+ "ProvinceSystem customise wipe failed: "
 						+ (result.psWipeError != null ? result.psWipeError : "unknown")
-						+ " — in-game reset applied; site drafts may remain until wipe succeeds.");
+						+ " - in-game reset applied; site drafts may remain until wipe succeeds.");
 			}
 			return true;
 		}
