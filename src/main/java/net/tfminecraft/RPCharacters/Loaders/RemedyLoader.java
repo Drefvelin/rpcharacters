@@ -47,17 +47,37 @@ public final class RemedyLoader implements LoaderInterface {
 			if (remedySection == null) {
 				continue;
 			}
-			RemedyDefinition definition = new RemedyDefinition(key, remedySection);
-			if (definition.getItem() == null || definition.getItem().isBlank()) {
-				RPCharacters.plugin.getLogger().warning("Remedy '" + key + "' has no item path — skipped.");
-				continue;
-			}
-			if (definition.getTraits().isEmpty()) {
-				RPCharacters.plugin.getLogger().warning("Remedy '" + key + "' has no trait(s) — skipped.");
+			RemedyDefinition definition = createDefinition(key, remedySection);
+			if (definition == null) {
 				continue;
 			}
 			remedies.put(key.toLowerCase(Locale.ROOT), definition);
 		}
+	}
+
+	private static RemedyDefinition createDefinition(String key, ConfigurationSection remedySection) {
+		String item = remedySection.getString("item", "");
+		if (item == null || item.isBlank()) {
+			RPCharacters.plugin.getLogger().warning("Remedy '" + key + "' has no item path — skipped.");
+			return null;
+		}
+
+		List<String> healingTraits = new ArrayList<>();
+		RemedyDefinition raw = new RemedyDefinition(key, remedySection);
+		for (String traitId : raw.getTraits()) {
+			if (InjuryProgressionLoader.isHealingTrait(traitId)) {
+				healingTraits.add(traitId);
+				continue;
+			}
+			RPCharacters.plugin.getLogger().warning(
+					"Remedy '" + key + "' trait '" + traitId + "' is not a healing injury — skipped.");
+		}
+		if (healingTraits.isEmpty()) {
+			RPCharacters.plugin.getLogger().warning("Remedy '" + key + "' has no healing trait(s) — skipped.");
+			return null;
+		}
+
+		return new RemedyDefinition(key, item, healingTraits);
 	}
 
 	public static List<RemedyDefinition> resolveAll(ItemStack item) {

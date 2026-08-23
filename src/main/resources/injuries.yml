@@ -1,9 +1,9 @@
+healing-tick-interval: 1m
+
 injuries:
-  one_handed:
+  broken_arm:
     weight: 25
-  one_legged:
+  broken_leg:
     weight: 25
-  blind:
-    weight: 20
   half_blind:
     weight: 30

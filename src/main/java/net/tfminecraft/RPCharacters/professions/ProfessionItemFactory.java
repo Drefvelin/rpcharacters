@@ -11,6 +11,8 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
+
 public final class ProfessionItemFactory {
 	private ProfessionItemFactory() {}
 
@@ -22,7 +24,7 @@ public final class ProfessionItemFactory {
 		ItemStack item = new ItemStack(material, 1);
 		ItemMeta meta = item.getItemMeta();
 		if (section.contains("name")) {
-			meta.setDisplayName(section.getString("name"));
+			meta.setDisplayName(formatItemText(section.getString("name")));
 		}
 		if (section.contains("model_data")) {
 			meta.setCustomModelData(section.getInt("model_data"));
@@ -39,12 +41,19 @@ public final class ProfessionItemFactory {
 		}
 		List<String> lore = new ArrayList<>();
 		for (String line : section.getStringList("lore")) {
-			lore.add(line);
+			lore.add(formatItemText(line));
 		}
 		if (!lore.isEmpty()) {
 			meta.setLore(lore);
 		}
 		item.setItemMeta(meta);
 		return item;
+	}
+
+	private static String formatItemText(String raw) {
+		if (raw == null || raw.isEmpty()) {
+			return raw;
+		}
+		return RPTexts.formatGui(raw);
 	}
 }

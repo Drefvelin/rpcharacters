@@ -16,7 +16,7 @@ public final class PermadeathAdminCommands {
 	}
 
 	public static boolean handleInjure(CommandSender sender, String[] args) {
-		ResolvedTarget target = resolveTarget(sender, args, 1, "injure");
+		InjureTarget target = resolveInjureTarget(sender, args);
 		if (target == null) {
 			return true;
 		}
@@ -24,12 +24,19 @@ public final class PermadeathAdminCommands {
 			RPTexts.send(sender, RPTexts.ERROR + "That character is not alive.");
 			return true;
 		}
-		if (!PermadeathService.applyRandomInjury(target.player, target.character)) {
+
+		boolean applied = target.permanent
+				? PermadeathService.applyRandomPermanentInjury(target.player, target.character)
+				: PermadeathService.applyRandomInjury(target.player, target.character);
+		if (!applied) {
 			RPTexts.send(sender, RPTexts.ERROR + target.character.getName() + " has no injuries left to receive.");
 			return true;
 		}
-		RPTexts.send(sender, RPTexts.SUCCESS + "Applied a random injury to " + RPTexts.WARN + target.character.getName()
-				+ RPTexts.SUCCESS + " (" + RPTexts.WARN + target.player.getName() + RPTexts.SUCCESS + ").");
+
+		String injuryType = target.permanent ? "permanent injury" : "injury";
+		RPTexts.send(sender, RPTexts.SUCCESS + "Applied a random " + injuryType + " to " + RPTexts.WARN
+				+ target.character.getName() + RPTexts.SUCCESS + " (" + RPTexts.WARN + target.player.getName()
+				+ RPTexts.SUCCESS + ").");
 		return true;
 	}
 
@@ -49,6 +56,51 @@ public final class PermadeathAdminCommands {
 		RPTexts.send(sender, RPTexts.SUCCESS + "Permanently killed " + RPTexts.WARN + target.character.getName()
 				+ RPTexts.SUCCESS + " (" + RPTexts.WARN + target.player.getName() + RPTexts.SUCCESS + ").");
 		return true;
+	}
+
+	private static InjureTarget resolveInjureTarget(CommandSender sender, String[] args) {
+		if (args.length <= 1) {
+			RPTexts.send(sender, RPTexts.ERROR + "Usage: /rpcharacter injure <player> [character] [permanent]");
+			return null;
+		}
+
+		int endIndex = args.length - 1;
+		boolean permanent = false;
+		if (endIndex >= 2 && args[endIndex].equalsIgnoreCase("permanent")) {
+			permanent = true;
+			endIndex--;
+		}
+
+		Player player = Bukkit.getPlayerExact(args[1]);
+		if (player == null) {
+			RPTexts.send(sender, RPTexts.ERROR + "No player found.");
+			return null;
+		}
+
+		PlayerData pd = PlayerManager.get(player);
+		if (pd == null) {
+			RPTexts.send(sender, RPTexts.ERROR + "Player data not loaded for " + RPTexts.WARN + player.getName()
+					+ RPTexts.ERROR + ".");
+			return null;
+		}
+
+		RPCharacter character;
+		if (endIndex >= 2) {
+			character = findCharacter(pd, args[2]);
+			if (character == null) {
+				RPTexts.send(sender, RPTexts.ERROR + "No character found matching " + RPTexts.WARN + args[2]
+						+ RPTexts.ERROR + " for " + RPTexts.WARN + player.getName() + RPTexts.ERROR + ".");
+				return null;
+			}
+		} else {
+			if (!pd.hasActiveCharacter()) {
+				RPTexts.send(sender, RPTexts.ERROR + player.getName() + " has no active character.");
+				return null;
+			}
+			character = pd.getActiveCharacter();
+		}
+
+		return new InjureTarget(player, character, permanent);
 	}
 
 	private static ResolvedTarget resolveTarget(CommandSender sender, String[] args, int playerArgIndex,
@@ -104,6 +156,18 @@ public final class PermadeathAdminCommands {
 			}
 		}
 		return null;
+	}
+
+	private static final class InjureTarget {
+		private final Player player;
+		private final RPCharacter character;
+		private final boolean permanent;
+
+		private InjureTarget(Player player, RPCharacter character, boolean permanent) {
+			this.player = player;
+			this.character = character;
+			this.permanent = permanent;
+		}
 	}
 
 	private static final class ResolvedTarget {

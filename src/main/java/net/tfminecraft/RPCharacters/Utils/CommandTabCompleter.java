@@ -218,9 +218,18 @@ public class CommandTabCompleter implements TabCompleter {
 						}
 					}
 				}
+				if (args[0].equalsIgnoreCase("injure")) {
+					completions.add("permanent");
+				}
 			}
 
 			return filter(completions, args[2]);
+		}
+
+		if (args.length == 4
+				&& args[0].equalsIgnoreCase("injure")
+				&& Permissions.isAdmin(sender)) {
+			return filter(List.of("permanent"), args[3]);
 		}
 
 		if (args.length == 4

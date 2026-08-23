@@ -1,0 +1,83 @@
+wooden_claw_arm:
+  name: "#b57f6eWooden Claw Arm"
+  key: prosthetic
+  cost: 1
+  description:
+    - "§7A crude wooden claw replaces this character's arm."
+  attribute-modifiers:
+    - strength.-2
+    - constitution.-1
+
+basic_prosthetic_arm:
+  name: "#b57f6eBasic Prosthetic Arm"
+  key: prosthetic
+  cost: 1
+  description:
+    - "§7A fitted prosthetic arm with modest function."
+  attribute-modifiers:
+    - strength.-1
+
+arcane_prosthetic_arm:
+  name: "#8939EEArcane Prosthetic Arm"
+  key: prosthetic
+  cost: 1
+  fuel-template: arcane_fuel
+  fuel-capacity: 50
+  description:
+    - "§7An arcane prosthetic arm. Requires fuel to stay powered."
+  powered:
+    name: "#8939EEArcane Prosthetic Arm"
+    description:
+      - "§7An arcane prosthetic arm, fully powered."
+    attribute-modifiers:
+      - strength.-1
+  depowered:
+    name: "#7a7a7aArcane Prosthetic Arm (Depowered)"
+    description:
+      - "§7The arcane prosthetic is depowered and barely functional."
+    attribute-modifiers:
+      - strength.-3
+      - constitution.-1
+
+pegleg:
+  name: "#b57f6ePegleg"
+  key: prosthetic
+  cost: 1
+  description:
+    - "§7A wooden pegleg replaces this character's leg."
+  potion-effects:
+    - slowness(0)
+  attribute-modifiers:
+    - dexterity.-2
+
+basic_prosthetic_leg:
+  name: "#b57f6eBasic Prosthetic Leg"
+  key: prosthetic
+  cost: 1
+  description:
+    - "§7A fitted prosthetic leg with modest mobility."
+  attribute-modifiers:
+    - dexterity.-1
+
+arcane_prosthetic_leg:
+  name: "#8939EEArcane Prosthetic Leg"
+  key: prosthetic
+  cost: 1
+  fuel-template: arcane_fuel
+  fuel-capacity: 50
+  description:
+    - "§7An arcane prosthetic leg. Requires fuel to stay powered."
+  powered:
+    name: "#8939EEArcane Prosthetic Leg"
+    description:
+      - "§7An arcane prosthetic leg, fully powered."
+    attribute-modifiers:
+      - dexterity.-1
+  depowered:
+    name: "#7a7a7aArcane Prosthetic Leg (Depowered)"
+    description:
+      - "§7The arcane prosthetic is depowered and barely functional."
+    potion-effects:
+      - slowness(0)
+    attribute-modifiers:
+      - dexterity.-3

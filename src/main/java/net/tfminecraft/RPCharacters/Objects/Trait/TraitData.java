@@ -3,10 +3,12 @@ package net.tfminecraft.RPCharacters.Objects.Trait;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 import net.tfminecraft.RPCharacters.Creation.Dependency;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
+import net.tfminecraft.RPCharacters.Utils.DurationParser;
 
 public class TraitData {
 	private int cost;
@@ -17,6 +19,12 @@ public class TraitData {
 	private Dependency dependency;
 	private AttributeData data;
 	private int requiredAccountPlaytimeSeconds;
+	private long durationMs;
+	private String fuelTemplateId;
+	private double fuelCapacity;
+	private TraitVariant poweredVariant;
+	private TraitVariant depoweredVariant;
+	private Material icon;
 	
 	public TraitData(ConfigurationSection config) {
 		key = config.getString("key");
@@ -44,6 +52,37 @@ public class TraitData {
 			double hours = config.getDouble("required-account-playtime");
 			if (hours > 0) {
 				requiredAccountPlaytimeSeconds = (int) Math.round(hours * 3600.0);
+			}
+		}
+		if (config.contains("duration")) {
+			long parsed = DurationParser.parseLockTimeMs(config.getString("duration"));
+			if (parsed > 0) {
+				durationMs = parsed;
+			}
+		}
+		if (config.contains("fuel-template")) {
+			fuelTemplateId = config.getString("fuel-template");
+		}
+		if (config.contains("fuel-capacity")) {
+			fuelCapacity = config.getDouble("fuel-capacity");
+		}
+		if (config.isConfigurationSection("powered")) {
+			poweredVariant = new TraitVariant(config.getConfigurationSection("powered"));
+		}
+		if (config.isConfigurationSection("depowered")) {
+			depoweredVariant = new TraitVariant(config.getConfigurationSection("depowered"));
+		}
+		if (config.contains("icon")) {
+			String raw = config.getString("icon");
+			if (raw != null && !raw.isBlank()) {
+				try {
+					icon = Material.valueOf(raw.trim().toUpperCase());
+					if (icon == Material.AIR) {
+						icon = null;
+					}
+				} catch (IllegalArgumentException ignored) {
+					icon = null;
+				}
 			}
 		}
 	}
@@ -103,6 +142,52 @@ public class TraitData {
 	public int getRequiredAccountPlaytimeSeconds() {
 		return requiredAccountPlaytimeSeconds;
 	}
-	
-	
+
+	public boolean hasDuration() {
+		return durationMs > 0;
+	}
+
+	public long getDurationMs() {
+		return durationMs;
+	}
+
+	public boolean hasFuelTemplate() {
+		return fuelTemplateId != null && !fuelTemplateId.isBlank();
+	}
+
+	public String getFuelTemplateId() {
+		return fuelTemplateId;
+	}
+
+	public double getFuelCapacity() {
+		return fuelCapacity;
+	}
+
+	public boolean hasPoweredVariant() {
+		return poweredVariant != null;
+	}
+
+	public TraitVariant getPoweredVariant() {
+		return poweredVariant;
+	}
+
+	public TraitVariant getDepoweredVariant() {
+		return depoweredVariant;
+	}
+
+	public boolean isInjuryKey() {
+		return key != null && key.equalsIgnoreCase("injury");
+	}
+
+	public boolean isProstheticKey() {
+		return key != null && key.equalsIgnoreCase("prosthetic");
+	}
+
+	public boolean hasIcon() {
+		return icon != null;
+	}
+
+	public Material getIcon() {
+		return icon;
+	}
 }

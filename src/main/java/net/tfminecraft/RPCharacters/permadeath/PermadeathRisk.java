@@ -34,13 +34,21 @@ public final class PermadeathRisk {
 		lore.add(RPTexts.formatGui(RPTexts.MUTED + "------------------------"));
 		lore.add(RPTexts.formatGui(RPTexts.GUI_WARN + "Permadeath Risk:"));
 		lore.add(RPTexts.formatGui(RPTexts.MUTED + "On death in a permadeath zone:"));
+		lore.add(RPTexts.formatGui(RPTexts.MUTED + "Injury count: " + RPTexts.MUTED + injuryCount));
 
-		if (injuryCount > 0) {
-			lore.add(RPTexts.formatGui(RPTexts.MUTED + "Injuries: " + RPTexts.MUTED + "+" + chancePercent + "%"));
-			lore.add(RPTexts.formatGui(RPTexts.MUTED + "Total chance: " + RPTexts.MUTED + chancePercent + "%"));
+		if (chancePercent > 0) {
+			lore.add(RPTexts.formatGui(RPTexts.MUTED + "Permakill chance: " + RPTexts.MUTED + chancePercent + "%"));
+			if (chancePerInjury > 0) {
+				lore.add(RPTexts.formatGui(
+						RPTexts.MUTED + "Adds " + RPTexts.MUTED + "+" + chancePerInjury + "% per injury"));
+			}
 		} else {
-			lore.add(RPTexts.formatGui(RPTexts.MUTED + "Total chance: " + RPTexts.GUI_SUCCESS + "0%"));
+			lore.add(RPTexts.formatGui(RPTexts.MUTED + "Permakill chance: " + RPTexts.GUI_SUCCESS + "0%"));
 		}
+
+		lore.add(RPTexts.formatGui(RPTexts.MUTED + "Healing injuries may become permanent on death."));
+		lore.add(RPTexts.formatGui(RPTexts.MUTED + "Remedies cure healing injuries only."));
+		lore.add(RPTexts.formatGui(RPTexts.MUTED + "Prosthetics replace some permanent injuries."));
 
 		return lore;
 	}

@@ -27,6 +27,7 @@ import net.tfminecraft.RPCharacters.Creation.Stages.ClueStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
+import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
 import net.tfminecraft.RPCharacters.Holder.RPCHolder;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
@@ -337,6 +338,11 @@ public class CreationManager implements Listener{
 			}
 			return;
 		}
+		if ("cancel".equals(action)) {
+			p.closeInventory();
+			cc.cancel();
+			return;
+		}
 		if ("clues".equals(action)) {
 			if (cc.isPreview()) {
 				RPTexts.send(p, RPTexts.ERROR + "Preview is one stage only. Confirm or cancel to exit.");
@@ -494,6 +500,19 @@ public class CreationManager implements Listener{
 				return;
 			}
 			cc.endPreview();
+			return;
+		}
+		if (h.getStage() instanceof SummaryStage) {
+			if (h.isOverridden()) {
+				return;
+			}
+			new BukkitRunnable() {
+				public void run() {
+					if (activeCreators.containsKey(p)) {
+						activeCreators.get(p).openSummary();
+					}
+				}
+			}.runTaskLater(RPCharacters.plugin, 3L);
 			return;
 		}
 		Stage activeStage = cc.getActiveStage();

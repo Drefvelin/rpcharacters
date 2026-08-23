@@ -313,29 +313,43 @@ public final class RosterSyncService {
 				continue;
 			}
 			String keyNorm = key.trim().toLowerCase(java.util.Locale.ROOT);
-			if (keyNorm.equals("injury")) {
-				continue;
-			}
 			if (isAttributeRankTrait(trait.getId())) {
 				continue;
 			}
-			if (editable == null || editable.isEmpty()) {
-				continue;
-			}
-			boolean allowed = false;
-			for (String editableKey : editable) {
-				if (editableKey != null && editableKey.trim().equalsIgnoreCase(keyNorm)) {
-					allowed = true;
-					break;
+			boolean injuryOrProsthetic = keyNorm.equals("injury") || keyNorm.equals("prosthetic");
+			if (!injuryOrProsthetic) {
+				if (editable == null || editable.isEmpty()) {
+					continue;
 				}
-			}
-			if (!allowed) {
-				continue;
+				boolean allowed = false;
+				for (String editableKey : editable) {
+					if (editableKey != null && editableKey.trim().equalsIgnoreCase(keyNorm)) {
+						allowed = true;
+						break;
+					}
+				}
+				if (!allowed) {
+					continue;
+				}
 			}
 			JSONObject row = new JSONObject();
 			row.put("id", trait.getId());
 			row.put("name", strip(trait.getName()));
 			row.put("key", keyNorm);
+			if (trait.hasDuration()) {
+				long remaining = character.getDurationRemainingMs(trait.getId());
+				if (remaining >= 0L) {
+					row.put("duration_remaining_ms", Long.valueOf(remaining));
+				}
+			}
+			if (trait.hasFuelTemplate() && trait.getFuelCapacity() > 0D) {
+				double fuel = character.getFuel(trait.getId());
+				if (fuel >= 0D) {
+					int percent = (int) Math.round((fuel / trait.getFuelCapacity()) * 100D);
+					percent = Math.max(0, Math.min(100, percent));
+					row.put("fuel_percent", Integer.valueOf(percent));
+				}
+			}
 			out.add(row);
 		}
 		return out;

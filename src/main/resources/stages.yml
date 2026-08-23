@@ -1,404 +1,602 @@
 welcome_stage:
-    type: info
-    repeat: false
-    interval: 60
-    auto-next: false
-    messages:
-        - "title(§aWelcome to TFMC)"
-        - "subtitle(§ePlease pay attention to the screen)"
-        - "subtitle(§eIf you cannot see the full text your GUI scale is too big)"
-        - "subtitle(§eA summary will follow in the chat if you miss anything)"
-        - "subtitle(§eTo play on the server you must first make a character)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-    web-messages:
-        - "title(Character Creator)"
-        - "subtitle(Welcome to the TFMC Character Creator)"
-        - "subtitle(Create and manage your RP character here on the website.)"
-        - "subtitle(Your choices follow the same rules as in-game creation.)"
+  type: info
+  repeat: false
+  interval: 60
+  auto-next: false
+  messages:
+  - title(§aWelcome to TFMC)
+  - subtitle(§ePlease pay attention to the screen)
+  - subtitle(§eIf you cannot see the full text your GUI scale is too big)
+  - subtitle(§eA summary will follow in the chat if you miss anything)
+  - subtitle(§eTo play on the server you must first make a character)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Character Creator)
+  - subtitle(Welcome to the TFMC Character Creator)
+  - subtitle(Create and manage your RP character here on the website.)
+  - subtitle(Your choices follow the same rules as in-game creation.)
 age_stage:
-    type: info
-    repeat: false
-    interval: 60
-    auto-next: true
-    messages:
-        - "title(§aAge Verification)"
-        - "subtitle(§eIn order to engage in certain types of RP like Romance RP)"
-        - "subtitle(§eYou have to be above the age of 18 in real life)"
-        - "subtitle(§eIf you lie on this question you will be)"
-        - "subtitle(§cPermanently banned with no chance of appeal)"
-    web-messages:
-        - "title(Age verification)"
-        - "subtitle(To take part in certain RP such as romance RP, you must be 18 or older in real life.)"
-        - "subtitle(If you lie about this, you will be permanently banned with no chance of appeal.)"
+  type: info
+  repeat: false
+  interval: 60
+  auto-next: true
+  messages:
+  - title(§aAge Verification)
+  - subtitle(§eIn order to engage in certain types of RP like Romance RP)
+  - subtitle(§eYou have to be above the age of 18 in real life)
+  - subtitle(§eIf you lie on this question you will be)
+  - subtitle(§cPermanently banned with no chance of appeal)
+  web-messages:
+  - title(Age Verification)
+  - subtitle(To take part in certain RP such as romance RP, you must be 18 or older in real life.)
+  - subtitle(If you lie about this, you will be permanently banned with no chance of appeal.)
 creation_age_set_stage:
-    type: setter
-    target: real_age
-    repeat: false
-    message: "subtitle(§eAre you 18+ in real life? Yes/No in chat)"
+  type: setter
+  target: real_age
+  repeat: false
+  message: subtitle(§eAre you 18+ in real life? Yes/No in chat)
 creation_info_stage:
-    type: info
-    repeat: false
-    interval: 60
-    auto-next: false
-    messages:
-        - "title(§aCharacter Creation)"
-        - "subtitle(§eYou will now make a new character)"
-        - "subtitle(§eConsult the lore documents if you are confused)"
-        - "subtitle(§eAny choices made can be changed later in case of mistakes)"
-        - "subtitle(§eYou can also edit your traits later to fit changes in RP)"
-        - "subtitle(§eThe only unchangeable choices are your race and background)"
-        - "subtitle(§eYou are expected to roleplay your traits)"
-        - "subtitle(§eNot following your traits is FailRP)"
-        - "subtitle(§eRemember to edit your traits when it makes sense)"
-        - "subtitle(§eYou can always make a new character if you are unhappy)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-    web-messages:
-        - "title(Character creation)"
-        - "subtitle(You will now make a new character. Consult the lore documents if you are confused.)"
-        - "subtitle(Most choices can be changed later if you make a mistake, and you can edit traits as your RP changes.)"
-        - "subtitle(Race and background cannot be changed. You are expected to roleplay your traits, ignoring them is FailRP.)"
-        - "subtitle(You can always make a new character if you are unhappy.)"
+  type: info
+  repeat: false
+  interval: 60
+  auto-next: false
+  messages:
+  - title(§aCharacter Creation)
+  - subtitle(§eYou will now make a new character)
+  - subtitle(§eConsult the lore documents if you are confused)
+  - subtitle(§eAny choices made can be changed later in case of mistakes)
+  - subtitle(§eYou can also edit your traits later to fit changes in RP)
+  - subtitle(§eThe only unchangeable choices are your race and background)
+  - subtitle(§eYou are expected to roleplay your traits)
+  - subtitle(§eNot following your traits is FailRP)
+  - subtitle(§eRemember to edit your traits when it makes sense)
+  - subtitle(§eYou can always make a new character if you are unhappy)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Character Creation)
+  - subtitle(You will now make a new character. Consult the lore documents if you are confused.)
+  - subtitle(Most choices can be changed later if you make a mistake, and you can edit traits as your RP changes.)
+  - subtitle(Race and background cannot be changed. You are expected to roleplay your traits, ignoring them is FailRP.)
+  - subtitle(You can always make a new character if you are unhappy.)
 creation_name_stage:
-    type: info
-    repeat: false
-    interval: 60
-    auto-next: false
-    messages:
-        - "title(§aCharacter Name)"
-        - "subtitle(§eA character needs a name)"
-        - "subtitle(§eIn the next stage you will type the name in chat)"
-        - "subtitle(§eMake a good name - your IGN is not permitted)"
-        - "subtitle(§eNo characters from other franchises/real life)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-    web-messages:
-        - "title(Character name)"
-        - "subtitle(Every character needs a name. On the next step you will enter it.)"
-        - "subtitle(Make a good name, your IGN is not allowed. No characters from other franchises or real life.)"
+  type: info
+  repeat: false
+  interval: 60
+  auto-next: false
+  messages:
+  - title(§aCharacter Name)
+  - subtitle(§eA character needs a name)
+  - subtitle(§eIn the next stage you will type the name in chat)
+  - subtitle(§eMake a good name - your IGN is not permitted)
+  - subtitle(§eNo characters from other franchises/real life)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Character Name)
+  - subtitle(Every character needs a name. On the next step you will enter it.)
+  - subtitle(Make a good name, your IGN is not allowed. No characters from other franchises or real life.)
 creation_name_set_stage:
-    type: setter
-    target: name
-    repeat: true
-    message: subtitle(§eType your character name in chat)
+  type: setter
+  target: name
+  repeat: true
+  message: subtitle(§eType your character name in chat)
 class_info_stage:
-    type: info
-    repeat: true
-    interval: 60
-    auto-next: false
-    messages:
-        - "title(§aClass)"
-        - "subtitle(§eTFMC has several classes to choose from)"
-        - "subtitle(§eYour class decides which weapons and skills you can use)"
-        - "subtitle(§eSelect a class on the next stage)"
-        - "subtitle(§eYou will §cNOT §ebe able to change class after the creation)"
-        - "subtitle(§eSet it now before you forget!)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-    web-messages:
-        - "title(Class)"
-        - "subtitle(TFMC has several classes to choose from. Your class decides which weapons and skills you can use.)"
-        - "subtitle(Pick a class on the next step. You will not be able to change it after creation, so set it now.)"
+  type: info
+  repeat: true
+  interval: 60
+  auto-next: false
+  messages:
+  - title(§aClass)
+  - subtitle(§eTFMC has several classes to choose from)
+  - subtitle(§eYour class decides which weapons and skills you can use)
+  - subtitle(§eSelect a class on the next stage)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Class)
+  - subtitle(TFMC has several classes to choose from. Your class decides which weapons and skills you can use.)
 class_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: class
-    min-select: 1
-    max-select: 1
-    auto-next: true
-    gui-size: 54
-    class-slots:
-        archer: 10
-        bard: 11
-        warrior: 12
-        paladin: 13
-        guardian: 14
-        mage: 15
-        musketeer: 16
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: class
+  min-select: 1
+  max-select: 1
+  auto-next: true
+  gui-size: 54
+  class-slots:
+    archer: 10
+    bard: 11
+    warrior: 12
+    paladin: 13
+    guardian: 14
+    mage: 15
+    musketeer: 16
 race_selection_stage:
-    type: selection
-    lock-time: 24h
-    repeat: true
-    target: race
-    key: race
-    min-select: 1
-    max-select: 1
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 24h
+  repeat: true
+  target: race
+  key: race
+  min-select: 1
+  max-select: 1
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
 character_age_stage:
-    type: setter
-    lock-time: 5d
-    target: age
-    repeat: true
-    auto-next: true
-    message: subtitle(§7Type your character age in chat)
+  type: setter
+  lock-time: 5d
+  target: age
+  repeat: true
+  auto-next: true
+  message: subtitle(§7Type your character age in chat)
 homeland_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: homeland
-    min-select: 1
-    max-select: 1
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: homeland
+  min-select: 1
+  max-select: 1
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
 cataclysm_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: cataclysm
-    min-select: 1
-    max-select: 1
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: cataclysm
+  min-select: 1
+  max-select: 1
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
 reclamation_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: reclamation
-    min-select: 1
-    max-select: 1
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: reclamation
+  min-select: 1
+  max-select: 1
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
 motivation_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: motivation
-    min-select: 1
-    max-select: 1
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: motivation
+  min-select: 1
+  max-select: 1
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
 gift_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: gift
-    min-select: 2
-    max-select: 2
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: gift
+  min-select: 2
+  max-select: 2
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
 virtue_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: virtue
-    min-select: 1
-    max-select: 1
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: virtue
+  min-select: 1
+  max-select: 1
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
 combat_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: combat
-    min-select: 1
-    max-select: 1
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: combat
+  min-select: 1
+  max-select: 1
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
 physical_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: physical
-    min-select: 1
-    max-select: 3
-    points: 1
-    gui-size: 54
-    slots: [10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: physical
+  min-select: 1
+  max-select: 3
+  points: 1
+  gui-size: 54
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 28
+  - 29
+  - 30
+  - 31
+  - 32
+  - 33
+  - 34
+  - 37
+  - 38
+  - 39
+  - 40
+  - 41
+  - 42
+  - 43
 celestial_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: celestial
-    min-select: 1
-    max-select: 1
-    points: 1
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: celestial
+  min-select: 1
+  max-select: 1
+  points: 1
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
 attributes_selection_stage:
-    type: attributes
-    lock-time: 5d
-    repeat: true
-    key: attributes
-    points: 12
-    max-rank: 4
-    gui-size: 54
-    # Center slot per attribute; up/down arrows use slot±9 (SimpleFactions-style).
-    attributes:
-        strength:
-            slot: 20
-        dexterity:
-            slot: 21
-        constitution:
-            slot: 22
-        intelligence:
-            slot: 23
-        wisdom:
-            slot: 24
-        charisma:
-            slot: 25
+  type: attributes
+  lock-time: 5d
+  repeat: true
+  key: attributes
+  points: 12
+  max-rank: 4
+  gui-size: 54
+  attributes:
+    strength:
+      slot: 20
+    dexterity:
+      slot: 21
+    constitution:
+      slot: 22
+    intelligence:
+      slot: 23
+    wisdom:
+      slot: 24
+    charisma:
+      slot: 25
 personality_selection_stage:
-    type: selection
-    repeat: true
-    target: trait
-    key: personality
-    min-select: 3
-    max-select: 5
-    points: 4
-    gui-size: 54
-    slots: [10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43]
+  type: selection
+  repeat: true
+  target: trait
+  key: personality
+  min-select: 3
+  max-select: 5
+  points: 4
+  gui-size: 54
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 28
+  - 29
+  - 30
+  - 31
+  - 32
+  - 33
+  - 34
+  - 37
+  - 38
+  - 39
+  - 40
+  - 41
+  - 42
+  - 43
 evil_locked_info_stage:
-    type: info
-    repeat: true
-    interval: 60
-    auto-next: false
-    require-account-age-hours-max: 24
-    dependency:
-        type: trait
-        mode: one-or-more
-        depends-on:
-            - callous
-            - spiteful
-            - greedy
-            - deceitful
-            - cynical
-    messages:
-        - "title(§aEvil RP)"
-        - "subtitle(§eYour character has traits compatible with Evil RP)"
-        - "subtitle(§eYou cannot select Evil archetypes yet)"
-        - "subtitle(§eUnlock selecting an evil character after {hours} hours on the server)"
-        - "subtitle(§eThis is based on your account age, not this character)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-    web-messages:
-        - "title(Evil RP)"
-        - "subtitle(Your character has traits compatible with Evil RP, but you cannot select Evil archetypes yet.)"
-        - "subtitle(Unlock selecting an evil character after {hours} hours on the server. This is based on your account age, not this character.)"
+  type: info
+  repeat: true
+  interval: 60
+  auto-next: false
+  require-account-age-hours-max: 24
+  dependency:
+    type: trait
+    mode: one-or-more
+    depends-on:
+    - callous
+    - spiteful
+    - greedy
+    - deceitful
+    - cynical
+  messages:
+  - title(§aEvil RP)
+  - subtitle(§eYour character has traits compatible with Evil RP)
+  - subtitle(§eYou cannot select Evil archetypes yet)
+  - subtitle(§eUnlock selecting an evil character after {hours} hours on the server)
+  - subtitle(§eThis is based on your account age, not this character)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Evil RP)
+  - subtitle(Your character has traits compatible with Evil RP, but you cannot select Evil archetypes yet.)
+  - subtitle(Unlock selecting an evil character after {hours} hours on the server. This is based on your account age, not this character.)
 evil_info_stage:
-    type: info
-    repeat: true
-    interval: 60
-    auto-next: false
-    require-account-age-hours-min: 24
-    dependency:
-        type: trait
-        mode: one-or-more
-        depends-on:
-            - callous
-            - spiteful
-            - greedy
-            - deceitful
-            - cynical
-    messages:
-        - "title(§aEvil RP)"
-        - "subtitle(§eYour character has traits compatible with Evil RP)"
-        - "subtitle(§eOn the next stage you may select up to 2 Evil archetypes)"
-        - "subtitle(§eYou can select nothing and click confirm to skip)"
-        - "subtitle(§eMake sure you read the Evil RP rules if you are Evil)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-    web-messages:
-        - "title(Evil RP)"
-        - "subtitle(Your character has traits compatible with Evil RP. On the next step you may pick up to two Evil archetypes, or skip.)"
-        - "subtitle(Make sure you read the Evil RP rules if you go evil.)"
+  type: info
+  repeat: true
+  interval: 60
+  auto-next: false
+  require-account-age-hours-min: 24
+  dependency:
+    type: trait
+    mode: one-or-more
+    depends-on:
+    - callous
+    - spiteful
+    - greedy
+    - deceitful
+    - cynical
+  messages:
+  - title(§aEvil RP)
+  - subtitle(§eYour character has traits compatible with Evil RP)
+  - subtitle(§eOn the next stage you may select up to 2 Evil archetypes)
+  - subtitle(§eYou can select nothing and click confirm to skip)
+  - subtitle(§eMake sure you read the Evil RP rules if you are Evil)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Evil RP)
+  - subtitle(Your character has traits compatible with Evil RP. On the next step you may pick up to two Evil archetypes, or skip.)
+  - subtitle(Make sure you read the Evil RP rules if you go evil.)
 evil_selection_stage:
-    type: selection
-    lock-time: 5d
-    repeat: true
-    target: trait
-    key: evil
-    min-select: 0
-    max-select: 2
-    require-account-age-hours-min: 24
-    dependency:
-        type: trait
-        mode: one-or-more
-        depends-on:
-            - callous
-            - spiteful
-            - greedy
-            - deceitful
-            - cynical
-    slots: [10, 11, 12, 13, 14, 15, 16]
+  type: selection
+  lock-time: 5d
+  repeat: true
+  target: trait
+  key: evil
+  min-select: 0
+  max-select: 2
+  require-account-age-hours-min: 24
+  dependency:
+    type: trait
+    mode: one-or-more
+    depends-on:
+    - callous
+    - spiteful
+    - greedy
+    - deceitful
+    - cynical
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+permanent_injury_info_stage:
+  type: info
+  repeat: true
+  interval: 60
+  auto-next: false
+  messages:
+  - title(§aBackstory Injuries)
+  - subtitle(§eOptional permanent injuries from your character's past)
+  - subtitle(§eThese cost no points and you may pick several)
+  - subtitle(§eYou can skip this step if your character has no injuries)
+  - subtitle(§eOn the next stage, select any that apply and click confirm)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Backstory Injuries)
+  - subtitle(Optional permanent injuries from your character's past. These cost no points and you may pick several.)
+  - subtitle(You can skip this step if your character has no injuries. On the next step, select any that apply.)
+permanent_injury_selection_stage:
+  type: selection
+  repeat: true
+  target: trait
+  key: injury
+  filter: permanent-only
+  min-select: 0
+  max-select: 99
+  gui-size: 54
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+prosthetic_info_stage:
+  type: info
+  repeat: true
+  interval: 60
+  auto-next: false
+  messages:
+  - title(§aBackstory Prosthetic)
+  - subtitle(§eOptional prosthetic from your character's past)
+  - subtitle(§eCosts 1 point and you may pick at most one)
+  - subtitle(§eYou do not need a matching injury to pick a prosthetic)
+  - subtitle(§cArcane prosthetics require fuel to stay powered)
+  - subtitle(§eYou can skip by confirming with nothing selected)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Backstory Prosthetic)
+  - subtitle(Optional prosthetic from your character's past. Costs 1 point and you may pick at most one.)
+  - subtitle(You do not need a matching injury. Arcane prosthetics require fuel to stay powered. You can skip this step.)
+prosthetic_selection_stage:
+  type: selection
+  repeat: true
+  target: trait
+  key: prosthetic
+  min-select: 0
+  max-select: 1
+  points: 1
+  gui-size: 54
+  slots:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
 creation_description_stage:
-    type: info
-    repeat: false
-    interval: 60
-    auto-next: false
-    messages:
-        - "title(§aCharacter Description)"
-        - "subtitle(§eWrite a short description of your character)"
-        - "subtitle(§eIt must be between 32 and 256 characters)"
-        - "subtitle(§eDescribe how they look, sound, and come across)"
-        - "subtitle(§eKeep it clear enough for others to roleplay with)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-    web-messages:
-        - "title(Character description)"
-        - "subtitle(Write a short description of your character. It must be between 32 and 256 characters.)"
-        - "subtitle(Describe how they look, sound, and come across. Keep it clear enough for others to roleplay with.)"
+  type: info
+  repeat: false
+  interval: 60
+  auto-next: false
+  messages:
+  - title(§aCharacter Description)
+  - subtitle(§eWrite a short description of your character)
+  - subtitle(§eIt must be between 32 and 256 characters)
+  - subtitle(§eDescribe how they look, sound, and come across)
+  - subtitle(§eKeep it clear enough for others to roleplay with)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Character Description)
+  - subtitle(Write a short description of your character. It must be between 32 and 256 characters.)
+  - subtitle(Describe how they look, sound, and come across. Keep it clear enough for others to roleplay with.)
 creation_description_set_stage:
-    type: setter
-    target: description
-    repeat: true
-    auto-next: true
-    message: subtitle(§7Type your character description in chat)
+  type: setter
+  target: description
+  repeat: true
+  auto-next: true
+  message: subtitle(§7Type your character description in chat)
 clue_info_stage:
-    type: info
-    repeat: false
-    interval: 60
-    auto-next: false
-    messages:
-        - "title(§aCharacter Clues)"
-        - "subtitle(§eClues are how others know your character)"
-        - "subtitle(§eVisual features, smells, home, habits, and so on)"
-        - "subtitle(§eEvil characters need more clues)"
-        - "subtitle(§eLow effort or false clues can be punished)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
-    web-messages:
-        - "title(Character clues)"
-        - "subtitle(Clues are how others know your character, visual features, smells, home, habits, and so on.)"
-        - "subtitle(Evil characters need more clues. Low effort or false clues can be punished.)"
+  type: info
+  repeat: false
+  interval: 60
+  auto-next: false
+  messages:
+  - title(§aCharacter Clues)
+  - subtitle(§eClues are how others know your character)
+  - subtitle(§eVisual features, smells, home, habits, and so on)
+  - subtitle(§eEvil characters need more clues)
+  - subtitle(§eLow effort or false clues can be punished)
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
+  web-messages:
+  - title(Character Clues)
+  - subtitle(Clues are how others know your character, visual features, smells, home, habits, and so on.)
+  - subtitle(Evil characters need more clues. Low effort or false clues can be punished.)
 clue_entry_stage:
-    type: clue
-    repeat: true
-    auto-next: true
-    message: subtitle(§7Type clue {current}/{needed} in chat)
+  type: clue
+  repeat: true
+  auto-next: true
+  message: subtitle(§7Type clue {current}/{needed} in chat)
 creation_wardrobe_info_stage:
-    type: info
-    platform: game
-    repeat: false
-    interval: 60
-    auto-next: false
-    messages:
-        - "title(§aCharacter skins)"
-        - "subtitle(§eOptional player skins live on the website)"
-        - "subtitle(§eAfter create, open your character → Wardrobe)"
-        - "subtitle(§eIn-game swap with #32ed73/rpcharacter wardrobe)"
-        - "subtitle(§eUse #32ed73/rpcharacter next§e to move on)"
+  type: info
+  platform: game
+  repeat: false
+  interval: 60
+  auto-next: false
+  messages:
+  - title(§aCharacter Skins)
+  - subtitle(§eOptional player skins live on the website)
+  - subtitle(§eAfter create, open your character → Wardrobe)
+  - 'subtitle(§eIn-game swap with #32ed73/rpcharacter wardrobe)'
+  - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'
 creation_wardrobe_stage:
-    type: wardrobe
-    platform: web
-    repeat: false
-    auto-next: false
-    web-messages:
-        - "title(Character skins)"
-        - "subtitle(Optional. Upload a base skin, extras by rank, and a masked look. You can skip and edit later on your character page.)"
+  type: wardrobe
+  platform: web
+  repeat: false
+  auto-next: false
+  web-messages:
+  - title(Character Skins)
+  - subtitle(Optional. Upload a base skin, extras by rank, and a masked look. You can skip and edit later on your character page.)
 creation_summary_stage:
-    type: summary
-    repeat: true
-    auto-next: false
-    entries:
-        name: creation_name_set_stage
-        class: class_selection_stage
-        race: race_selection_stage
-        age: character_age_stage
-        description: creation_description_set_stage
-        homeland: homeland_selection_stage
-        cataclysm: cataclysm_selection_stage
-        reclamation: reclamation_selection_stage
-        motivation: motivation_selection_stage
-        gift: gift_selection_stage
-        virtue: virtue_selection_stage
-        combat: combat_selection_stage
-        physical: physical_selection_stage
-        celestial: celestial_selection_stage
-        attributes: attributes_selection_stage
-        personality: personality_selection_stage
-        evil: evil_selection_stage
-        clues: clues
+  type: summary
+  repeat: true
+  auto-next: false
+  entries:
+    name: creation_name_set_stage
+    class: class_selection_stage
+    race: race_selection_stage
+    age: character_age_stage
+    description: creation_description_set_stage
+    homeland: homeland_selection_stage
+    cataclysm: cataclysm_selection_stage
+    reclamation: reclamation_selection_stage
+    motivation: motivation_selection_stage
+    gift: gift_selection_stage
+    virtue: virtue_selection_stage
+    combat: combat_selection_stage
+    physical: physical_selection_stage
+    celestial: celestial_selection_stage
+    attributes: attributes_selection_stage
+    personality: personality_selection_stage
+    evil: evil_selection_stage
+    permanent_injury: permanent_injury_selection_stage
+    prosthetic: prosthetic_selection_stage
+    clues: clues

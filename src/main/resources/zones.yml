@@ -6,9 +6,12 @@ world-spawn: null
 tutorial:
   - "#d65c5cPermadeath Zone"
   - "§7Death here might permakill your character."
-  - "§7If you are lucky you might only take an injury instead."
-  - "§7More injuries, higher permadeath chance."
-  - "§7Remedies heal injuries."
+  - "§7If you are lucky you might gain a healing injury instead."
+  - "§7Healing injuries recover over time while you are active online."
+  - "§7Another death here can turn healing injuries permanent."
+  - "§7Remedies cure healing injuries only."
+  - "§7Prosthetics can replace some permanent injuries."
+  - "§7More injuries raise your permakill chance."
 
 permadeath-zones:
   mini_vard:

@@ -1,0 +1,13 @@
+replacements:
+  one_handed:
+    install-item: v.blaze_rod
+    tiers:
+      - wooden_claw_arm
+      - basic_prosthetic_arm
+      - arcane_prosthetic_arm
+  one_legged:
+    install-item: v.blaze_rod
+    tiers:
+      - pegleg
+      - basic_prosthetic_leg
+      - arcane_prosthetic_leg

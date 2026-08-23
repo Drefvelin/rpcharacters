@@ -13,11 +13,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
+import net.tfminecraft.RPCharacters.Loaders.ProstheticLoader;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.InventoryManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
+import net.tfminecraft.RPCharacters.Objects.ProstheticReplacement;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
@@ -36,6 +38,8 @@ public class SelectionStage extends Stage{
 	private boolean active;
 	private String key;
 	
+	private String filter;
+	
 	private List<SelectableItem> options = new ArrayList<>();
 	private List<SelectableItem> selected = new ArrayList<>();
 	private List<Integer> slots = new ArrayList<>();
@@ -43,6 +47,7 @@ public class SelectionStage extends Stage{
 	public SelectionStage(Stage s, ConfigurationSection config) {
 		copyBaseFields(s);
 		this.key = config.getString("key");
+		this.filter = config.getString("filter");
 		this.active = false;
 		this.target = config.getString("target");
 		this.maxSelect = config.getInt("max-select");
@@ -70,9 +75,13 @@ public class SelectionStage extends Stage{
 			}
 		} else if(this.target.equalsIgnoreCase("trait")) {
 			for(Trait t : TraitLoader.get()) {
-				if(t.getTraitData().getKey().equalsIgnoreCase(key)) {
-					options.add(new SelectableItem(t));
+				if(!t.getTraitData().getKey().equalsIgnoreCase(key)) {
+					continue;
 				}
+				if(isPermanentOnlyFilter() && t.getTraitData().hasDuration()) {
+					continue;
+				}
+				options.add(new SelectableItem(t));
 			}
 		} else if(this.target.equalsIgnoreCase("class")) {
 			Map<String, Integer> classSlots = parseClassSlots(config);
@@ -111,6 +120,15 @@ public class SelectionStage extends Stage{
 		this.hasPoints = another.hasPoints();
 		this.size = another.getSize();
 		this.key = another.getKey();
+		this.filter = another.getFilter();
+	}
+	
+	private boolean isPermanentOnlyFilter() {
+		return filter != null && filter.equalsIgnoreCase("permanent-only");
+	}
+	
+	public String getFilter() {
+		return filter;
 	}
 	
 	public List<SelectableItem> getSelection(){
@@ -258,6 +276,21 @@ public class SelectionStage extends Stage{
 					} else if(item.getType().equalsIgnoreCase("class")) {
 						cc.getCharacter().setMMOClass(item.getId());
 						RPTexts.send(p, RPTexts.SUCCESS + "Class set to " + item.getName());
+					}
+				}
+			}
+			if (target.equalsIgnoreCase("trait") && key != null && key.equalsIgnoreCase("prosthetic")) {
+				for (SelectableItem item : options) {
+					if (!item.isSelected() || !item.getType().equalsIgnoreCase("trait")) {
+						continue;
+					}
+					ProstheticReplacement replacement = ProstheticLoader.getReplacementForProsthetic(item.getId());
+					if (replacement == null) {
+						continue;
+					}
+					Trait injury = TraitLoader.getByString(replacement.getPermanentInjuryId());
+					if (injury != null) {
+						cc.getCharacter().removeTrait(injury);
 					}
 				}
 			}

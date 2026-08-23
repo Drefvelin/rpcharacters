@@ -42,10 +42,12 @@ import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.PotionData;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Objects.Trait.TraitEffectResolver;
 import net.tfminecraft.RPCharacters.Utils.AgeFormatter;
 import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
 import net.tfminecraft.RPCharacters.Utils.ClueProgressFormatter;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
+import net.tfminecraft.RPCharacters.Utils.TraitStateFormat;
 import net.tfminecraft.RPCharacters.identity.DisplayIdentityService;
 import net.tfminecraft.RPCharacters.identity.PersonaService;
 import net.tfminecraft.RPCharacters.mmocore.MmoCoreAttributeHelper;
@@ -238,6 +240,14 @@ public class InventoryManager {
 		}
 		inventory.setItem(53, confirm);
 
+		ItemStack cancel = createCancelItem(creation);
+		ItemMeta cancelMeta = cancel.getItemMeta();
+		if (cancelMeta != null) {
+			cancelMeta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, "cancel");
+			cancel.setItemMeta(cancelMeta);
+		}
+		inventory.setItem(45, cancel);
+
 		fillEmptySlots(inventory);
 		player.openInventory(inventory);
 	}
@@ -373,7 +383,7 @@ public class InventoryManager {
 				if (character.getTraits() != null) {
 					for (Trait trait : character.getTraits()) {
 						if (trait.getTraitData().getKey().equalsIgnoreCase(entryKey)) {
-							traitNames.add(trait.getName());
+							traitNames.add(TraitEffectResolver.resolveDisplayName(character, trait));
 						}
 					}
 				}
@@ -383,7 +393,7 @@ public class InventoryManager {
 				} else {
 					int insertAt = 0;
 					for (String traitName : traitNames) {
-						lore.add(insertAt++, summaryValue(RPTexts.WHITE + traitName));
+						lore.add(insertAt++, summaryValue(traitName));
 					}
 				}
 			}
@@ -520,7 +530,7 @@ public class InventoryManager {
 		for(Trait t : c.getTraits()) {
 			if(slot >= i.getSize() - 1) break;
 			if(Cache.backgroundTraitTypes.contains(t.getTraitData().getKey())) continue;
-			i.setItem(slot, getTraitInfoItem(t, c.getId()));
+			i.setItem(slot, getTraitInfoItem(t, c));
 			slot++;
 		}
 		i.setItem(i.getSize() - 1, getBackButton(c.getId()));
@@ -929,25 +939,31 @@ public class InventoryManager {
 		meta.setDisplayName(t(RPTexts.MUTED + "Character Traits"));
 		List<String> lore = new ArrayList<String>();
 		lore.add(t(RPTexts.MUTED + "------------------------"));
-		lore.add(t(RPTexts.GUI_WARN + "Traits:"));
+		lore.add(t(RPTexts.WARN + "Traits:"));
 		lore.add(RPTexts.spacer());
 		for(Trait trait : c.getTraits()) {
 			if(Cache.backgroundTraitTypes.contains(trait.getTraitData().getKey())) continue;
-			lore.add(trait.getName() + RPTexts.mutedParenthetical(WordUtils.capitalize(trait.getTraitData().getKey())));
+			String key = trait.getTraitData().getKey();
+			boolean injuryOrProsthetic = key != null
+					&& (key.equalsIgnoreCase("injury") || key.equalsIgnoreCase("prosthetic"));
+			String displayName = injuryOrProsthetic
+					? TraitEffectResolver.resolveDisplayName(c, trait)
+					: trait.getName();
+			lore.add(displayName + RPTexts.mutedParenthetical(WordUtils.capitalize(key)));
 		}
 		if (c.getStatus().equals(Status.ALIVE)) {
 			lore.addAll(PermadeathService.computeRisk(c).toLoreLines());
 		}
 		lore.add(t(RPTexts.MUTED + "------------------------"));
-		lore.add(t(RPTexts.GUI_WARN + "Profession EXP:"));
+		lore.add(t(RPTexts.WARN + "Profession EXP:"));
 		for(ExperienceModifier m : c.getAttributeData().getExperienceModifiers()) {
 			int amount = m.getModifier();
 			if(amount > 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + RPTexts.GUI_SUCCESS + amount + "%"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + RPTexts.SUCCESS + amount + "%"));
 			} else if(amount == 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + RPTexts.GUI_WARN + amount + "%"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + RPTexts.WARN + amount + "%"));
 			} else if(amount < 0){
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + RPTexts.MUTED + amount + "%"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + RPTexts.ERROR + amount + "%"));
 			}
 		}
 		lore.add(t(RPTexts.MUTED + "------------------------"));
@@ -959,19 +975,25 @@ public class InventoryManager {
 		return i;
 	}
 	@SuppressWarnings("deprecation")
-	public ItemStack getTraitInfoItem(Trait t, String characterId) {
+	public ItemStack getTraitInfoItem(Trait t, RPCharacter c) {
 		ItemStack i = new ItemStack(Material.GREEN_CONCRETE, 1);
 		ItemMeta meta = i.getItemMeta();
-		meta.setDisplayName(t.getName());
+		meta.setDisplayName(TraitEffectResolver.resolveDisplayName(c, t));
 		List<String> lore = new ArrayList<String>();
-		for(String d : t.getDesc()) {
+		for(String d : TraitEffectResolver.resolveDescription(c, t)) {
 			lore.add(d);
+		}
+		if (t.hasDuration() && c.getDurationRemainingMs(t.getId()) >= 0L) {
+			lore.add(t(RPTexts.MUTED + "Time remaining: " + TraitStateFormat.formatRemaining(c.getDurationRemainingMs(t.getId()))));
+		}
+		if (t.hasFuelTemplate() && c.getFuel(t.getId()) >= 0D) {
+			lore.add(t(RPTexts.MUTED + "Fuel: " + TraitStateFormat.formatFuel(c.getFuel(t.getId()), t.getFuelCapacity())));
 		}
 		lore.add(RPTexts.spacer());
 		lore.add(t(RPTexts.GUI_WARN + "Effects:"));
 
 		boolean hasEffects = false;
-		AttributeData data = t.getTraitData().getAttributeData();
+		AttributeData data = TraitEffectResolver.resolveAttributeData(c, t);
 		for(AttributeModifier modifier : data.getModifiers()) {
 			hasEffects = true;
 			int amount = modifier.getAmount();
@@ -994,7 +1016,7 @@ public class InventoryManager {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.GUI_WARN + "0%"));
 			}
 		}
-		for(PotionData potion : t.getTraitData().getPotionEffects()) {
+		for(PotionData potion : TraitEffectResolver.resolvePotionEffects(c, t)) {
 			hasEffects = true;
 			lore.add(t(RPTexts.MUTED + WordUtils.capitalize(potion.getId().replace("_", " ")) + ": "
 					+ (potion.getAmplifier() + 1) + " " + RPTexts.MUTED + "(3s)"));
@@ -1004,7 +1026,7 @@ public class InventoryManager {
 		}
 
 		NamespacedKey key = new NamespacedKey(RPCharacters.plugin, CHARACTER_ID_KEY);
-		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, characterId);
+		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, c.getId());
 		meta.setLore(lore);
 		i.setItemMeta(meta);
 		return i;
@@ -1168,7 +1190,7 @@ public class InventoryManager {
 	@SuppressWarnings("deprecation")
 	public ItemStack getSelectableItem(Player p, SelectionStage stage, SelectableItem s, CharacterCreation cc) {
 		ItemStack i = new ItemStack(Material.BARRIER, 1);
-		if(s.isSelected()) {
+		if (s.isSelected()) {
 			i.setType(Material.GREEN_CONCRETE);
 		} else {
 			i.setType(Material.RED_CONCRETE);
@@ -1221,6 +1243,10 @@ public class InventoryManager {
 			}
 			if(t.getTraitData().hasCost()) {
 				lore.add(t(RPTexts.GUI_WARN + "Cost: " + RPTexts.MUTED + t.getTraitData().getCost()));
+				lore.add(RPTexts.spacer());
+			}
+			if (t.hasFuelTemplate()) {
+				lore.add(t(RPTexts.GUI_WARN + "Requires arcane fuel to stay powered."));
 				lore.add(RPTexts.spacer());
 			}
 			if(stage != null && stage.hasPoints()) {

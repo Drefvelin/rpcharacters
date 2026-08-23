@@ -131,6 +131,11 @@ public class AttributeData {
 		}
 	}
 
+	public void clearAll() {
+		modifiers.clear();
+		xpModifiers.clear();
+	}
+
 	public List<ExperienceModifier> getExperienceModifiers() {
 		return xpModifiers;
 	}

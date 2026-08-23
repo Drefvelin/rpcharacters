@@ -13,8 +13,16 @@ public final class RemedyDefinition {
 	private final List<String> traits;
 
 	public RemedyDefinition(String id, ConfigurationSection config) {
+		this(id, config.getString("item", ""), readTraitIds(config));
+	}
+
+	public RemedyDefinition(String id, String item, List<String> traits) {
 		this.id = id;
-		this.item = config.getString("item", "");
+		this.item = item == null ? "" : item;
+		this.traits = Collections.unmodifiableList(new ArrayList<>(traits));
+	}
+
+	private static List<String> readTraitIds(ConfigurationSection config) {
 		List<String> traitList = new ArrayList<>(config.getStringList("traits"));
 		if (traitList.isEmpty()) {
 			String trait = config.getString("trait", "");
@@ -22,7 +30,7 @@ public final class RemedyDefinition {
 				traitList.add(trait);
 			}
 		}
-		this.traits = Collections.unmodifiableList(traitList);
+		return traitList;
 	}
 
 	public String getId() {

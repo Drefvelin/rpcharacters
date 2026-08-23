@@ -3,6 +3,7 @@ package net.tfminecraft.RPCharacters.Objects.Trait;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
@@ -56,5 +57,45 @@ public class Trait {
 
 	public String getLostMessage() {
 		return lostMessage;
+	}
+
+	public boolean hasDuration() {
+		return data.hasDuration();
+	}
+
+	public long getDurationMs() {
+		return data.getDurationMs();
+	}
+
+	public boolean hasFuelTemplate() {
+		return data.hasFuelTemplate();
+	}
+
+	public String getFuelTemplateId() {
+		return data.getFuelTemplateId();
+	}
+
+	public double getFuelCapacity() {
+		return data.getFuelCapacity();
+	}
+
+	public boolean hasPoweredVariant() {
+		return data.hasPoweredVariant();
+	}
+
+	public TraitVariant getPoweredVariant() {
+		return data.getPoweredVariant();
+	}
+
+	public TraitVariant getDepoweredVariant() {
+		return data.getDepoweredVariant();
+	}
+
+	public boolean hasIcon() {
+		return data.hasIcon();
+	}
+
+	public Material getIcon() {
+		return data.getIcon();
 	}
 }

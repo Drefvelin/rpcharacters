@@ -1,6 +1,9 @@
 package net.tfminecraft.RPCharacters.permadeath;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,7 +15,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import net.tfminecraft.RPCharacters.Loaders.InjuryPoolLoader;
+import net.tfminecraft.RPCharacters.Loaders.InjuryProgressionLoader;
 import net.tfminecraft.RPCharacters.Loaders.PermadeathZoneLoader;
+import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
@@ -52,22 +57,25 @@ public final class PermadeathService {
 		}
 
 		RPCharacter character = pd.getActiveCharacter();
-		PermadeathRisk risk = computeRisk(character);
 
-		if (rollPermadeath(risk.getChancePercent())) {
+		if (rollPermadeath(computeRisk(character).getChancePercent())) {
 			killCharacter(player, character, PermakillCause.PERMADEATH_ZONE);
+			return;
+		}
+
+		List<Trait> healing = listHealingInjuryTraits(character);
+		if (!healing.isEmpty()) {
+			for (Trait trait : healing) {
+				convertTrait(player, character, trait, InjuryProgressionLoader.getPermanentId(trait.getId()));
+			}
 			return;
 		}
 
 		Trait picked = InjuryPoolLoader.pickRandom(collectOwnedTraitIds(character));
 		if (picked == null) {
-			if (risk.getChancePercent() >= 100) {
-				killCharacter(player, character, PermakillCause.PERMADEATH_ZONE);
-			} else {
-				RPCharacters.plugin.getLogger().warning(
-						"Injury pool empty or misconfigured for " + player.getName()
-								+ " — skipping permadeath consequence.");
-			}
+			RPCharacters.plugin.getLogger().warning(
+					"Injury pool empty or misconfigured for " + player.getName()
+							+ " - skipping permadeath consequence.");
 			return;
 		}
 
@@ -105,11 +113,6 @@ public final class PermadeathService {
 		int injuryCount = countInjuryTraits(character);
 		int chancePerInjury = PermadeathZoneLoader.getChancePerInjury();
 		int chancePercent = injuryCount * chancePerInjury;
-		int poolSize = InjuryPoolLoader.getPoolTraitIds().size();
-		int remaining = InjuryPoolLoader.countRemainingInjuries(collectOwnedTraitIds(character));
-		if (poolSize > 0 && remaining == 0 && injuryCount > 0) {
-			chancePercent = 100;
-		}
 		return new PermadeathRisk(injuryCount, chancePercent, chancePerInjury);
 	}
 
@@ -118,6 +121,28 @@ public final class PermadeathService {
 		if (picked == null) {
 			return false;
 		}
+		TraitChangeService.addTrait(player, character, picked);
+		TraitChangeService.sendGainedMessage(player, picked);
+		return true;
+	}
+
+	public static boolean applyRandomPermanentInjury(Player player, RPCharacter character) {
+		Set<String> owned = collectOwnedTraitIds(character);
+		Set<String> targets = new LinkedHashSet<>(InjuryProgressionLoader.getProgressionMap().values());
+		List<Trait> eligible = new ArrayList<>();
+		for (String traitId : targets) {
+			if (ownsTraitId(owned, traitId)) {
+				continue;
+			}
+			Trait trait = TraitLoader.getByString(traitId);
+			if (trait != null) {
+				eligible.add(trait);
+			}
+		}
+		if (eligible.isEmpty()) {
+			return false;
+		}
+		Trait picked = eligible.get(ThreadLocalRandom.current().nextInt(eligible.size()));
 		TraitChangeService.addTrait(player, character, picked);
 		TraitChangeService.sendGainedMessage(player, picked);
 		return true;
@@ -219,6 +244,60 @@ public final class PermadeathService {
 			return true;
 		}
 		return ThreadLocalRandom.current().nextInt(100) < chancePercent;
+	}
+
+	private static List<Trait> listHealingInjuryTraits(RPCharacter character) {
+		List<Trait> healing = new ArrayList<>();
+		for (Trait trait : character.getTraits()) {
+			if (trait.getTraitData().getKey() != null
+					&& trait.getTraitData().getKey().equalsIgnoreCase(INJURY_KEY)
+					&& trait.hasDuration()) {
+				healing.add(trait);
+			}
+		}
+		return healing;
+	}
+
+	private static void convertTrait(Player player, RPCharacter character, Trait healing, String permanentId) {
+		TraitChangeService.removeTrait(player, character, healing);
+
+		if (permanentId == null || permanentId.isBlank()) {
+			RPCharacters.plugin.getLogger().warning(
+					"No permanent progression target for healing trait '" + healing.getId()
+							+ "' on character " + character.getName() + ".");
+			return;
+		}
+
+		if (ownsTraitId(character, permanentId)) {
+			return;
+		}
+
+		Trait permanent = TraitLoader.getByString(permanentId);
+		if (permanent == null) {
+			RPCharacters.plugin.getLogger().warning(
+					"Permanent trait '" + permanentId + "' not found while converting '"
+							+ healing.getId() + "' on character " + character.getName() + ".");
+			return;
+		}
+
+		TraitChangeService.addTrait(player, character, permanent);
+		TraitChangeService.sendGainedMessage(player, permanent);
+	}
+
+	private static boolean ownsTraitId(RPCharacter character, String traitId) {
+		return ownsTraitId(collectOwnedTraitIds(character), traitId);
+	}
+
+	private static boolean ownsTraitId(Set<String> ownedTraitIds, String traitId) {
+		if (traitId == null) {
+			return false;
+		}
+		for (String owned : ownedTraitIds) {
+			if (owned.equalsIgnoreCase(traitId)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static int countInjuryTraits(RPCharacter character) {

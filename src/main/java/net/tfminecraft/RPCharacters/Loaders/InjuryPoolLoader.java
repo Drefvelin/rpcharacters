@@ -19,10 +19,15 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import me.Plugins.TLibs.Interface.LoaderInterface;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.RPCharacters;
+import net.tfminecraft.RPCharacters.Utils.DurationParser;
 
 public final class InjuryPoolLoader implements LoaderInterface {
 
+	private static final long DEFAULT_HEALING_TICK_INTERVAL_MS = 60_000L;
+	private static final long MIN_HEALING_TICK_INTERVAL_TICKS = 20L;
+
 	private static final Map<String, Integer> weights = new HashMap<>();
+	private static long healingTickIntervalMs = DEFAULT_HEALING_TICK_INTERVAL_MS;
 
 	@Override
 	public void load(File configFile) {
@@ -32,6 +37,8 @@ public final class InjuryPoolLoader implements LoaderInterface {
 		} catch (IOException | InvalidConfigurationException e) {
 			e.printStackTrace();
 		}
+
+		healingTickIntervalMs = resolveHealingTickIntervalMs(config.getString("healing-tick-interval"));
 
 		weights.clear();
 		if (!config.isConfigurationSection("injuries")) {
@@ -53,8 +60,35 @@ public final class InjuryPoolLoader implements LoaderInterface {
 				RPCharacters.plugin.getLogger().warning("Injury '" + key + "' references unknown trait — skipped.");
 				continue;
 			}
+			Trait trait = TraitLoader.getByString(key);
+			if (!trait.getTraitData().hasDuration()) {
+				RPCharacters.plugin.getLogger().warning(
+						"Injury pool entry '" + key + "' is not a healing injury (no duration) — skipped.");
+				continue;
+			}
 			weights.put(key.toLowerCase(Locale.ROOT), weight);
 		}
+	}
+
+	public static long getHealingTickIntervalMs() {
+		return healingTickIntervalMs;
+	}
+
+	public static long getHealingTickIntervalTicks() {
+		long ticks = healingTickIntervalMs / 50L;
+		return Math.max(MIN_HEALING_TICK_INTERVAL_TICKS, ticks);
+	}
+
+	private static long resolveHealingTickIntervalMs(String raw) {
+		long parsed = DurationParser.parseShortDurationMs(raw);
+		if (parsed > 0L) {
+			return parsed;
+		}
+		if (raw != null && !raw.isBlank()) {
+			RPCharacters.plugin.getLogger().warning(
+					"Invalid healing-tick-interval '" + raw + "' - using default 1m.");
+		}
+		return DEFAULT_HEALING_TICK_INTERVAL_MS;
 	}
 
 	public static Set<String> getPoolTraitIds() {

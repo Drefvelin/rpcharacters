@@ -32,6 +32,9 @@ import net.tfminecraft.RPCharacters.Managers.ClueInputManager;
 import net.tfminecraft.RPCharacters.Loaders.ClueDiscoveryLoader;
 import net.tfminecraft.RPCharacters.Loaders.MagnifyingGlassLoader;
 import net.tfminecraft.RPCharacters.Loaders.InjuryPoolLoader;
+import net.tfminecraft.RPCharacters.Loaders.InjuryProgressionLoader;
+import net.tfminecraft.RPCharacters.Loaders.FuelTemplateLoader;
+import net.tfminecraft.RPCharacters.Loaders.ProstheticLoader;
 import net.tfminecraft.RPCharacters.Loaders.KitLoader;
 import net.tfminecraft.RPCharacters.Loaders.PermadeathZoneLoader;
 import net.tfminecraft.RPCharacters.Managers.CommandManager;
@@ -46,6 +49,8 @@ import net.tfminecraft.RPCharacters.Managers.AttributePointTomeListener;
 import net.tfminecraft.RPCharacters.Managers.RemedyListener;
 import net.tfminecraft.RPCharacters.permadeath.PermadeathZoneListener;
 import net.tfminecraft.RPCharacters.permadeath.WorldGuardBridge;
+import net.tfminecraft.RPCharacters.prosthetics.ProstheticInstallListener;
+import net.tfminecraft.RPCharacters.prosthetics.ProstheticRefuelListener;
 import net.tfminecraft.RPCharacters.Managers.SkillPointCommandListener;
 import net.tfminecraft.RPCharacters.Managers.SkillPointTomeListener;
 import net.tfminecraft.RPCharacters.Managers.SpawnedClueManager;
@@ -90,6 +95,8 @@ public class RPCharacters extends JavaPlugin{
 	private final SkillPointCommandListener skillPointCommandListener = new SkillPointCommandListener();
 	private final AttributePointTomeListener attributePointTomeListener = new AttributePointTomeListener();
 	private final RemedyListener remedyListener = new RemedyListener();
+	private final ProstheticRefuelListener prostheticRefuelListener = new ProstheticRefuelListener();
+	private final ProstheticInstallListener prostheticInstallListener = new ProstheticInstallListener();
 	private final PermadeathZoneListener permadeathZoneListener = new PermadeathZoneListener();
 	private final AttributePointCommandListener attributePointCommandListener = new AttributePointCommandListener();
 	private final AttributePointSpendListener attributePointSpendListener = new AttributePointSpendListener();
@@ -126,6 +133,9 @@ public class RPCharacters extends JavaPlugin{
 	private final MagnifyingGlassLoader magnifyingGlassLoader = new MagnifyingGlassLoader();
 	private final PermadeathZoneLoader permadeathZoneLoader = new PermadeathZoneLoader();
 	private final InjuryPoolLoader injuryPoolLoader = new InjuryPoolLoader();
+	private final FuelTemplateLoader fuelTemplateLoader = new FuelTemplateLoader();
+	private final InjuryProgressionLoader injuryProgressionLoader = new InjuryProgressionLoader();
+	private final ProstheticLoader prostheticLoader = new ProstheticLoader();
 	private final KitLoader kitLoader = new KitLoader();
 	
 	@Override
@@ -182,6 +192,8 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(skillPointCommandListener, this);
 		getServer().getPluginManager().registerEvents(attributePointTomeListener, this);
 		getServer().getPluginManager().registerEvents(remedyListener, this);
+		getServer().getPluginManager().registerEvents(prostheticRefuelListener, this);
+		getServer().getPluginManager().registerEvents(prostheticInstallListener, this);
 		getServer().getPluginManager().registerEvents(permadeathZoneListener, this);
 		getServer().getPluginManager().registerEvents(attributePointCommandListener, this);
 		getServer().getPluginManager().registerEvents(attributePointSpendListener, this);
@@ -217,7 +229,6 @@ public class RPCharacters extends JavaPlugin{
 		skillPointTomeLoader.load(new File(getDataFolder(), "items.yml"));
 		attributePointTomeLoader.load(new File(getDataFolder(), "items.yml"));
 		magnifyingGlassLoader.load(new File(getDataFolder(), "items.yml"));
-		remedyLoader.load(new File(getDataFolder(), "items.yml"));
 		permadeathZoneLoader.load(new File(getDataFolder(), "zones.yml"));
 		clueDiscoveryLoader.load(new File(getDataFolder(), "clue-discovery.yml"));
 		chatLoader.load(new File(getDataFolder(), "chat.yml"));
@@ -240,7 +251,11 @@ public class RPCharacters extends JavaPlugin{
 				}
 			}
 		}
+		fuelTemplateLoader.load(new File(getDataFolder(), "fuel-templates.yml"));
+		injuryProgressionLoader.load(new File(getDataFolder(), "injury-progression.yml"));
+		prostheticLoader.load(new File(getDataFolder(), "prosthetics.yml"));
 		injuryPoolLoader.load(new File(getDataFolder(), "injuries.yml"));
+		remedyLoader.load(new File(getDataFolder(), "items.yml"));
 		StageLoader.oList.clear();
 		stageLoader.load(new File(getDataFolder(), "stages.yml"));
 		kitLoader.loadPreferred(getDataFolder());
@@ -285,6 +300,9 @@ public class RPCharacters extends JavaPlugin{
 				"professions.yml",
 				"zones.yml",
 				"injuries.yml",
+				"injury-progression.yml",
+				"fuel-templates.yml",
+				"prosthetics.yml",
 				"kits.yml"
 				};
 		for(String s : files) {
@@ -323,6 +341,31 @@ public class RPCharacters extends JavaPlugin{
 			if (!professionConfig.exists()) {
 				professionConfig.getParentFile().mkdirs();
 				saveResource("professions/" + professionFile, false);
+			}
+		}
+		String[] traitFiles = {
+				"ambition-traits.yml",
+				"attributes-traits.yml",
+				"cataclysm-traits.yml",
+				"celestial-traits.yml",
+				"combat-traits.yml",
+				"evil-traits.yml",
+				"expedition-traits.yml",
+				"gift-traits.yml",
+				"homeland-traits.yml",
+				"injury-traits.yml",
+				"motivation-traits.yml",
+				"personality-traits.yml",
+				"physical-traits.yml",
+				"prosthetic-traits.yml",
+				"reclamation-traits.yml",
+				"virtue-traits.yml"
+		};
+		for (String traitFile : traitFiles) {
+			File traitConfig = new File(getDataFolder(), "traits/" + traitFile);
+			if (!traitConfig.exists()) {
+				traitConfig.getParentFile().mkdirs();
+				saveResource("traits/" + traitFile, false);
 			}
 		}
 	}

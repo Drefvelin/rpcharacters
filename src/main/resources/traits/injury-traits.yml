@@ -1,44 +1,81 @@
-one_legged:
-    name: "#d65c5cOne-Legged"
-    key: injury
-    gained-message: "#d65c5cYou lost a leg!"
-    lost-message: "#87d65cYour leg has grown back."
-    potion-effects:
-        - slowness(0)
-    attribute-modifiers:
-        - dexterity.-4
-    description:
-        - "§7This character only has one leg."
+broken_arm:
+  name: "#d65c5cBroken Arm"
+  key: injury
+  duration: 48h
+  gained-message: "#d65c5cYou broke your arm!"
+  lost-message: "#87d65cYour arm has healed."
+  potion-effects:
+    - weakness(0)
+  attribute-modifiers:
+    - strength.-4
+    - constitution.-2
+  description:
+    - "§7A healing arm injury. Penalties worsen as it heals."
+    - "§7May become permanent if you die again in a permadeath zone."
+    - "§7Remedies can cure this injury."
+
 one_handed:
-    name: "#d65c5cOne-Handed"
-    key: injury
-    gained-message: "#d65c5cYou lost an arm!"
-    lost-message: "#87d65cYour arm has grown back."
-    potion-effects:
-        - weakness(0)
-    attribute-modifiers:
-        - strength.-4
-        - constitution.-2
-    description:
-        - "§7This character only has one arm."
-blind:
-    name: "#d65c5cBlind"
-    key: injury
-    gained-message: "#d65c5cYou have gone blind!"
-    lost-message: "#87d65cYour sight has returned."
-    potion-effects:
-        - blindness(4)
-    attribute-modifiers:
-        - dexterity.-4
-        - strength.-2
-    description:
-        - "§7This character is blind."
+  name: "#d65c5cOne-Handed"
+  key: injury
+  gained-message: "#d65c5cYou lost an arm!"
+  potion-effects:
+    - weakness(0)
+  attribute-modifiers:
+    - strength.-3
+    - constitution.-1
+  description:
+    - "§7This character only has one arm."
+    - "§7A prosthetic may replace this injury."
+
+broken_leg:
+  name: "#d65c5cBroken Leg"
+  key: injury
+  duration: 48h
+  gained-message: "#d65c5cYou broke your leg!"
+  lost-message: "#87d65cYour leg has healed."
+  potion-effects:
+    - slowness(0)
+  attribute-modifiers:
+    - dexterity.-4
+  description:
+    - "§7A healing leg injury. Penalties worsen as it heals."
+    - "§7May become permanent if you die again in a permadeath zone."
+    - "§7Remedies can cure this injury."
+
+one_legged:
+  name: "#d65c5cOne-Legged"
+  key: injury
+  gained-message: "#d65c5cYou lost a leg!"
+  potion-effects:
+    - slowness(0)
+  attribute-modifiers:
+    - dexterity.-3
+  description:
+    - "§7This character only has one leg."
+    - "§7A prosthetic may replace this injury."
+
 half_blind:
-    name: "#d65c5cHalf-Blind"
-    key: injury
-    gained-message: "#d65c5cYou lost an eye!"
-    lost-message: "#87d65cYour eye has healed."
-    attribute-modifiers:
-        - dexterity.-1
-    description:
-        - "§7This character only has one working eye."
+  name: "#d65c5cHalf Blind"
+  key: injury
+  duration: 48h
+  gained-message: "#d65c5cYou lost an eye!"
+  lost-message: "#87d65cYour eye has healed."
+  attribute-modifiers:
+    - dexterity.-1
+  description:
+    - "§7A healing eye injury. Penalties worsen as it heals."
+    - "§7May become permanent if you die again in a permadeath zone."
+    - "§7Remedies can cure this injury."
+
+blind:
+  name: "#d65c5cBlind"
+  key: injury
+  gained-message: "#d65c5cYou have gone blind!"
+  potion-effects:
+    - blindness(4)
+  attribute-modifiers:
+    - dexterity.-4
+    - strength.-2
+  description:
+    - "§7This character is blind."
+    - "§7There is no prosthetic for blindness."

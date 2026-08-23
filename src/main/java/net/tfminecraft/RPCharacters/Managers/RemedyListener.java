@@ -9,6 +9,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 
+import net.tfminecraft.RPCharacters.Loaders.InjuryProgressionLoader;
 import net.tfminecraft.RPCharacters.Loaders.RemedyLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
@@ -49,12 +50,15 @@ public class RemedyListener implements Listener {
 	private static Trait findCurableTrait(RPCharacter character, List<RemedyDefinition> remedies) {
 		for (RemedyDefinition remedy : remedies) {
 			for (String traitId : remedy.getTraits()) {
+				if (!InjuryProgressionLoader.isHealingTrait(traitId)) {
+					continue;
+				}
 				Trait traitDef = TraitLoader.getByString(traitId);
 				if (traitDef == null) {
 					continue;
 				}
 				for (Trait current : character.getTraits()) {
-					if (current.getId().equalsIgnoreCase(traitDef.getId())) {
+					if (current.getId().equalsIgnoreCase(traitDef.getId()) && current.hasDuration()) {
 						return current;
 					}
 				}

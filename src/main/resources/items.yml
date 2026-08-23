@@ -49,7 +49,6 @@ remedies:
   healing_draught:
     item: v.potion
     traits:
-      - one_handed
-      - one_legged
-      - blind
+      - broken_arm
+      - broken_leg
       - half_blind

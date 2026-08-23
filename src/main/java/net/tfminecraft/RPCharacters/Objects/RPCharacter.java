@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,6 +29,7 @@ import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeModifier;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Objects.Trait.TraitEffectResolver;
 import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
 import net.tfminecraft.RPCharacters.enums.ClueAddResult;
 import net.tfminecraft.RPCharacters.enums.Status;
@@ -47,6 +49,8 @@ public class RPCharacter {
 	private List<String> desc = new ArrayList<>();
 	
 	private List<Trait> traits = new ArrayList<Trait>();
+
+	private final Map<String, TraitInstanceState> traitState = new HashMap<>();
 
 	private List<String> playerClues = new ArrayList<>();
 
@@ -125,7 +129,7 @@ public class RPCharacter {
 					desc.addAll(loreLines);
 				}
 			}
-			attributeData.mergeFrom(t.getTraitData().getAttributeData());
+			attributeData.mergeFrom(TraitEffectResolver.resolveAttributeData(this, t));
 		}
 	}
 	
@@ -205,6 +209,7 @@ public class RPCharacter {
 			if(trait.equals(t)) {
 				if(active) Database.log(owner, "-"+t.getId()+" ("+name+")");
 				traits.remove(i);
+				removeTraitState(t.getId());
 				return;
 			}
 		}
@@ -212,10 +217,99 @@ public class RPCharacter {
 	public void addTrait(Trait t) {
 		if(active) Database.log(owner, "+"+t.getId()+" ("+name+")");
 		this.traits.add(t);
+		initializeTraitState(t);
 	}
 	public List<Trait> getTraits() {
 		return traits;
 	}
+
+	public TraitInstanceState getTraitState(String traitId) {
+		if (traitId == null) {
+			return null;
+		}
+		return traitState.get(normalizeTraitStateKey(traitId));
+	}
+
+	public long getDurationRemainingMs(String traitId) {
+		TraitInstanceState state = getTraitState(traitId);
+		return state != null && state.hasDuration() ? state.getDurationRemainingMs() : -1L;
+	}
+
+	public void setDurationRemainingMs(String traitId, long durationRemainingMs) {
+		if (traitId == null) {
+			return;
+		}
+		traitState.computeIfAbsent(normalizeTraitStateKey(traitId), ignored -> new TraitInstanceState())
+				.setDurationRemainingMs(Math.max(0L, durationRemainingMs));
+	}
+
+	public double getFuel(String traitId) {
+		TraitInstanceState state = getTraitState(traitId);
+		return state != null && state.hasFuel() ? state.getFuel() : -1D;
+	}
+
+	public void setFuel(String traitId, double fuel) {
+		if (traitId == null) {
+			return;
+		}
+		traitState.computeIfAbsent(normalizeTraitStateKey(traitId), ignored -> new TraitInstanceState())
+				.setFuel(Math.max(0D, fuel));
+	}
+
+	public void removeTraitState(String traitId) {
+		if (traitId == null) {
+			return;
+		}
+		traitState.remove(normalizeTraitStateKey(traitId));
+	}
+
+	public Map<String, TraitInstanceState> getTraitStateMap() {
+		return Collections.unmodifiableMap(traitState);
+	}
+
+	public void initializeTraitState(Trait trait) {
+		if (trait == null) {
+			return;
+		}
+		String traitId = trait.getId();
+		if (trait.hasDuration()) {
+			setDurationRemainingMs(traitId, trait.getDurationMs());
+		}
+		if (trait.hasFuelTemplate() && trait.getFuelCapacity() > 0D) {
+			setFuel(traitId, trait.getFuelCapacity());
+		}
+	}
+
+	public void ensureTraitStateDefaults() {
+		for (Trait trait : traits) {
+			if (trait == null || trait.getId() == null) {
+				continue;
+			}
+			String traitId = trait.getId();
+			if (trait.hasDuration() && getDurationRemainingMs(traitId) < 0L) {
+				setDurationRemainingMs(traitId, trait.getDurationMs());
+			}
+			if (trait.hasFuelTemplate() && trait.getFuelCapacity() > 0D && getFuel(traitId) < 0D) {
+				setFuel(traitId, trait.getFuelCapacity());
+			}
+		}
+		clearOrphanTraitState();
+	}
+
+	public void clearOrphanTraitState() {
+		Set<String> owned = new LinkedHashSet<>();
+		for (Trait trait : traits) {
+			if (trait != null && trait.getId() != null) {
+				owned.add(normalizeTraitStateKey(trait.getId()));
+			}
+		}
+		traitState.keySet().removeIf(key -> !owned.contains(key));
+	}
+
+	private static String normalizeTraitStateKey(String traitId) {
+		return traitId.trim().toLowerCase(Locale.ROOT);
+	}
+
 	public AttributeData getAttributeData() {
 		return attributeData;
 	}

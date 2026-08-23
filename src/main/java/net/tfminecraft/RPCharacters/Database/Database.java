@@ -20,6 +20,7 @@ import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
+import net.tfminecraft.RPCharacters.Objects.TraitInstanceState;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.identity.NameColour;
@@ -264,6 +265,8 @@ public class Database {
     				loadPersonaFields(c, json);
     				loadProfessionFields(c, json);
     				loadExtraAttributeAllocation(c, json);
+    				loadTraitState(c, json);
+    				c.ensureTraitStateDefaults();
     				if (c.getSlug() == null || c.getSlug().isBlank()) {
     					pd.assignSlug(c);
     				}
@@ -394,6 +397,7 @@ public class Database {
 			savePersonaFields(defaults, c);
 			saveProfessionFields(defaults, c);
 			saveExtraAttributeAllocation(defaults, c);
+			saveTraitState(defaults, c);
         	save(file, defaults);
         } catch (Throwable ex) {
 			ex.printStackTrace();
@@ -821,5 +825,59 @@ public class Database {
 			allocationJson.put(entry.getKey(), entry.getValue());
 		}
 		defaults.put("extra-attribute-allocation", allocationJson);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void loadTraitState(RPCharacter character, JSONObject characterJson) {
+		if (!characterJson.containsKey("trait-state")) {
+			return;
+		}
+		Object raw = characterJson.get("trait-state");
+		if (!(raw instanceof JSONObject stateJson)) {
+			return;
+		}
+		for (Object keyObj : stateJson.keySet()) {
+			String traitId = keyObj.toString();
+			Object entryObj = stateJson.get(keyObj);
+			if (!(entryObj instanceof JSONObject entry)) {
+				continue;
+			}
+			if (entry.containsKey("duration-remaining-ms")) {
+				Object durationValue = entry.get("duration-remaining-ms");
+				if (durationValue instanceof Number number) {
+					character.setDurationRemainingMs(traitId, number.longValue());
+				}
+			}
+			if (entry.containsKey("fuel")) {
+				Object fuelValue = entry.get("fuel");
+				if (fuelValue instanceof Number number) {
+					character.setFuel(traitId, number.doubleValue());
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void saveTraitState(HashMap<String, Object> defaults, RPCharacter character) {
+		JSONObject stateJson = new JSONObject();
+		for (Map.Entry<String, TraitInstanceState> entry : character.getTraitStateMap().entrySet()) {
+			TraitInstanceState state = entry.getValue();
+			if (state == null || state.isEmpty()) {
+				continue;
+			}
+			JSONObject traitStateJson = new JSONObject();
+			if (state.hasDuration()) {
+				traitStateJson.put("duration-remaining-ms", state.getDurationRemainingMs());
+			}
+			if (state.hasFuel()) {
+				traitStateJson.put("fuel", state.getFuel());
+			}
+			if (!traitStateJson.isEmpty()) {
+				stateJson.put(entry.getKey(), traitStateJson);
+			}
+		}
+		if (!stateJson.isEmpty()) {
+			defaults.put("trait-state", stateJson);
+		}
 	}
 }

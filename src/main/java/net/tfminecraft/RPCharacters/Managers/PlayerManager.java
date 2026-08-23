@@ -32,6 +32,8 @@ import net.Indyuce.mmocore.api.event.PlayerExperienceGainEvent;
 import net.Indyuce.mmocore.api.player.attribute.PlayerAttributes.AttributeInstance;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.identity.TempAliasService;
+import net.tfminecraft.RPCharacters.injuries.InjuryHealingService;
+import net.tfminecraft.RPCharacters.prosthetics.ProstheticFuelService;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
@@ -43,6 +45,7 @@ import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Trait.PotionData;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Objects.Trait.TraitEffectResolver;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Utils.ClueProgressFormatter;
@@ -227,6 +230,8 @@ public class PlayerManager implements Listener{
 	public void start() {
 		Bukkit.getLogger().info("[RPCharacters] Starting Player Manager");
 		traitPotionPulse();
+		InjuryHealingService.start();
+		ProstheticFuelService.start();
 		new BukkitRunnable()
 		{
 			public void run()
@@ -275,8 +280,9 @@ public class PlayerManager implements Listener{
 					Map<PotionEffectType, Integer> effects = new HashMap<>();
 
 					for(Trait trait : c.getTraits()) {
-						if(!trait.getTraitData().hasPotionEffects()) continue;
-						for(PotionData potion : trait.getTraitData().getPotionEffects()) {
+						List<PotionData> potions = TraitEffectResolver.resolvePotionEffects(c, trait);
+						if(potions.isEmpty()) continue;
+						for(PotionData potion : potions) {
 							PotionEffectType type = potion.getType();
 							if(type == null) continue;
 							int current = effects.getOrDefault(type, -1);

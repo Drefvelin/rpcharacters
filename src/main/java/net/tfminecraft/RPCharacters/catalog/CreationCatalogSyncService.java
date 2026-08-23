@@ -29,6 +29,7 @@ import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.WardrobeStage;
 import net.tfminecraft.RPCharacters.Loaders.KitLoader;
+import net.tfminecraft.RPCharacters.Loaders.ProstheticLoader;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
@@ -37,6 +38,7 @@ import net.tfminecraft.RPCharacters.kit.KitItemDefinition;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeModifier;
 import net.tfminecraft.RPCharacters.Objects.Experience.ExperienceModifier;
+import net.tfminecraft.RPCharacters.Objects.ProstheticReplacement;
 import net.tfminecraft.RPCharacters.Objects.PermissionGroupDefinition;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
@@ -138,6 +140,9 @@ public final class CreationCatalogSyncService {
 				sb.append(",\"max_select\":").append(selection.getMaxSelections());
 				if (selection.hasPoints()) {
 					sb.append(",\"points\":").append(selection.getInitialPoints());
+				}
+				if (selection.getFilter() != null && !selection.getFilter().isBlank()) {
+					appendField(sb, "filter", selection.getFilter(), false);
 				}
 			} else if (stage instanceof AttributesStage attributes) {
 				appendField(sb, "key", attributes.getKey(), false);
@@ -278,7 +283,7 @@ public final class CreationCatalogSyncService {
 				continue;
 			}
 			String key = trait.getTraitData().getKey();
-			if (key != null && key.equalsIgnoreCase("injury")) {
+			if (!shouldIncludeTraitInCatalog(trait, key)) {
 				continue;
 			}
 			if (!first) {
@@ -301,6 +306,17 @@ public final class CreationCatalogSyncService {
 				appendDependency(sb, trait.getTraitData().getDependency());
 			}
 			appendAttributeData(sb, trait.getTraitData().getAttributeData());
+			sb.append(",\"has_duration\":").append(trait.hasDuration());
+			sb.append(",\"fuel_disclaimer\":").append(trait.hasFuelTemplate());
+			if (trait.hasIcon()) {
+				appendField(sb, "icon", trait.getIcon().name(), false);
+			}
+			if (key != null && key.equalsIgnoreCase("prosthetic")) {
+				ProstheticReplacement replacement = ProstheticLoader.getReplacementForProsthetic(trait.getId());
+				if (replacement != null) {
+					appendField(sb, "replaces_injury", replacement.getPermanentInjuryId(), false);
+				}
+			}
 			int playtimeSeconds = trait.getTraitData().getRequiredAccountPlaytimeSeconds();
 			if (playtimeSeconds > 0) {
 				double hours = playtimeSeconds / 3600.0;
@@ -314,6 +330,16 @@ public final class CreationCatalogSyncService {
 			sb.append('}');
 		}
 		sb.append(']');
+	}
+
+	private static boolean shouldIncludeTraitInCatalog(Trait trait, String key) {
+		if (key == null) {
+			return true;
+		}
+		if (key.equalsIgnoreCase("injury")) {
+			return !trait.hasDuration();
+		}
+		return true;
 	}
 
 	private static void appendClasses(StringBuilder sb) {

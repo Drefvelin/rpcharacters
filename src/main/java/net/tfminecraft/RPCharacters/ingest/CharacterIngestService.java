@@ -345,6 +345,7 @@ public final class CharacterIngestService {
 		}
 		character.setBirthday(birthday);
 		character.setCreatedAtEpochSeconds((int) Instant.now().getEpochSecond());
+		character.ensureTraitStateDefaults();
 		character.update();
 
 		Object eighteenRaw = payload.get("eighteen");
