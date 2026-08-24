@@ -40,6 +40,7 @@ channels:
     use-perm: rpchar.chat.use
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
+    masked: true
     format: '&f{display}&e: &f"&e{message}&f"'
     bubble: true
     smart-messages: true
@@ -51,6 +52,7 @@ channels:
     use-perm: rpchar.chat.use
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
+    masked: true
     format: '&f{display}&6 shouts: &f"&6{message}&f"'
     bubble: true
     smart-messages: true
@@ -62,6 +64,7 @@ channels:
     use-perm: rpchar.chat.use
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
+    masked: true
     format: '&f{display}&c yells: &f"&c&l{message}&f"'
     bubble: true
     smart-messages: true
@@ -73,6 +76,7 @@ channels:
     use-perm: rpchar.chat.use
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
+    masked: true
     format: '&f{display}#55aaff whispers: &f&o"#55aaff&o{message}&f&o"'
     smart-messages: true
     range: 2
@@ -83,6 +87,7 @@ channels:
     use-perm: rpchar.chat.use
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
+    masked: true
     format: '&f[&2LOOC&f] &f{player}: &7{message}'
     range: 20
     cooldown: 0
@@ -101,6 +106,7 @@ channels:
     use-perm: rpchar.chat.use
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
+    masked: true
     format: '&e* &f{display} &d{message}'
     range: 20
     cooldown: 0

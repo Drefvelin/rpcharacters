@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 
 import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
 import net.tfminecraft.RPCharacters.identity.DisplayIdentityService;
+import net.tfminecraft.RPCharacters.identity.MaskService;
 
 public final class ChatFormatter {
 
@@ -17,10 +18,24 @@ public final class ChatFormatter {
 		if (template == null || template.isEmpty()) {
 			return "";
 		}
+
+		String displayToken;
+		String playerToken;
+		if (channel.isMasked() && MaskService.isMasked(sender)) {
+			String maskedLabel = MaskService.getMaskedLabel();
+			displayToken = maskedLabel;
+			playerToken = maskedLabel;
+		} else {
+			displayToken = displayName != null && !displayName.isEmpty()
+				? displayName
+				: DisplayIdentityService.resolveDisplayUnmasked(sender);
+			playerToken = sender.getName();
+		}
+
 		String withTokens = template
-				.replace("{display}", displayName != null ? displayName : "")
+				.replace("{display}", displayToken)
 				.replace("{display_tab}", DisplayIdentityService.resolveDisplayTab(sender))
-				.replace("{player}", sender.getName())
+				.replace("{player}", playerToken)
 				.replace("{message}", message != null ? message : "");
 		return StringFormatter.formatHex(withTokens.replace('&', '\u00A7'));
 	}

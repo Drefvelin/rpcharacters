@@ -137,8 +137,10 @@ public final class ChatManager implements Listener {
 
 		Set<Player> recipients = buildRecipients(player, channel);
 
-		String displayName = DisplayIdentityService.resolveDisplay(player);
-		boolean masked = MaskService.isMasked(player);
+		boolean wearingMask = MaskService.isMasked(player);
+		String displayName = channel.isMasked() && wearingMask
+			? MaskService.getMaskedLabel()
+			: DisplayIdentityService.resolveDisplayUnmasked(player);
 
 		if (SpeechBubbleDebug.isEnabled() && channel.hasSpeechBubble()) {
 			SpeechBubbleDebug.log("chat-dispatch", "firing CharacterChatEvent, recipients=" + recipients.size());
@@ -151,7 +153,7 @@ public final class ChatManager implements Listener {
 				message,
 				displayName,
 				recipients,
-				masked,
+				wearingMask,
 				wasCommand);
 		Bukkit.getPluginManager().callEvent(chatEvent);
 		if (chatEvent.isCancelled()) {

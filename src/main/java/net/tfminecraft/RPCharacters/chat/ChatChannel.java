@@ -17,6 +17,7 @@ public final class ChatChannel {
 	private final int range;
 	private final int cooldownSeconds;
 	private final boolean requireCharacter;
+	private final boolean masked;
 	private final boolean bubble;
 	private final boolean smartMessages;
 	private final String messageColorPrefix;
@@ -32,6 +33,7 @@ public final class ChatChannel {
 		this.range = config.getInt("range", 0);
 		this.cooldownSeconds = Math.max(0, config.getInt("cooldown", 0));
 		this.requireCharacter = config.getBoolean("require-character", true);
+		this.masked = config.getBoolean("masked", false);
 		this.bubble = config.getBoolean("bubble", false);
 		this.smartMessages = config.getBoolean("smart-messages", false);
 		this.messageColorPrefix = ChatFormatUtil.extractMessageColorPrefix(format);
@@ -75,6 +77,10 @@ public final class ChatChannel {
 
 	public boolean requiresActiveCharacter() {
 		return requireCharacter;
+	}
+
+	public boolean isMasked() {
+		return masked;
 	}
 
 	public boolean hasSpeechBubble() {

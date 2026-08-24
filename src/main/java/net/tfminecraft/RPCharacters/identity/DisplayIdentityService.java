@@ -70,6 +70,11 @@ public final class DisplayIdentityService {
 		if (MaskService.isMasked(player)) {
 			return MaskService.getMaskedLabel();
 		}
+		return resolveDisplayUnmasked(player);
+	}
+
+	/** Chat / placeholders when mask should not apply (non-masked channels). */
+	public static String resolveDisplayUnmasked(Player player) {
 		String tempAlias = TempAliasService.getPlain(player);
 		if (!tempAlias.isEmpty()) {
 			RPCharacter active = getActiveCharacter(player);
@@ -85,6 +90,10 @@ public final class DisplayIdentityService {
 		if (character != null && character.getOwner() != null && MaskService.isMasked(character.getOwner())) {
 			return MaskService.getMaskedLabel();
 		}
+		return resolveDisplayUnmasked(character);
+	}
+
+	public static String resolveDisplayUnmasked(RPCharacter character) {
 		if (character != null && character.getOwner() != null) {
 			String tempAlias = TempAliasService.getPlain(character.getOwner());
 			if (!tempAlias.isEmpty()) {
