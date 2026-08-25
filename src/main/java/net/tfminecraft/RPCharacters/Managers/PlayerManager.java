@@ -315,8 +315,13 @@ public class PlayerManager implements Listener{
 		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().clearViewer(p.getUniqueId());
 		net.tfminecraft.RPCharacters.clues.discovery.ClueAdminModeService.clear(p);
 		TempAliasService.clear(p);
+		PlayerData pd = get(p);
+		if (pd != null && pd.hasActiveCharacter()) {
+			// Prevent MMOCore from persisting stacked attribute bases for the next login.
+			AttributePointService.clearMmoAttributeBases(p);
+		}
 		savePlayer(p);
-		data.remove(get(p));
+		data.remove(pd);
 	}
 	public void savePlayer(Player p) {
 		if(exists(p)) {
@@ -773,7 +778,16 @@ public class PlayerManager implements Listener{
 
 		CharacterCreation cc = CreationManager.activeCreators.get(player);
 		if (cc != null) {
-			cc.getCharacter().setMMOClass(e.getData().getProfess().getId());
+			String newClassId = e.getData().getProfess().getId();
+			if (cc.isEditing()) {
+				RPCharacter character = cc.getCharacter();
+				String oldClassId = character.getMMOClass();
+				character.setMMOClass(newClassId);
+				net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle.notifyClassChange(
+						player, pd.getUniqueId(), character, oldClassId, character.getMMOClass());
+			} else {
+				cc.getCharacter().setMMOClass(newClassId);
+			}
 			if (!ClassService.isApplying(player.getUniqueId())) {
 				ClassService.restoreAccountProgression(player);
 			}
@@ -787,7 +801,11 @@ public class PlayerManager implements Listener{
 		if (pd.hasActiveCharacter()) {
 			RPCharacter c = pd.getActiveCharacter();
 			final Map<String, Integer> map = (new Integrator()).get(player, c);
-			c.setMMOClass(e.getData().getProfess().getId());
+			String oldClassId = c.getMMOClass();
+			String newClassId = e.getData().getProfess().getId();
+			c.setMMOClass(newClassId);
+			net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle.notifyClassChange(
+					player, pd.getUniqueId(), c, oldClassId, c.getMMOClass());
 			if (!ClassService.isApplying(player.getUniqueId())) {
 				ClassService.restoreAccountProgression(player);
 			}

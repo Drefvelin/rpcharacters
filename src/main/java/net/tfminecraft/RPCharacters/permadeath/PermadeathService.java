@@ -153,11 +153,15 @@ public final class PermadeathService {
 	}
 
 	public static boolean killCharacter(Player player, RPCharacter character, PermakillCause cause) {
+		return killCharacter(player, character, cause, null);
+	}
+
+	public static boolean killCharacter(Player player, RPCharacter character, PermakillCause cause, Player killer) {
 		if (!character.getStatus().equals(Status.ALIVE)) {
 			return false;
 		}
 
-		CharacterPermakillEvent event = new CharacterPermakillEvent(player, character, cause);
+		CharacterPermakillEvent event = new CharacterPermakillEvent(player, character, cause, killer);
 		Bukkit.getPluginManager().callEvent(event);
 		if (event.isCancelled()) {
 			return false;

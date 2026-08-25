@@ -22,6 +22,7 @@ public class Cache {
 
 	public static Map<String, Integer> permissionGroupDefaults = new HashMap<>();
 	public static List<net.tfminecraft.RPCharacters.Objects.PermissionGroupDefinition> permissionGroups = new ArrayList<>();
+	public static Map<String, net.tfminecraft.RPCharacters.Objects.WebCreatorRealmAccess> webCreatorAccessByRealm = new HashMap<>();
 
 	public static boolean requireCharacter;
 	public static boolean noCharacterFreeze;

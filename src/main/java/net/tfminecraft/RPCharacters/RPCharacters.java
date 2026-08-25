@@ -17,6 +17,7 @@ import net.tfminecraft.RPCharacters.Loaders.AttributePointTomeLoader;
 import net.tfminecraft.RPCharacters.Loaders.RemedyLoader;
 import net.tfminecraft.RPCharacters.Loaders.SkillPointTomeLoader;
 import net.tfminecraft.RPCharacters.Loaders.PermissionGroupsLoader;
+import net.tfminecraft.RPCharacters.Loaders.WebCreatorLoader;
 import net.tfminecraft.RPCharacters.Loaders.PersonaLoader;
 import net.tfminecraft.RPCharacters.Loaders.ProfessionLoader;
 import net.tfminecraft.RPCharacters.Loaders.ProfessionsGlobalLoader;
@@ -118,6 +119,7 @@ public class RPCharacters extends JavaPlugin{
 	private final ProfileLoader profileLoader = new ProfileLoader();
 	private final PersonaLoader personaLoader = new PersonaLoader();
 	private final PermissionGroupsLoader permissionGroupsLoader = new PermissionGroupsLoader();
+	private final WebCreatorLoader webCreatorLoader = new WebCreatorLoader();
 	private final MaskLoader maskLoader = new MaskLoader();
 	private final SkillPointTomeLoader skillPointTomeLoader = new SkillPointTomeLoader();
 	private final AttributePointTomeLoader attributePointTomeLoader = new AttributePointTomeLoader();
@@ -225,6 +227,7 @@ public class RPCharacters extends JavaPlugin{
 		configLoader.load(new File(getDataFolder(), "config.yml"));
 		personaLoader.load(new File(getDataFolder(), "persona.yml"));
 		permissionGroupsLoader.load(new File(getDataFolder(), "permission-groups.yml"));
+		webCreatorLoader.load(new File(getDataFolder(), "web-creator.yml"));
 		maskLoader.load(new File(getDataFolder(), "masks.yml"));
 		skillPointTomeLoader.load(new File(getDataFolder(), "items.yml"));
 		attributePointTomeLoader.load(new File(getDataFolder(), "items.yml"));
@@ -237,7 +240,10 @@ public class RPCharacters extends JavaPlugin{
 		profileViewLoader.load(new File(getDataFolder(), "profile-view.yml"));
 		rollLoader.load(new File(getDataFolder(), "rolls.yml"));
 		calendarLoader.load(new File(getDataFolder(), "calendar.yml"));
-		professionsGlobalLoader.load(new File(getDataFolder(), "professions.yml"));
+		File professionsGlobal = new File(getDataFolder(), "professions.yml");
+		if (professionsGlobal.isFile()) {
+			professionsGlobalLoader.load(professionsGlobal);
+		}
 		ProfessionLoader.reload(new File(getDataFolder(), "professions"));
 		profileLoader.load(new File(getDataFolder(), "profile.yml"));
 		raceLoader.load(new File(getDataFolder(), "races.yml"));
@@ -297,7 +303,7 @@ public class RPCharacters extends JavaPlugin{
 				"rolls.yml",
 				"calendar.yml",
 				"permission-groups.yml",
-				"professions.yml",
+				"web-creator.yml",
 				"zones.yml",
 				"injuries.yml",
 				"injury-progression.yml",
@@ -326,22 +332,6 @@ public class RPCharacters extends JavaPlugin{
 		if (!maskedSkin.exists()) {
 			maskedSkin.getParentFile().mkdirs();
 			saveResource("assets/masked.png", false);
-		}
-		String[] professionFiles = {
-				"alchemist.yml",
-				"smith.yml",
-				"miner.yml",
-				"forester.yml",
-				"agriculturist.yml",
-				"engineer.yml",
-				"fisher.yml"
-		};
-		for (String professionFile : professionFiles) {
-			File professionConfig = new File(getDataFolder(), "professions/" + professionFile);
-			if (!professionConfig.exists()) {
-				professionConfig.getParentFile().mkdirs();
-				saveResource("professions/" + professionFile, false);
-			}
 		}
 		String[] traitFiles = {
 				"ambition-traits.yml",

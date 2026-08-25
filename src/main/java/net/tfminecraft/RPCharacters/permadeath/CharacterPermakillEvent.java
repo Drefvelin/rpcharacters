@@ -18,12 +18,18 @@ public class CharacterPermakillEvent extends Event implements Cancellable {
 	private final Player player;
 	private final RPCharacter character;
 	private final PermakillCause cause;
+	private final Player killer;
 	private boolean cancelled;
 
 	public CharacterPermakillEvent(Player player, RPCharacter character, PermakillCause cause) {
+		this(player, character, cause, null);
+	}
+
+	public CharacterPermakillEvent(Player player, RPCharacter character, PermakillCause cause, Player killer) {
 		this.player = player;
 		this.character = character;
 		this.cause = cause;
+		this.killer = killer;
 	}
 
 	public Player getPlayer() {
@@ -36,6 +42,10 @@ public class CharacterPermakillEvent extends Event implements Cancellable {
 
 	public PermakillCause getCause() {
 		return cause;
+	}
+
+	public Player getKiller() {
+		return killer;
 	}
 
 	public boolean isFromPermadeathZone() {

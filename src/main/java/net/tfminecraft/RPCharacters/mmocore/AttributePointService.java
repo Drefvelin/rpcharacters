@@ -73,10 +73,22 @@ public final class AttributePointService {
 		if (player == null || character == null) {
 			return;
 		}
+		// MMOCore persists attribute bases across sessions. Login/reload must not stack
+		// creation modifiers on top of values left from the previous session.
+		clearMmoAttributeBases(player);
 		Integrator integrator = new Integrator();
 		integrator.integrate(player, character);
 		applyAllocationToMmo(player, character);
 		applyFreeAttributePoints(player, character);
+	}
+
+	/** Clears MMO attribute bases so the next apply starts from a known state. */
+	public static void clearMmoAttributeBases(Player player) {
+		if (player == null) {
+			return;
+		}
+		zeroAllBases(player);
+		net.Indyuce.mmocore.api.player.PlayerData.get(player).setAttributePoints(0);
 	}
 
 	public static void syncOnDeactivate(RPCharacter character) {

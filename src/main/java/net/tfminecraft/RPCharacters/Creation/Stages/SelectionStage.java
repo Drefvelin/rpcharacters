@@ -17,6 +17,7 @@ import net.tfminecraft.RPCharacters.Loaders.ProstheticLoader;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.InventoryManager;
+import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
 import net.tfminecraft.RPCharacters.Objects.ProstheticReplacement;
@@ -24,6 +25,7 @@ import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
+import net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle;
 import net.tfminecraft.RPCharacters.mmocore.MmoCoreClassGuiHelper;
 
 public class SelectionStage extends Stage{
@@ -267,14 +269,32 @@ public class SelectionStage extends Stage{
 				if(item.isSelected()) {
 					if(item.getType().equalsIgnoreCase("race")) {
 						Race r = RaceLoader.getByString(item.getId());
-						cc.getCharacter().setRace(r);
+						if (cc.isEditing()) {
+							RPCharacter character = cc.getCharacter();
+							String oldRaceId = CharacterLifecycle.raceId(character.getRace());
+							character.setRace(r);
+							CharacterLifecycle.notifyRaceChange(
+									p, PlayerManager.get(p).getUniqueId(), character,
+									oldRaceId, CharacterLifecycle.raceId(r));
+						} else {
+							cc.getCharacter().setRace(r);
+						}
 						RPTexts.send(p, RPTexts.SUCCESS + "Race set to " + r.getName());
 					} else if(item.getType().equalsIgnoreCase("trait")) {
 						Trait t = TraitLoader.getByString(item.getId());
 						cc.getCharacter().addTrait(t);
 						RPTexts.send(p, RPTexts.SUCCESS + "Added trait " + t.getName());
 					} else if(item.getType().equalsIgnoreCase("class")) {
-						cc.getCharacter().setMMOClass(item.getId());
+						if (cc.isEditing()) {
+							RPCharacter character = cc.getCharacter();
+							String oldClassId = character.getMMOClass();
+							character.setMMOClass(item.getId());
+							CharacterLifecycle.notifyClassChange(
+									p, PlayerManager.get(p).getUniqueId(), character,
+									oldClassId, character.getMMOClass());
+						} else {
+							cc.getCharacter().setMMOClass(item.getId());
+						}
 						RPTexts.send(p, RPTexts.SUCCESS + "Class set to " + item.getName());
 					}
 				}

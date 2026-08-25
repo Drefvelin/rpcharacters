@@ -288,7 +288,11 @@ public class CommandManager implements Listener, CommandExecutor{
 					RPTexts.send(p, RPTexts.ERROR + argPlayer.getName() + " has no character");
 					return true;
 				}
-				pd.getActiveCharacter().setMMOClass(newClass);
+				RPCharacter activeCharacter = pd.getActiveCharacter();
+				String oldClassId = activeCharacter.getMMOClass();
+				activeCharacter.setMMOClass(newClass);
+				net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle.notifyClassChange(
+						argPlayer, pd.getUniqueId(), activeCharacter, oldClassId, activeCharacter.getMMOClass());
 				boolean alreadyOnClass = ClassService.isOnClass(argPlayer, newClass);
 				ClassService.applyClass(argPlayer, newClass);
 				if (!alreadyOnClass) {

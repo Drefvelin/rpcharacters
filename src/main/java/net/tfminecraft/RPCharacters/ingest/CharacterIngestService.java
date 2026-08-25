@@ -355,6 +355,8 @@ public final class CharacterIngestService {
 
 		pd.addCharacter(character);
 
+		net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle.fireCreated(online, pd.getUniqueId(), character);
+
 		if (online != null && !pd.hasActiveCharacter()) {
 			pd.setActiveCharacter(character);
 			net.tfminecraft.RPCharacters.wardrobe.WardrobeService.refreshActiveAsync(online);

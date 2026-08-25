@@ -775,6 +775,8 @@ public class CharacterCreation {
 
 		pd.addCharacter(character);
 
+		net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle.fireCreated(p, pd.getUniqueId(), character);
+
 		pd.setActiveCharacter(character);
 
 		net.tfminecraft.RPCharacters.kit.KitService.onCharacterCreated(p, pd, character);
