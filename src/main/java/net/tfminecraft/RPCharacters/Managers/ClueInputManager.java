@@ -48,6 +48,10 @@ public class ClueInputManager implements Listener {
 				+ RPTexts.MUTED + " and " + RPTexts.WARN + Cache.clueMaxLength + RPTexts.MUTED + " characters.");
 	}
 
+	public static String getPendingCharacterId(Player player) {
+		return pendingCharacterId.get(player);
+	}
+
 	public static boolean isPending(Player player) {
 		return pendingCharacterId.containsKey(player);
 	}

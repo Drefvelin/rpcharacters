@@ -849,6 +849,154 @@ public class CharacterCreation {
 
 
 
+	public void goBack() {
+
+		if (isPreview()) {
+
+			endPreview();
+
+			return;
+
+		}
+
+		if (editingFromSummary) {
+
+			returnToSummary();
+
+			return;
+
+		}
+
+		if (isEditing()) {
+
+			openSummary();
+
+			return;
+
+		}
+
+		int activeIdx = getActiveStageIndex();
+
+		int startIdx = activeIdx - 1;
+
+		int targetIdx = findPreviousInGameStageIndex(startIdx);
+
+		if (targetIdx < 0) {
+
+			RPTexts.send(p, RPTexts.ERROR + "There is no previous stage.");
+
+			return;
+
+		}
+
+		reopenStageAt(targetIdx);
+
+	}
+
+
+
+	private int getActiveStageIndex() {
+
+		int idx = currentStage - 1;
+
+		if (idx < 0) {
+
+			idx = 0;
+
+		}
+
+		if (idx >= stages.size()) {
+
+			idx = stages.size() - 1;
+
+		}
+
+		return idx;
+
+	}
+
+
+
+	private int findPreviousInGameStageIndex(int fromIndex) {
+
+		for (int i = fromIndex; i >= 0; i--) {
+
+			Stage stage = stages.get(i);
+
+			if (stage instanceof SummaryStage) {
+
+				continue;
+
+			}
+
+			if (stage.runsInGame()) {
+
+				return i;
+
+			}
+
+		}
+
+		return -1;
+
+	}
+
+
+
+	private void reopenStageAt(int index) {
+
+		if (index < 0 || index >= stages.size()) {
+
+			return;
+
+		}
+
+		canNext = false;
+
+		p.closeInventory();
+
+		currentStage = index + 1;
+
+		Stage s = stages.get(index);
+
+		if (s instanceof InfoStage info) {
+
+			info.execute(p, this);
+
+		} else if (s instanceof QuestionStage question) {
+
+			question.execute(p, this);
+
+		} else if (s instanceof SetterStage setter) {
+
+			setter.execute(p, this);
+
+		} else if (s instanceof SelectionStage selection) {
+
+			selection.hydrateFromCharacter(character);
+
+			selection.execute(p, this);
+
+		} else if (s instanceof AttributesStage attributes) {
+
+			attributes.hydrateFromCharacter(character);
+
+			attributes.execute(p, this);
+
+		} else if (s instanceof ClueStage clue) {
+
+			clue.execute(p, this);
+
+		} else if (s instanceof SummaryStage summary) {
+
+			summary.execute(p, this);
+
+		}
+
+	}
+
+
+
 	public void cancel() {
 
 		if (isPreview()) {

@@ -11,7 +11,13 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import net.tfminecraft.RPCharacters.api.CharacterSkull;
 
 import net.Indyuce.mmocore.MMOCore;
 import net.Indyuce.mmocore.api.player.profess.PlayerClass;
@@ -74,6 +80,11 @@ public class RPCharacter {
 
 	private final Set<String> professionUpgrades = new LinkedHashSet<>();
 	private final Map<String, Integer> extraAttributeAllocation = new HashMap<>();
+
+	private String lastLocationWorld;
+	private Double lastLocationX;
+	private Double lastLocationY;
+	private Double lastLocationZ;
 	
 	private AttributeData attributeData;
 	
@@ -133,6 +144,67 @@ public class RPCharacter {
 		}
 	}
 	
+	public void stampLastLocation(Location location) {
+		if (location == null || location.getWorld() == null) {
+			return;
+		}
+		lastLocationWorld = location.getWorld().getName();
+		lastLocationX = location.getX();
+		lastLocationY = location.getY();
+		lastLocationZ = location.getZ();
+	}
+
+	public void setLastLocation(String world, Double x, Double y, Double z) {
+		if (world == null || world.isBlank() || x == null || y == null || z == null) {
+			clearLastLocation();
+			return;
+		}
+		lastLocationWorld = world;
+		lastLocationX = x;
+		lastLocationY = y;
+		lastLocationZ = z;
+	}
+
+	public void clearLastLocation() {
+		lastLocationWorld = null;
+		lastLocationX = null;
+		lastLocationY = null;
+		lastLocationZ = null;
+	}
+
+	public boolean hasLastLocation() {
+		return lastLocationWorld != null && !lastLocationWorld.isBlank()
+				&& lastLocationX != null && lastLocationY != null && lastLocationZ != null;
+	}
+
+	public String getLastLocationWorld() {
+		return lastLocationWorld;
+	}
+
+	public Double getLastLocationX() {
+		return lastLocationX;
+	}
+
+	public Double getLastLocationY() {
+		return lastLocationY;
+	}
+
+	public Double getLastLocationZ() {
+		return lastLocationZ;
+	}
+
+	/** Bukkit location if the stored world is loaded; otherwise null. */
+	public Location getLastLocation() {
+		if (!hasLastLocation()) {
+			return null;
+		}
+		World world = Bukkit.getWorld(lastLocationWorld);
+		if (world == null) {
+			return null;
+		}
+		return new Location(world, lastLocationX, lastLocationY, lastLocationZ);
+	}
+
 	public Player getOwner() {
 		return owner;
 	}
@@ -712,5 +784,10 @@ public class RPCharacter {
 			spent += amount;
 		}
 		return spent;
+	}
+
+	/** Player head for this character (wardrobe / owner). See {@link CharacterSkull}. */
+	public ItemStack getSkull() {
+		return CharacterSkull.of(this);
 	}
 }

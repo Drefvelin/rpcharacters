@@ -65,6 +65,7 @@ public final class EditableKitPreviewBuilder {
 		private final String path;
 		private final int amount;
 		private final String skinPng;
+		private final String skinPngSigned;
 		private final String baseSet;
 		private final String twoDTemplate;
 		private final String threeDTemplate;
@@ -76,6 +77,7 @@ public final class EditableKitPreviewBuilder {
 				String path,
 				int amount,
 				String skinPng,
+				String skinPngSigned,
 				String baseSet,
 				String twoDTemplate,
 				String threeDTemplate,
@@ -86,6 +88,7 @@ public final class EditableKitPreviewBuilder {
 			this.path = path;
 			this.amount = amount;
 			this.skinPng = skinPng != null ? skinPng : "";
+			this.skinPngSigned = skinPngSigned != null ? skinPngSigned : "";
 			this.baseSet = baseSet != null ? baseSet : "";
 			this.twoDTemplate = twoDTemplate != null ? twoDTemplate : "";
 			String t3 = threeDTemplate != null ? threeDTemplate.trim() : "";
@@ -111,6 +114,10 @@ public final class EditableKitPreviewBuilder {
 
 		public String getSkinPng() {
 			return skinPng;
+		}
+
+		public String getSkinPngSigned() {
+			return skinPngSigned;
 		}
 
 		public String getBaseSet() {
@@ -151,6 +158,7 @@ public final class EditableKitPreviewBuilder {
 						path,
 						def.getAmount(),
 						editable.getSkinPng(),
+						editable.getSkinPngSigned(),
 						editable.getBaseSet(),
 						editable.get2dTemplate(),
 						editable.get3dTemplate(),

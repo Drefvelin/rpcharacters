@@ -219,8 +219,8 @@ public final class ProvinceSystemClient {
 	}
 
 	/**
-	 * PATCH /characters/plugin/wardrobe/{playerUuid}/{characterId}/active
-	 * {@code slot} null clears active.
+	 * POST /characters/plugin/wardrobe/{playerUuid}/{characterId}/active
+	 * Same as PATCH — POST used because Java HttpURLConnection often rejects PATCH.
 	 */
 	public static SimpleResult setWardrobeActive(
 		String playerUuid,
@@ -240,7 +240,7 @@ public final class ProvinceSystemClient {
 			body = "{\"slot\":\"" + jsonEscape(safe) + "\"}";
 		}
 		return request(
-			"PATCH",
+			"POST",
 			"/characters/plugin/wardrobe/" + uuid + "/" + cid + "/active",
 			body
 		);

@@ -266,11 +266,13 @@ public class Database {
     				loadProfessionFields(c, json);
     				loadExtraAttributeAllocation(c, json);
     				loadTraitState(c, json);
+    				loadLastLocation(c, json);
     				c.ensureTraitStateDefaults();
     				if (c.getSlug() == null || c.getSlug().isBlank()) {
     					pd.assignSlug(c);
     				}
     				pd.addCharacter(c);
+    				net.tfminecraft.RPCharacters.mail.MailRecipientDirectory.upsert(pd.getUniqueId(), c);
     			} catch (Exception ex) {
     				ex.printStackTrace();
     			}
@@ -398,7 +400,9 @@ public class Database {
 			saveProfessionFields(defaults, c);
 			saveExtraAttributeAllocation(defaults, c);
 			saveTraitState(defaults, c);
+			saveLastLocation(defaults, c);
         	save(file, defaults);
+			net.tfminecraft.RPCharacters.mail.MailRecipientDirectory.upsert(pd.getUniqueId(), c);
         } catch (Throwable ex) {
 			ex.printStackTrace();
         }
@@ -536,6 +540,44 @@ public class Database {
 			conversationLastAt.put(entry.getKey(), entry.getValue());
 		}
 		return conversationLastAt;
+	}
+
+	private void loadLastLocation(RPCharacter character, JSONObject characterJson) {
+		if (characterJson == null || !characterJson.containsKey("last-location")) {
+			return;
+		}
+		Object raw = characterJson.get("last-location");
+		if (!(raw instanceof JSONObject loc)) {
+			return;
+		}
+		Object worldRaw = loc.get("world");
+		Object xRaw = loc.get("x");
+		Object yRaw = loc.get("y");
+		Object zRaw = loc.get("z");
+		if (!(worldRaw instanceof String world) || world.isBlank()) {
+			return;
+		}
+		if (!(xRaw instanceof Number) || !(yRaw instanceof Number) || !(zRaw instanceof Number)) {
+			return;
+		}
+		character.setLastLocation(
+				world,
+				((Number) xRaw).doubleValue(),
+				((Number) yRaw).doubleValue(),
+				((Number) zRaw).doubleValue());
+	}
+
+	@SuppressWarnings("unchecked")
+	private void saveLastLocation(HashMap<String, Object> defaults, RPCharacter character) {
+		if (character == null || !character.hasLastLocation()) {
+			return;
+		}
+		JSONObject loc = new JSONObject();
+		loc.put("world", character.getLastLocationWorld());
+		loc.put("x", character.getLastLocationX());
+		loc.put("y", character.getLastLocationY());
+		loc.put("z", character.getLastLocationZ());
+		defaults.put("last-location", loc);
 	}
 
 	private void loadPersonaFields(RPCharacter character, JSONObject characterJson) {

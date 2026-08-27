@@ -11,6 +11,7 @@ import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public final class DisplayIdentityService {
 
@@ -109,10 +110,34 @@ public final class DisplayIdentityService {
 
 	private static String formatColouredDisplay(RPCharacter character) {
 		String plain = character.getEffectiveDisplayPlain();
-		if (plain.isEmpty()) {
+		return colourPlain(plain, character.getNameColour());
+	}
+
+	public static String colourPlain(String plain, NameColour colour) {
+		if (plain == null || plain.isEmpty()) {
 			return "";
 		}
-		return applyNameColour(plain, character);
+		List<String> hexCodes = colour != null ? colour.getHexCodes() : Collections.emptyList();
+		String coloured = StringFormatter.applyColourGradient(ClueFormatter.stripColor(plain), hexCodes);
+		return prefixDisplayTabWhite(coloured);
+	}
+
+	/**
+	 * Leading white reset so GUI item names (skulls, etc.) are not italic and
+	 * plain names without a gradient still render correctly.
+	 */
+	public static String ensureDisplayTabWhite(String displayTab) {
+		return prefixDisplayTabWhite(displayTab);
+	}
+
+	private static String prefixDisplayTabWhite(String coloured) {
+		if (coloured == null || coloured.isEmpty()) {
+			return coloured == null ? "" : coloured;
+		}
+		if (coloured.startsWith(RPTexts.WHITE)) {
+			return coloured;
+		}
+		return RPTexts.WHITE + coloured;
 	}
 
 	private static String applyNameColour(String plain, RPCharacter character) {

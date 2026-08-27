@@ -178,6 +178,7 @@ public final class KitLoader implements LoaderInterface {
 		String threeD = stringOf(editableMap.get("3d-template"));
 		return new KitEditableSpec(
 				stringOf(editableMap.get("skin-png")),
+				stringOf(editableMap.get("skin-png-signed")),
 				stringOf(editableMap.get("base-set")),
 				twoD,
 				threeD.isEmpty() ? null : threeD

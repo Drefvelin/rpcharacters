@@ -173,6 +173,9 @@ public class CreationManager implements Listener{
 		if (!activeCreators.containsKey(player)) {
 			return;
 		}
+		if (ClueInputManager.isPending(player)) {
+			return;
+		}
 		event.setCancelled(true);
 		CharacterCreation cc = activeCreators.get(player);
 		Stage activeStage = cc.getActiveStage();
@@ -182,6 +185,9 @@ public class CreationManager implements Listener{
 			setter.finish(event.getMessage(), player, cc);
 		} else if (activeStage instanceof ClueStage clue) {
 			clue.finish(event.getMessage(), player, cc);
+		} else {
+			RPTexts.send(player, RPTexts.ERROR + "Use the summary buttons or "
+					+ RPTexts.COMMAND + "/rpcharacter back.");
 		}
 	}
 
@@ -194,6 +200,37 @@ public class CreationManager implements Listener{
 			}
 			activeCreators.get(p).runStage();
 		}
+	}
+
+	public static void back(Player p) {
+		if (!activeCreators.containsKey(p)) {
+			RPTexts.send(p, RPTexts.ERROR + "You dont have an active creator");
+			return;
+		}
+		if (ClueInputManager.isPending(p)) {
+			CharacterCreation cc = activeCreators.get(p);
+			String characterId = ClueInputManager.getPendingCharacterId(p);
+			ClueInputManager.cancel(p);
+			if (cc != null && characterId != null) {
+				RPCharacter character = resolveCharacter(p, characterId);
+				if (character != null
+						&& (isDraftCharacter(p, characterId) || cc.isEditing())) {
+					InventoryManager inv = new InventoryManager();
+					CreationGuiContext context = cc.isEditing()
+							? CreationGuiContext.EDIT_SUMMARY
+							: CreationGuiContext.CREATION_SUMMARY;
+					inv.cluesView(p, character, context, cc);
+					RPTexts.send(p, RPTexts.MUTED + "Clue input cancelled.");
+					return;
+				}
+			}
+			if (cc != null) {
+				cc.openSummary();
+				RPTexts.send(p, RPTexts.MUTED + "Clue input cancelled.");
+			}
+			return;
+		}
+		activeCreators.get(p).goBack();
 	}
 
 	public void click(Player p, Stage stage, CharacterCreation cc, InventoryClickEvent e) {

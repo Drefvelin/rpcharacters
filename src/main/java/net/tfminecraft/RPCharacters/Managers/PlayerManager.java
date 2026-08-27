@@ -85,6 +85,20 @@ public class PlayerManager implements Listener{
 		}
 		return null;
 	}
+	public static PlayerData get(UUID uuid) {
+		if (uuid == null) {
+			return null;
+		}
+		for (PlayerData pd : data) {
+			if (uuid.equals(pd.getUniqueId())) {
+				return pd;
+			}
+		}
+		return null;
+	}
+	public static List<PlayerData> getOnlineData() {
+		return new ArrayList<>(data);
+	}
 
 	public boolean hasTrait(Player p, String trait) {
 		PlayerData pd = get(p);
@@ -320,6 +334,7 @@ public class PlayerManager implements Listener{
 			// Prevent MMOCore from persisting stacked attribute bases for the next login.
 			AttributePointService.clearMmoAttributeBases(p);
 		}
+		stampActiveCharacterLocation(p);
 		savePlayer(p);
 		data.remove(pd);
 	}
@@ -327,6 +342,19 @@ public class PlayerManager implements Listener{
 		if(exists(p)) {
 			db.savePlayer(get(p));
 		}
+	}
+
+	public static void stampActiveCharacterLocation(Player p) {
+		PlayerData pd = get(p);
+		if (pd == null || p == null) {
+			return;
+		}
+		RPCharacter active = pd.getActiveCharacter();
+		if (active == null) {
+			return;
+		}
+		active.stampLastLocation(p.getLocation());
+		net.tfminecraft.RPCharacters.mail.MailRecipientDirectory.upsert(pd.getUniqueId(), active);
 	}
 	
 	public void initiatePlayer(Player p) {
@@ -343,6 +371,8 @@ public class PlayerManager implements Listener{
 				RPCharacter active = pd.getActiveCharacter();
 				AttributePointService.syncOnActivate(active);
 				net.tfminecraft.RPCharacters.professions.ProfessionIntegrator.apply(p, active);
+				net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle.fireActivated(
+						p, pd.getUniqueId(), active, null);
 			} else {
 				net.Indyuce.mmocore.api.player.PlayerData.get(p).setAttributePoints(0);
 			}

@@ -202,6 +202,13 @@ public class CommandManager implements Listener, CommandExecutor{
 				}
 				CreationManager.next(p);
 				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("back") && args.length == 1) {
+				if(!CreationManager.activeCreators.containsKey(p)) {
+					RPTexts.send(p, RPTexts.ERROR + "You dont have an active creator");
+					return true;
+				}
+				CreationManager.back(p);
+				return true;
 			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("menu") && args.length >= 1) {
 				Player target = p;
 				if(args.length > 1) {

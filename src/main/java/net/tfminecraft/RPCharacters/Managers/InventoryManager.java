@@ -3,7 +3,6 @@ package net.tfminecraft.RPCharacters.Managers;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -1159,10 +1158,12 @@ public class InventoryManager {
 	}
 	@SuppressWarnings("deprecation")
 	public ItemStack getPlayerHead(Player p) {
-		ItemStack i = new ItemStack(Material.PLAYER_HEAD, 1);
+		ItemStack i = RPCharacters.getSkull(p);
 		SkullMeta m = (SkullMeta) i.getItemMeta();
+		if (m == null) {
+			return i;
+		}
 		m.setDisplayName(t(RPTexts.MUTED + p.getName()));
-		m.setOwningPlayer(Bukkit.getOfflinePlayer(p.getName()));
 		List<String> lore = new ArrayList<String>();
 		lore.add(t(RPTexts.GUI_WARN + "Character profile of " + p.getName()));
 		PlayerData pd = PlayerManager.get(p);

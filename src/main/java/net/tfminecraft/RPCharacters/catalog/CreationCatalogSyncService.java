@@ -581,6 +581,9 @@ public final class CreationCatalogSyncService {
 				appendField(sb, "kit_id", row.getGrantKitId(), false);
 			}
 			appendField(sb, "skin_png", row.getSkinPng(), false);
+			if (row.getSkinPngSigned() != null && !row.getSkinPngSigned().isBlank()) {
+				appendField(sb, "skin_png_signed", row.getSkinPngSigned(), false);
+			}
 			appendField(sb, "base_set", row.getBaseSet(), false);
 			appendField(sb, "2d_template", row.get2dTemplate(), false);
 			if (row.get3dTemplate() != null && !row.get3dTemplate().isBlank()) {
@@ -668,6 +671,26 @@ public final class CreationCatalogSyncService {
 		}
 	}
 
+	private static void addSkinStem(Set<String> stems, String raw) {
+		if (raw == null) {
+			return;
+		}
+		String stem = raw.trim();
+		if (stem.isEmpty()) {
+			return;
+		}
+		if (stem.toLowerCase(Locale.ROOT).endsWith(".png")) {
+			stem = stem.substring(0, stem.length() - 4).trim();
+		}
+		if (stem.isEmpty()
+			|| stem.contains("/")
+			|| stem.contains("\\")
+			|| stem.contains("..")) {
+			return;
+		}
+		stems.add(stem);
+	}
+
 	/** Distinct skin_png stems from editable kit rows (no ItemStack work). */
 	static Set<String> collectEditableSkinPngStems() {
 		Set<String> stems = new LinkedHashSet<>();
@@ -679,24 +702,8 @@ public final class CreationCatalogSyncService {
 				if (def == null || !def.isEditable() || def.getEditable() == null) {
 					continue;
 				}
-				String raw = def.getEditable().getSkinPng();
-				if (raw == null) {
-					continue;
-				}
-				String stem = raw.trim();
-				if (stem.isEmpty()) {
-					continue;
-				}
-				if (stem.toLowerCase(Locale.ROOT).endsWith(".png")) {
-					stem = stem.substring(0, stem.length() - 4).trim();
-				}
-				if (stem.isEmpty()
-					|| stem.contains("/")
-					|| stem.contains("\\")
-					|| stem.contains("..")) {
-					continue;
-				}
-				stems.add(stem);
+				addSkinStem(stems, def.getEditable().getSkinPng());
+				addSkinStem(stems, def.getEditable().getSkinPngSigned());
 			}
 		}
 		return stems;

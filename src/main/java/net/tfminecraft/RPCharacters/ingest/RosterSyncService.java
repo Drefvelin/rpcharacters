@@ -157,11 +157,9 @@ public final class RosterSyncService {
 			root.put("eighteen", Boolean.valueOf(pd.isEighteen()));
 		}
 
-		long accountAge = 0L;
 		if (pd.getCreatedAtEpochSeconds() > 0) {
-			accountAge = Math.max(0L, System.currentTimeMillis() / 1000L - pd.getCreatedAtEpochSeconds());
+			root.put("account_created_at_epoch", Long.valueOf(pd.getCreatedAtEpochSeconds()));
 		}
-		root.put("account_age_seconds", Long.valueOf(accountAge));
 
 		ProvinceSystemClient.SimpleResult result = ProvinceSystemClient.pushRoster(root.toJSONString());
 		if (!result.ok) {

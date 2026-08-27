@@ -7,6 +7,8 @@ package net.tfminecraft.RPCharacters.kit;
 public final class KitEditableSpec {
 
 	private final String skinPng;
+	/** Optional signed-cover default for book items. Empty when unset. */
+	private final String skinPngSigned;
 	private final String baseSet;
 	private final String twoDTemplate;
 	/** Null when 3D is disallowed. */
@@ -18,7 +20,18 @@ public final class KitEditableSpec {
 			String twoDTemplate,
 			String threeDTemplate
 	) {
+		this(skinPng, "", baseSet, twoDTemplate, threeDTemplate);
+	}
+
+	public KitEditableSpec(
+			String skinPng,
+			String skinPngSigned,
+			String baseSet,
+			String twoDTemplate,
+			String threeDTemplate
+	) {
 		this.skinPng = skinPng != null ? skinPng.trim() : "";
+		this.skinPngSigned = skinPngSigned != null ? skinPngSigned.trim() : "";
 		this.baseSet = baseSet != null ? baseSet.trim() : "";
 		this.twoDTemplate = twoDTemplate != null ? twoDTemplate.trim() : "";
 		String t3 = threeDTemplate != null ? threeDTemplate.trim() : "";
@@ -27,6 +40,10 @@ public final class KitEditableSpec {
 
 	public String getSkinPng() {
 		return skinPng;
+	}
+
+	public String getSkinPngSigned() {
+		return skinPngSigned;
 	}
 
 	public String getBaseSet() {

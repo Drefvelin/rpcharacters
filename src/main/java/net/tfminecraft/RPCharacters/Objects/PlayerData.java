@@ -3,17 +3,18 @@ package net.tfminecraft.RPCharacters.Objects;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.identity.CharacterSlug;
 import net.tfminecraft.RPCharacters.enums.Status;
+import net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle;
+import net.tfminecraft.RPCharacters.mail.MailRecipientDirectory;
 
 public class PlayerData {
 	private Player p;
@@ -391,6 +392,18 @@ public class PlayerData {
 		if(!hasCompletedStage(s)) completedStages.add(s.getId());
 	}
 	public void setActiveCharacter(RPCharacter c) {
+		if (c == null) {
+			return;
+		}
+		RPCharacter current = getActiveCharacter();
+		if (current != null && current.getId() != null && current.getId().equals(c.getId())) {
+			return;
+		}
+		Player player = resolveOnlinePlayer();
+		if (current != null && player != null) {
+			current.stampLastLocation(player.getLocation());
+			MailRecipientDirectory.upsert(uniqueId, current);
+		}
 		for(RPCharacter ch : characters) {
 			if(ch.isActive()) {
 				ch.deactivate();
@@ -398,6 +411,14 @@ public class PlayerData {
 			}
 		}
 		c.activate();
+		CharacterLifecycle.fireActivated(player, uniqueId, c, current);
+	}
+
+	private Player resolveOnlinePlayer() {
+		if (p != null) {
+			return p;
+		}
+		return Bukkit.getPlayer(uniqueId);
 	}
 	
 }

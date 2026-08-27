@@ -17,6 +17,10 @@ public final class CharacterLifecycle {
 		Bukkit.getPluginManager().callEvent(new CharacterCreatedEvent(owner, ownerUuid, character));
 	}
 
+	public static void fireActivated(Player owner, UUID ownerUuid, RPCharacter character, RPCharacter previous) {
+		Bukkit.getPluginManager().callEvent(new CharacterActivatedEvent(owner, ownerUuid, character, previous));
+	}
+
 	public static void notifyClassChange(Player owner, UUID ownerUuid, RPCharacter character,
 			String oldClassId, String newClassId) {
 		if (oldClassId == null || newClassId == null || oldClassId.equalsIgnoreCase(newClassId)) {

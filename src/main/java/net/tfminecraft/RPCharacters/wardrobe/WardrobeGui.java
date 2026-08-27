@@ -95,6 +95,19 @@ public final class WardrobeGui {
 		openNow(player);
 	}
 
+	/** Close wardrobe GUI if open (required before skin apply to avoid client desync). */
+	public static boolean closeIfOpen(Player player) {
+		if (player == null || !player.isOnline()) {
+			return false;
+		}
+		if (!(player.getOpenInventory().getTopInventory().getHolder()
+			instanceof WardrobeGuiHolder)) {
+			return false;
+		}
+		player.closeInventory();
+		return true;
+	}
+
 	public static String readSlotId(ItemStack item) {
 		if (item == null || !item.hasItemMeta()) {
 			return null;

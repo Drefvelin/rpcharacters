@@ -21,6 +21,7 @@ kits:
       amount: 1
       editable:
         skin-png: journal_skin
+        skin-png-signed: journal_skin_signed
         base-set: books
         2d-template: book
     - path: v.BUNDLE

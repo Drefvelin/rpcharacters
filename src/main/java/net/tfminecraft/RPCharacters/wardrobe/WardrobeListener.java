@@ -100,6 +100,8 @@ public final class WardrobeListener implements Listener {
 			return;
 		}
 
+		boolean reopenWardrobe = WardrobeGui.closeIfOpen(player);
+
 		WardrobeService.setActiveAndApply(player, slotId, error -> {
 			if (error != null) {
 				RPTexts.send(player, RPTexts.ERROR + error);
@@ -126,7 +128,13 @@ public final class WardrobeListener implements Listener {
 				1f,
 				1f
 			);
-			WardrobeGui.refreshOpen(player);
+			if (reopenWardrobe) {
+				Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> {
+					if (player.isOnline()) {
+						WardrobeGui.openNow(player);
+					}
+				});
+			}
 		});
 	}
 

@@ -3,10 +3,13 @@ package net.tfminecraft.RPCharacters;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.tfminecraft.RPCharacters.Loaders.CalendarLoader;
@@ -64,7 +67,10 @@ import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Utils.CommandTabCompleter;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
+import net.tfminecraft.RPCharacters.api.CharacterSkull;
 import net.tfminecraft.RPCharacters.identity.DisplayIdentityService;
+import net.tfminecraft.RPCharacters.mail.CharacterMailTarget;
+import net.tfminecraft.RPCharacters.mail.MailRecipientDirectory;
 import net.tfminecraft.RPCharacters.persona.PersonaCooldownManager;
 import net.tfminecraft.RPCharacters.profile.ProfileManager;
 import net.tfminecraft.RPCharacters.profile.ProfileViewCooldownManager;
@@ -106,48 +112,84 @@ public class RPCharacters extends JavaPlugin{
 	private final ProfileManager profileManager = new ProfileManager();
 	private final RollManager rollManager = new RollManager();
 	private final ProfessionListener professionListener = new ProfessionListener();
-	private final ProfessionEffectService professionEffectService = new ProfessionEffectService();
+	private ProfessionEffectService professionEffectService;
 	private final ProfessionCommandHandler professionCommandHandler = new ProfessionCommandHandler();
 	private final SpeechBubbleListener speechBubbleListener = new SpeechBubbleListener();
 	private final ChatChannelCommandHandler chatChannelCommandHandler = new ChatChannelCommandHandler();
 	private final WardrobeListener wardrobeListener = new WardrobeListener();
-	
-	private final ConfigLoader configLoader = new ConfigLoader();
-	private final StageLoader stageLoader = new StageLoader();
-	private final RaceLoader raceLoader = new RaceLoader();
-	private final TraitLoader traitLoader = new TraitLoader();
-	private final ProfileLoader profileLoader = new ProfileLoader();
-	private final PersonaLoader personaLoader = new PersonaLoader();
-	private final PermissionGroupsLoader permissionGroupsLoader = new PermissionGroupsLoader();
-	private final WebCreatorLoader webCreatorLoader = new WebCreatorLoader();
-	private final MaskLoader maskLoader = new MaskLoader();
-	private final SkillPointTomeLoader skillPointTomeLoader = new SkillPointTomeLoader();
-	private final AttributePointTomeLoader attributePointTomeLoader = new AttributePointTomeLoader();
-	private final RemedyLoader remedyLoader = new RemedyLoader();
-	private final ChatLoader chatLoader = new ChatLoader();
-	private final ProfileViewLoader profileViewLoader = new ProfileViewLoader();
-	private final RollLoader rollLoader = new RollLoader();
-	private final CalendarLoader calendarLoader = new CalendarLoader();
-	private final ProfessionsGlobalLoader professionsGlobalLoader = new ProfessionsGlobalLoader();
-	private final SpeechBubbleLoader speechBubbleLoader = new SpeechBubbleLoader();
-	private final SmartMessageLoader smartMessageLoader = new SmartMessageLoader();
-	private final ClueDiscoveryLoader clueDiscoveryLoader = new ClueDiscoveryLoader();
-	private final MagnifyingGlassLoader magnifyingGlassLoader = new MagnifyingGlassLoader();
-	private final PermadeathZoneLoader permadeathZoneLoader = new PermadeathZoneLoader();
-	private final InjuryPoolLoader injuryPoolLoader = new InjuryPoolLoader();
-	private final FuelTemplateLoader fuelTemplateLoader = new FuelTemplateLoader();
-	private final InjuryProgressionLoader injuryProgressionLoader = new InjuryProgressionLoader();
-	private final ProstheticLoader prostheticLoader = new ProstheticLoader();
-	private final KitLoader kitLoader = new KitLoader();
+
+	private ConfigLoader configLoader;
+	private StageLoader stageLoader;
+	private RaceLoader raceLoader;
+	private TraitLoader traitLoader;
+	private ProfileLoader profileLoader;
+	private PersonaLoader personaLoader;
+	private PermissionGroupsLoader permissionGroupsLoader;
+	private WebCreatorLoader webCreatorLoader;
+	private MaskLoader maskLoader;
+	private SkillPointTomeLoader skillPointTomeLoader;
+	private AttributePointTomeLoader attributePointTomeLoader;
+	private RemedyLoader remedyLoader;
+	private ChatLoader chatLoader;
+	private ProfileViewLoader profileViewLoader;
+	private RollLoader rollLoader;
+	private CalendarLoader calendarLoader;
+	private ProfessionsGlobalLoader professionsGlobalLoader;
+	private SpeechBubbleLoader speechBubbleLoader;
+	private SmartMessageLoader smartMessageLoader;
+	private ClueDiscoveryLoader clueDiscoveryLoader;
+	private MagnifyingGlassLoader magnifyingGlassLoader;
+	private PermadeathZoneLoader permadeathZoneLoader;
+	private InjuryPoolLoader injuryPoolLoader;
+	private FuelTemplateLoader fuelTemplateLoader;
+	private InjuryProgressionLoader injuryProgressionLoader;
+	private ProstheticLoader prostheticLoader;
+	private KitLoader kitLoader;
+
+	private void initDependencyComponents() {
+		if (configLoader != null) {
+			return;
+		}
+		professionEffectService = new ProfessionEffectService();
+		configLoader = new ConfigLoader();
+		stageLoader = new StageLoader();
+		raceLoader = new RaceLoader();
+		traitLoader = new TraitLoader();
+		profileLoader = new ProfileLoader();
+		personaLoader = new PersonaLoader();
+		permissionGroupsLoader = new PermissionGroupsLoader();
+		webCreatorLoader = new WebCreatorLoader();
+		maskLoader = new MaskLoader();
+		skillPointTomeLoader = new SkillPointTomeLoader();
+		attributePointTomeLoader = new AttributePointTomeLoader();
+		remedyLoader = new RemedyLoader();
+		chatLoader = new ChatLoader();
+		profileViewLoader = new ProfileViewLoader();
+		rollLoader = new RollLoader();
+		calendarLoader = new CalendarLoader();
+		professionsGlobalLoader = new ProfessionsGlobalLoader();
+		speechBubbleLoader = new SpeechBubbleLoader();
+		smartMessageLoader = new SmartMessageLoader();
+		clueDiscoveryLoader = new ClueDiscoveryLoader();
+		magnifyingGlassLoader = new MagnifyingGlassLoader();
+		permadeathZoneLoader = new PermadeathZoneLoader();
+		injuryPoolLoader = new InjuryPoolLoader();
+		fuelTemplateLoader = new FuelTemplateLoader();
+		injuryProgressionLoader = new InjuryProgressionLoader();
+		prostheticLoader = new ProstheticLoader();
+		kitLoader = new KitLoader();
+	}
 	
 	@Override
 	public void onEnable() {
 		plugin = this;
+		initDependencyComponents();
 		createFolders();
 		createConfigs();
 		registerListeners();
 		loadConfigs();
 		spawnedClueManager.loadAllFromDisk();
+		MailRecipientDirectory.scanFromDisk();
 		loadPlayers();
 		startManagers();
 		getCommand(commandManager.cmd1).setExecutor(commandManager);
@@ -174,6 +216,7 @@ public class RPCharacters extends JavaPlugin{
 	
 	public void save() {
 		for(Player p : Bukkit.getOnlinePlayers()) {
+			PlayerManager.stampActiveCharacterLocation(p);
 			playerManager.savePlayer(p);
 		}
 	}
@@ -328,6 +371,11 @@ public class RPCharacters extends JavaPlugin{
 			journalSkin.getParentFile().mkdirs();
 			saveResource("assets/journal_skin.png", false);
 		}
+		File journalSkinSigned = new File(getDataFolder(), "assets/journal_skin_signed.png");
+		if (!journalSkinSigned.exists()) {
+			journalSkinSigned.getParentFile().mkdirs();
+			saveResource("assets/journal_skin_signed.png", false);
+		}
 		File maskedSkin = new File(getDataFolder(), "assets/masked.png");
 		if (!maskedSkin.exists()) {
 			maskedSkin.getParentFile().mkdirs();
@@ -452,6 +500,27 @@ public class RPCharacters extends JavaPlugin{
 		}
 		PlayerData data = PlayerManager.get(player);
 		return data != null ? data.getActiveCharacter() : null;
+	}
+
+	/** Player head for the viewer's active character, or their account head. */
+	public static ItemStack getSkull(Player player) {
+		return CharacterSkull.ofActive(player);
+	}
+
+	public static List<CharacterMailTarget> listMailTargets() {
+		return MailRecipientDirectory.listMailTargets();
+	}
+
+	/**
+	 * Fetch missing base wardrobe textures from ProvinceSystem, then run {@code onComplete}
+	 * on the main thread (e.g. before opening the bird mail character picker).
+	 */
+	public static void refreshMailTargetTexturesAsync(Runnable onComplete) {
+		MailRecipientDirectory.refreshMissingTexturesAsync(onComplete);
+	}
+
+	public static Location getMailTargetLocation(UUID ownerUuid, String characterId) {
+		return MailRecipientDirectory.getMailTargetLocation(ownerUuid, characterId);
 	}
 
 	public static String getCharacterName(Player player) {

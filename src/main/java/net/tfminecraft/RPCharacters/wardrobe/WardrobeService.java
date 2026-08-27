@@ -127,6 +127,9 @@ public final class WardrobeService {
 				}
 				WardrobeCache.captureAccountSkinIfNeeded(online);
 				WardrobeCache.put(playerId, snapshot);
+				net.tfminecraft.RPCharacters.mail.MailRecipientDirectory.cacheWardrobeSnapshot(
+						playerId,
+						snapshot);
 				applyFor(online);
 				if (!pendingSlots.isEmpty()) {
 					ackPendingAsync(uuid, cid, pendingSlots);
@@ -289,6 +292,7 @@ public final class WardrobeService {
 					&& characterId.equalsIgnoreCase(cached.getCharacterId())) {
 					cached.setActiveSlot(slotKey);
 				}
+				WardrobeGui.closeIfOpen(online);
 				applyFor(online);
 				if (callback != null) {
 					callback.done(null);
