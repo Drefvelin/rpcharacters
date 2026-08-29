@@ -664,8 +664,7 @@ public class CommandManager implements Listener, CommandExecutor{
         if (message.startsWith("/rpcharacter clues")
         		|| message.startsWith("/rpcharacter")
         		|| message.equals("/roll")
-        		|| message.startsWith("/roll ")
-        		|| message.startsWith("/tfmc roll")) {
+        		|| message.startsWith("/roll ")) {
         	return;
         }
 

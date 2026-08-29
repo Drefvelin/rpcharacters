@@ -85,6 +85,9 @@ public class RPCharacter {
 	private Double lastLocationX;
 	private Double lastLocationY;
 	private Double lastLocationZ;
+
+	/** Default lethal (vanilla death). Missing JSON key loads as true. */
+	private boolean pvpLethal = true;
 	
 	private AttributeData attributeData;
 	
@@ -175,6 +178,14 @@ public class RPCharacter {
 	public boolean hasLastLocation() {
 		return lastLocationWorld != null && !lastLocationWorld.isBlank()
 				&& lastLocationX != null && lastLocationY != null && lastLocationZ != null;
+	}
+
+	public boolean isPvpLethal() {
+		return pvpLethal;
+	}
+
+	public void setPvpLethal(boolean pvpLethal) {
+		this.pvpLethal = pvpLethal;
 	}
 
 	public String getLastLocationWorld() {

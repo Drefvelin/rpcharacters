@@ -1,0 +1,19 @@
+# /pvp start warning and nonlethal knockout
+start-radius: 16
+start-warn-seconds: 10
+start-countdown-from: 5
+knockout-seconds: 30
+# Minecraft effect level 5 = amplifier 4
+blindness-amplifier: 4
+# 1 tick = 20Hz freeze loop (only knocks out players)
+freeze-period-ticks: 1
+
+messages:
+  start-warning: "&ePvP will start in {seconds} seconds!"
+  countdown: "&c{count}"
+  lethal: "&aThis character is now in lethal PvP."
+  nonlethal: "&aThis character is now in nonlethal PvP."
+  usage: "&7Usage: /pvp start | lethal | nonlethal"
+  no-character: "&cYou need an active character to set PvP mode."
+  current: "&7This character's PvP mode: {mode}"
+  players-only: "&cPlayers only."

@@ -19,7 +19,7 @@ Operational checklist for retiring OpenRP persona modules, ConditionalEvents rol
 - [ ] Deploy latest **RPCharacters** jar
 - [ ] Deploy **Thievery** jar (mask-free build from Phase 8)
 - [ ] **OpenRP:** remove jar entirely, or disable all replaced modules in `enabled:` — `chat`, `descriptions`, `rolls` (see reference `orp/config.yml`). OpenRP time was not ported; remove if unused.
-- [ ] **ConditionalEvents:** disable or remove events from `a_rolls.yml` (reference: `orp/a_rolls.yml`) — `/tfmc roll` and attribute modifier rolls are native in RPCharacters
+- [ ] **ConditionalEvents:** disable or remove events from `a_rolls.yml` (reference: `orp/a_rolls.yml`) - `/roll` and attribute modifier rolls are native in RPCharacters
 - [ ] Confirm no other plugin registers a conflicting `/roll` command
 
 **Order:** Disable OpenRP chat **before** relying on RPCharacters chat on staging. Do not run OpenRP chat + RPCharacters chat together.
@@ -114,8 +114,8 @@ Retire unused `orpdesc.*` groups if migrating permission templates.
 ### Rolls
 
 - [ ] `/roll` → 1–100 (or 1–200 with `rpchar.roll.alt`)
-- [ ] `/tfmc roll 20` and `/tfmc roll 20 +3` (display-only modifier)
-- [ ] `/tfmc roll strength` (or other attribute) with MMOCore modifier
+- [ ] `/roll 20` and `/roll 20 +3` (display-only modifier)
+- [ ] `/roll strength` (or other attribute) with MMOCore modifier
 
 ### Age
 

@@ -4,65 +4,37 @@ import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.entity.Player;
 
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
-public final class RollManager implements Listener, CommandExecutor {
+public final class RollManager implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if (!(sender instanceof Player player)) {
+			RPTexts.send(sender, RPTexts.ERROR + "Only players can roll dice.");
+			return true;
+		}
+		if (player.getGameMode() != GameMode.SURVIVAL) {
+			return true;
+		}
+		if (!checkPermission(player)) {
+			return true;
+		}
+		if (args.length == 0) {
+			handleDefaultRoll(player);
+			return true;
+		}
+		handleRollArgs(player, args);
 		return true;
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onCommand(PlayerCommandPreprocessEvent event) {
-		Player player = event.getPlayer();
-		if (player.getGameMode() != GameMode.SURVIVAL) {
-			return;
-		}
-
-		String raw = event.getMessage().stripLeading();
-		if (!raw.startsWith("/")) {
-			return;
-		}
-
-		String withoutSlash = raw.substring(1);
-		int space = withoutSlash.indexOf(' ');
-		String label = (space < 0 ? withoutSlash : withoutSlash.substring(0, space)).toLowerCase(Locale.ROOT);
-		String remainder = space < 0 ? "" : withoutSlash.substring(space + 1).stripLeading();
-
-		if (label.equals("roll") && remainder.isEmpty()) {
-			event.setCancelled(true);
-			handleDefaultRoll(player);
-			return;
-		}
-
-		if (!label.equals("tfmc") || remainder.isEmpty()) {
-			return;
-		}
-
-		String[] parts = remainder.split("\\s+");
-		if (parts.length == 0 || !parts[0].equalsIgnoreCase("roll")) {
-			return;
-		}
-
-		event.setCancelled(true);
-		handleTfmcRoll(player, parts);
-	}
-
 	public void handleDefaultRoll(Player player) {
-		if (!checkPermission(player)) {
-			return;
-		}
 		int min;
 		int max;
 		if (player.hasPermission(Cache.rollAltPermission)) {
@@ -75,16 +47,8 @@ public final class RollManager implements Listener, CommandExecutor {
 		executeRoll(player, min, max, 0);
 	}
 
-	private void handleTfmcRoll(Player player, String[] parts) {
-		if (!checkPermission(player)) {
-			return;
-		}
-		if (parts.length < 2) {
-			RPTexts.send(player, RPTexts.WARN + "Usage: /tfmc roll <max>|<attribute> [<+/-modifier>]");
-			return;
-		}
-
-		String firstArg = parts[1];
+	private void handleRollArgs(Player player, String[] args) {
+		String firstArg = args[0];
 		if (isAttribute(firstArg)) {
 			executeRoll(player, Cache.rollD20Min, Cache.rollD20Max, AttributeRollResolver.resolveModifier(player, firstArg));
 			return;
@@ -92,15 +56,16 @@ public final class RollManager implements Listener, CommandExecutor {
 
 		Integer max = parsePositiveInt(firstArg);
 		if (max == null) {
+			RPTexts.send(player, RPTexts.WARN + "Usage: /roll [max|attribute] [+/-modifier]");
 			RPTexts.send(player, RPTexts.ERROR + "Invalid roll maximum: " + RPTexts.WARN + firstArg);
 			return;
 		}
 
 		int modifier = 0;
-		if (parts.length >= 3) {
-			Integer parsedModifier = parseSignedInt(parts[2]);
+		if (args.length >= 2) {
+			Integer parsedModifier = parseSignedInt(args[1]);
 			if (parsedModifier == null) {
-				RPTexts.send(player, RPTexts.ERROR + "Invalid modifier: " + RPTexts.WARN + parts[2]);
+				RPTexts.send(player, RPTexts.ERROR + "Invalid modifier: " + RPTexts.WARN + args[1]);
 				return;
 			}
 			modifier = parsedModifier;

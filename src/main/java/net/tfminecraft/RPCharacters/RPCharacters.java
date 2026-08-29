@@ -41,6 +41,7 @@ import net.tfminecraft.RPCharacters.Loaders.FuelTemplateLoader;
 import net.tfminecraft.RPCharacters.Loaders.ProstheticLoader;
 import net.tfminecraft.RPCharacters.Loaders.KitLoader;
 import net.tfminecraft.RPCharacters.Loaders.PermadeathZoneLoader;
+import net.tfminecraft.RPCharacters.Loaders.PvpLoader;
 import net.tfminecraft.RPCharacters.Managers.CommandManager;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Managers.ClueDisturbanceListener;
@@ -78,6 +79,8 @@ import net.tfminecraft.RPCharacters.mmocore.AttributePointService;
 import net.tfminecraft.RPCharacters.professions.ProfessionCommandHandler;
 import net.tfminecraft.RPCharacters.professions.ProfessionEffectService;
 import net.tfminecraft.RPCharacters.professions.ProfessionListener;
+import net.tfminecraft.RPCharacters.pvp.PvpCommand;
+import net.tfminecraft.RPCharacters.pvp.PvpKnockoutManager;
 import net.tfminecraft.RPCharacters.roll.RollManager;
 import net.tfminecraft.RPCharacters.placeholder.RpCharactersExpansion;
 import net.tfminecraft.RPCharacters.speechbubble.SpeechBubbleListener;
@@ -145,6 +148,9 @@ public class RPCharacters extends JavaPlugin{
 	private InjuryProgressionLoader injuryProgressionLoader;
 	private ProstheticLoader prostheticLoader;
 	private KitLoader kitLoader;
+	private PvpLoader pvpLoader;
+	private final PvpCommand pvpCommand = new PvpCommand();
+	private final PvpKnockoutManager pvpKnockoutManager = new PvpKnockoutManager();
 
 	private void initDependencyComponents() {
 		if (configLoader != null) {
@@ -178,6 +184,7 @@ public class RPCharacters extends JavaPlugin{
 		injuryProgressionLoader = new InjuryProgressionLoader();
 		prostheticLoader = new ProstheticLoader();
 		kitLoader = new KitLoader();
+		pvpLoader = new PvpLoader();
 	}
 	
 	@Override
@@ -201,6 +208,8 @@ public class RPCharacters extends JavaPlugin{
 		getCommand("channel").setTabCompleter(chatChannelCommandHandler);
 		getCommand("channeltoggle").setExecutor(chatChannelCommandHandler);
 		getCommand("channeltoggle").setTabCompleter(chatChannelCommandHandler);
+		getCommand(PvpCommand.COMMAND).setExecutor(pvpCommand);
+		getCommand(PvpCommand.COMMAND).setTabCompleter(pvpCommand);
 		registerPlaceholderApi();
 	}
 	@Override
@@ -211,6 +220,7 @@ public class RPCharacters extends JavaPlugin{
 		SpeechBubbleManager.get().shutdown();
 		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().shutdown();
 		spawnedClueManager.shutdown();
+		pvpKnockoutManager.shutdown();
 		save();
 	}
 	
@@ -251,11 +261,11 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(profileManager, this);
 		getServer().getPluginManager().registerEvents(ProfileViewCooldownManager.get(), this);
 		getServer().getPluginManager().registerEvents(PersonaCooldownManager.get(), this);
-		getServer().getPluginManager().registerEvents(rollManager, this);
 		getServer().getPluginManager().registerEvents(professionListener, this);
 		getServer().getPluginManager().registerEvents(professionEffectService, this);
 		getServer().getPluginManager().registerEvents(speechBubbleListener, this);
 		getServer().getPluginManager().registerEvents(wardrobeListener, this);
+		getServer().getPluginManager().registerEvents(pvpKnockoutManager, this);
 	}
 	public void startManagers() {
 		playerManager.start();
@@ -265,6 +275,7 @@ public class RPCharacters extends JavaPlugin{
 		FakeBubbleManager.get().startTicks();
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.startPeriodicPull(this);
 		WardrobeService.startSoftRefresh(this);
+		pvpKnockoutManager.start();
 	}
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
@@ -308,6 +319,7 @@ public class RPCharacters extends JavaPlugin{
 		StageLoader.oList.clear();
 		stageLoader.load(new File(getDataFolder(), "stages.yml"));
 		kitLoader.loadPreferred(getDataFolder());
+		pvpLoader.load(new File(getDataFolder(), "pvp.yml"));
 		WorldGuardBridge.init();
 		net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService.pushAsync(this);
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.tryPullAsync(this);
@@ -352,7 +364,8 @@ public class RPCharacters extends JavaPlugin{
 				"injury-progression.yml",
 				"fuel-templates.yml",
 				"prosthetics.yml",
-				"kits.yml"
+				"kits.yml",
+				"pvp.yml"
 				};
 		for(String s : files) {
 			File newConfigFile = new File(getDataFolder(), s);

@@ -265,9 +265,10 @@ public class Database {
     				loadPersonaFields(c, json);
     				loadProfessionFields(c, json);
     				loadExtraAttributeAllocation(c, json);
-    				loadTraitState(c, json);
-    				loadLastLocation(c, json);
-    				c.ensureTraitStateDefaults();
+				loadTraitState(c, json);
+				loadLastLocation(c, json);
+				loadPvpLethal(c, json);
+				c.ensureTraitStateDefaults();
     				if (c.getSlug() == null || c.getSlug().isBlank()) {
     					pd.assignSlug(c);
     				}
@@ -401,6 +402,7 @@ public class Database {
 			saveExtraAttributeAllocation(defaults, c);
 			saveTraitState(defaults, c);
 			saveLastLocation(defaults, c);
+			defaults.put("pvp-lethal", String.valueOf(c.isPvpLethal()));
         	save(file, defaults);
 			net.tfminecraft.RPCharacters.mail.MailRecipientDirectory.upsert(pd.getUniqueId(), c);
         } catch (Throwable ex) {
@@ -565,6 +567,20 @@ public class Database {
 				((Number) xRaw).doubleValue(),
 				((Number) yRaw).doubleValue(),
 				((Number) zRaw).doubleValue());
+	}
+
+	private void loadPvpLethal(RPCharacter character, JSONObject characterJson) {
+		if (characterJson == null || !characterJson.containsKey("pvp-lethal")) {
+			return;
+		}
+		Object raw = characterJson.get("pvp-lethal");
+		if (raw instanceof Boolean bool) {
+			character.setPvpLethal(bool.booleanValue());
+			return;
+		}
+		if (raw != null) {
+			character.setPvpLethal(Boolean.parseBoolean(String.valueOf(raw)));
+		}
 	}
 
 	@SuppressWarnings("unchecked")

@@ -12,6 +12,7 @@ commands:
     useage: /<command>
     description: RPCharacters Command
   roll:
+    usage: /<command> [max|attribute] [+/-modifier]
     description: Roll dice
   profession:
     usage: /<command>
@@ -23,8 +24,14 @@ commands:
   channeltoggle:
     usage: /<command> <channel>
     description: Toggle visibility of a chat channel
+  pvp:
+    usage: /<command> <start|lethal|nonlethal>
+    description: PvP start warning and lethal or nonlethal mode
+    permission: rpchar.pvp
 permissions:
   rpchar.profession.use:
+    default: true
+  rpchar.pvp:
     default: true
   professions.admin:
     default: op

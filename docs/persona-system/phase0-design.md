@@ -44,7 +44,7 @@ RPCharacters becomes the single source of truth for active-character persona and
 |---------|---------|
 | `/char` | Active character persona (alias, colour, gender, description, profile) |
 | `/rp`, `/shout`, `/yell`, `/whisper`, `/me`, `/looc`, `/ooc`, staff channels | RP chat (Phase 4) |
-| `/roll`, `/tfmc roll` | Dice rolls (Phase 6) |
+| `/roll` | Dice rolls (Phase 6) |
 | `/rpcharacter` | Character management — create, switch, traits, clues |
 
 ### 2.2 Current coupling to remove
@@ -448,7 +448,7 @@ masks:
 
 ```yaml
 use-perm: rpchar.roll
-command-aliases: [roll, tfmc roll]
+command-aliases: [roll]
 
 default:
   min: 1
@@ -504,7 +504,7 @@ Greenfield permission nodes — assign via LuckPerms on the new season server.
 
 | Permission | Grants |
 |------------|--------|
-| `rpchar.roll` | `/roll`, `/tfmc roll` |
+| `rpchar.roll` | `/roll` |
 | `rpchar.roll.alt` | extended roll range (if configured) |
 
 ---
@@ -556,8 +556,8 @@ Must pass on staging before production deploy.
 ### Rolls
 
 - [ ] `/roll` default 1–100, range 20
-- [ ] `/tfmc roll <d20> [±N]` manual modifier
-- [ ] `/tfmc roll <attribute>` MMOCore modifier table
+- [ ] `/roll <d20> [±N]` manual modifier
+- [ ] `/roll <attribute>` MMOCore modifier table
 
 ### Placeholders
 
