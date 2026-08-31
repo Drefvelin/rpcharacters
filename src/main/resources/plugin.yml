@@ -33,6 +33,8 @@ permissions:
     default: true
   rpchar.pvp:
     default: true
+  rpchar.injure:
+    default: true
   rpchar.grave.protect:
     default: true
   rpchar.grave.admin:

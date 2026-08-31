@@ -87,6 +87,14 @@ public class ConfigLoader implements LoaderInterface{
             Cache.conversationReplyTimeoutSeconds = 30;
             Cache.conversationPairCooldownHours = 2;
         }
+
+        if (config.isConfigurationSection("rp-injure")) {
+            Cache.rpInjureRange = Math.max(0.1, config.getDouble("rp-injure.range", 10));
+            Cache.rpInjureTimeoutSeconds = Math.max(1, config.getInt("rp-injure.timeout-seconds", 30));
+        } else {
+            Cache.rpInjureRange = 10;
+            Cache.rpInjureTimeoutSeconds = 30;
+        }
         validateClueConfig();
 	}
 

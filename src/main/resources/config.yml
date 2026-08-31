@@ -73,3 +73,7 @@ clue-spawn-radius: 3
 conversation:
   reply-timeout-seconds: 30
   pair-cooldown-hours: 2
+
+rp-injure:
+  range: 10
+  timeout-seconds: 30

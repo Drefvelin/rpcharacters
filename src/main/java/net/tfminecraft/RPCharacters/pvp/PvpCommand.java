@@ -1,8 +1,10 @@
 package net.tfminecraft.RPCharacters.pvp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -12,7 +14,12 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import me.Plugins.TLibs.Armour.ArmorEquipEvent;
 
 import net.tfminecraft.RPCharacters.Loaders.PvpLoader;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
@@ -21,9 +28,11 @@ import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
-public final class PvpCommand implements CommandExecutor, TabCompleter {
+public final class PvpCommand implements CommandExecutor, TabCompleter, Listener {
 
 	public static final String COMMAND = "pvp";
+
+	private final Map<UUID, Long> armorBlockUntil = new HashMap<>();
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -91,6 +100,13 @@ public final class PvpCommand implements CommandExecutor, TabCompleter {
 				targets.add(nearby.getUniqueId());
 			}
 		}
+		long expiry = System.currentTimeMillis() + PvpLoader.getStartWarnSeconds() * 1000L;
+		for (UUID id : targets) {
+			Long existing = armorBlockUntil.get(id);
+			if (existing == null || expiry > existing) {
+				armorBlockUntil.put(id, expiry);
+			}
+		}
 		String warning = PvpLoader.getStartWarning()
 				.replace("{seconds}", String.valueOf(PvpLoader.getStartWarnSeconds()));
 		broadcast(targets, warning);
@@ -107,6 +123,27 @@ public final class PvpCommand implements CommandExecutor, TabCompleter {
 				}
 			}.runTaskLater(RPCharacters.plugin, delaySeconds * 20L);
 		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onArmorEquip(ArmorEquipEvent event) {
+		Player player = event.getPlayer();
+		if (player == null) {
+			return;
+		}
+		UUID id = player.getUniqueId();
+		Long until = armorBlockUntil.get(id);
+		if (until == null) {
+			return;
+		}
+		if (System.currentTimeMillis() >= until) {
+			armorBlockUntil.remove(id);
+			return;
+		}
+		if (event.getNewArmorPiece() == null) {
+			return;
+		}
+		event.setCancelled(true);
 	}
 
 	private void broadcast(List<UUID> targets, String raw) {

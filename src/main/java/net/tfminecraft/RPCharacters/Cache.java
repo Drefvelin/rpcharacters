@@ -53,6 +53,9 @@ public class Cache {
 	public static int conversationReplyTimeoutSeconds = 30;
 	public static int conversationPairCooldownHours = 2;
 
+	public static double rpInjureRange = 10;
+	public static int rpInjureTimeoutSeconds = 30;
+
 	public static boolean skillPointsAdminDebugMessages = false;
 	public static boolean attributePointsAdminDebugMessages = false;
 

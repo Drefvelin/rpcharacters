@@ -33,6 +33,7 @@ import net.tfminecraft.RPCharacters.permadeath.PermadeathAdminCommands;
 import net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager;
 import net.tfminecraft.RPCharacters.command.CharCommand;
 import net.tfminecraft.RPCharacters.enums.Status;
+import net.tfminecraft.RPCharacters.injuries.RpInjureService;
 import net.tfminecraft.RPCharacters.identity.TempAliasService;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 import net.tfminecraft.RPCharacters.wardrobe.WardrobeCommand;
@@ -51,6 +52,20 @@ public class CommandManager implements Listener, CommandExecutor{
 		}
 		if (args.length >= 1 && args[0].equalsIgnoreCase(WardrobeCommand.SUBCOMMAND)) {
 			return WardrobeCommand.handle(sender, label, args);
+		}
+		if (args.length >= 1 && args[0].equalsIgnoreCase("admin")) {
+			return handleAdmin(sender, args);
+		}
+		if (args.length >= 1 && args[0].equalsIgnoreCase("permakill")) {
+			if (!Permissions.isAdmin(sender)) {
+				RPTexts.send(sender, RPTexts.ERROR + "You do not have permission to use this command.");
+				return true;
+			}
+			return PermadeathAdminCommands.handlePermakill(sender, args, 1, "permakill");
+		}
+		if (args.length > 2 && args[0].equalsIgnoreCase("injure") && Permissions.isAdmin(sender)) {
+			return PermadeathAdminCommands.handleInjure(sender, args, 1,
+					"/rpcharacter admin injure <player> [character] [permanent]");
 		}
 		if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
 			if (!Permissions.isAdmin(sender)) {
@@ -412,17 +427,25 @@ public class CommandManager implements Listener, CommandExecutor{
 				RPTexts.sendPrefixed(p, RPTexts.WARN + "Permadeath world spawn set to your current location.");
 				return true;
 			} else if (cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("injure")) {
-				if (!Permissions.isAdmin(sender)) {
+				if (!p.hasPermission("rpchar.injure")) {
 					RPTexts.sendPrefixed(p, RPTexts.ERROR + "You do not have access to this command");
 					return true;
 				}
-				return PermadeathAdminCommands.handleInjure(sender, args);
-			} else if (cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("permakill")) {
-				if (!Permissions.isAdmin(sender)) {
-					RPTexts.sendPrefixed(p, RPTexts.ERROR + "You do not have access to this command");
+				if (args.length != 2) {
+					RPTexts.send(p, RPTexts.ERROR + "Usage: /rpcharacter injure <player>");
+					if (Permissions.isAdmin(sender)) {
+						RPTexts.send(p, RPTexts.MUTED + "Staff force injure: "
+								+ RPTexts.COMMAND + "/rpcharacter admin injure <player> [character] [permanent]");
+					}
 					return true;
 				}
-				return PermadeathAdminCommands.handlePermakill(sender, args);
+				Player target = Bukkit.getPlayerExact(args[1]);
+				if (target == null || !target.isOnline()) {
+					RPTexts.send(p, RPTexts.ERROR + "No player found.");
+					return true;
+				}
+				RpInjureService.begin(p, target);
+				return true;
 			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("addtrait") && args.length == 3) {
 				if(!Permissions.isAdmin(sender)) {
 					RPTexts.sendPrefixed(p, RPTexts.ERROR + "You do not have access to this command");
@@ -641,6 +664,26 @@ public class CommandManager implements Listener, CommandExecutor{
 				return true;
 			}
 		RPTexts.sendPrefixed(p, RPTexts.ERROR + "Error with command format");
+		return true;
+	}
+
+	private static boolean handleAdmin(CommandSender sender, String[] args) {
+		if (!Permissions.isAdmin(sender)) {
+			RPTexts.send(sender, RPTexts.ERROR + "You do not have permission to use this command.");
+			return true;
+		}
+		if (args.length < 2) {
+			RPTexts.send(sender, RPTexts.ERROR + "Usage: /rpcharacter admin <injure|permakill> ...");
+			return true;
+		}
+		if (args[1].equalsIgnoreCase("injure")) {
+			return PermadeathAdminCommands.handleInjure(sender, args, 2,
+					"/rpcharacter admin injure <player> [character] [permanent]");
+		}
+		if (args[1].equalsIgnoreCase("permakill")) {
+			return PermadeathAdminCommands.handlePermakill(sender, args, 2, "permakill");
+		}
+		RPTexts.send(sender, RPTexts.ERROR + "Usage: /rpcharacter admin <injure|permakill> ...");
 		return true;
 	}
 

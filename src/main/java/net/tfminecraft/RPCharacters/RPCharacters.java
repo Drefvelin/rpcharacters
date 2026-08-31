@@ -56,6 +56,7 @@ import net.tfminecraft.RPCharacters.permadeath.PermadeathZoneListener;
 import net.tfminecraft.RPCharacters.permadeath.WorldGuardBridge;
 import net.tfminecraft.RPCharacters.prosthetics.ProstheticInstallListener;
 import net.tfminecraft.RPCharacters.prosthetics.ProstheticRefuelListener;
+import net.tfminecraft.RPCharacters.injuries.RpInjureListener;
 import net.tfminecraft.RPCharacters.Managers.SkillPointCommandListener;
 import net.tfminecraft.RPCharacters.Managers.SkillPointTomeListener;
 import net.tfminecraft.RPCharacters.Managers.SpawnedClueManager;
@@ -125,6 +126,7 @@ public class RPCharacters extends JavaPlugin{
 	private final SpeechBubbleListener speechBubbleListener = new SpeechBubbleListener();
 	private final ChatChannelCommandHandler chatChannelCommandHandler = new ChatChannelCommandHandler();
 	private final WardrobeListener wardrobeListener = new WardrobeListener();
+	private final RpInjureListener rpInjureListener = new RpInjureListener();
 
 	private ConfigLoader configLoader;
 	private StageLoader stageLoader;
@@ -275,7 +277,9 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(professionEffectService, this);
 		getServer().getPluginManager().registerEvents(speechBubbleListener, this);
 		getServer().getPluginManager().registerEvents(wardrobeListener, this);
+		getServer().getPluginManager().registerEvents(rpInjureListener, this);
 		getServer().getPluginManager().registerEvents(pvpKnockoutManager, this);
+		getServer().getPluginManager().registerEvents(pvpCommand, this);
 		getServer().getPluginManager().registerEvents(new GraveDeathListener(), this);
 		getServer().getPluginManager().registerEvents(new GraveInteractListener(), this);
 	}

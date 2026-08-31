@@ -456,6 +456,7 @@ permanent_injury_info_stage:
   - subtitle(You can skip this step if your character has no injuries. On the next step, select any that apply.)
 permanent_injury_selection_stage:
   type: selection
+  lock-time: 6h
   repeat: true
   target: trait
   key: injury
@@ -490,6 +491,7 @@ prosthetic_info_stage:
   - subtitle(You do not need a matching injury. Arcane prosthetics require fuel to stay powered. You can skip this step.)
 prosthetic_selection_stage:
   type: selection
+  lock-time: 6h
   repeat: true
   target: trait
   key: prosthetic

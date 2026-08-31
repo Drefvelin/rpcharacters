@@ -48,8 +48,10 @@ public class CommandTabCompleter implements TabCompleter {
 			completions.add("edit");
 			completions.add("clues");
 			completions.add("wardrobe");
+			completions.add("injure");
 			completions.addAll(PERSONA_SUBCOMMANDS);
 			if (Permissions.isAdmin(sender)) {
+				completions.add("admin");
 				completions.add("reload");
 				completions.add("catalog");
 				completions.add("pending");
@@ -66,8 +68,6 @@ public class CommandTabCompleter implements TabCompleter {
 				completions.add("adminmode");
 				completions.add("discordgate");
 				completions.add("setworldspawn");
-				completions.add("injure");
-				completions.add("permakill");
 			}
 			completions.add("dismisspdwarning");
 			if (sender.hasPermission(Cache.personaTempaliasPermission)) {
@@ -131,8 +131,11 @@ public class CommandTabCompleter implements TabCompleter {
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					completions.add(online.getName());
 				}
+			} else if (args[0].equalsIgnoreCase("admin") && Permissions.isAdmin(sender)) {
+				completions.add("injure");
+				completions.add("permakill");
 			} else if (args[0].equalsIgnoreCase("addtrait") || args[0].equalsIgnoreCase("removetrait")
-					|| args[0].equalsIgnoreCase("injure") || args[0].equalsIgnoreCase("permakill")) {
+					|| args[0].equalsIgnoreCase("injure")) {
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					completions.add(online.getName());
 				}
@@ -203,8 +206,12 @@ public class CommandTabCompleter implements TabCompleter {
 				for (Trait trait : TraitLoader.get()) {
 					completions.add(trait.getId());
 				}
-			} else if ((args[0].equalsIgnoreCase("injure") || args[0].equalsIgnoreCase("permakill"))
-					&& Permissions.isAdmin(sender)) {
+			} else if (args[0].equalsIgnoreCase("admin") && Permissions.isAdmin(sender)
+					&& (args[1].equalsIgnoreCase("injure") || args[1].equalsIgnoreCase("permakill"))) {
+				for (Player online : Bukkit.getOnlinePlayers()) {
+					completions.add(online.getName());
+				}
+			} else if (args[0].equalsIgnoreCase("injure") && Permissions.isAdmin(sender)) {
 				Player target = Bukkit.getPlayerExact(args[1]);
 				if (target != null) {
 					PlayerData pd = PlayerManager.get(target);
@@ -219,18 +226,45 @@ public class CommandTabCompleter implements TabCompleter {
 						}
 					}
 				}
-				if (args[0].equalsIgnoreCase("injure")) {
-					completions.add("permanent");
-				}
+				completions.add("permanent");
 			}
 
 			return filter(completions, args[2]);
 		}
 
 		if (args.length == 4
+				&& args[0].equalsIgnoreCase("admin")
+				&& args[1].equalsIgnoreCase("injure")
+				&& Permissions.isAdmin(sender)) {
+			Player target = Bukkit.getPlayerExact(args[2]);
+			if (target != null) {
+				PlayerData pd = PlayerManager.get(target);
+				if (pd != null) {
+					for (RPCharacter character : pd.getCharacters()) {
+						if (character.getSlug() != null) {
+							completions.add(character.getSlug());
+						}
+						if (character.getName() != null) {
+							completions.add(character.getName());
+						}
+					}
+				}
+			}
+			completions.add("permanent");
+			return filter(completions, args[3]);
+		}
+
+		if (args.length == 4
 				&& args[0].equalsIgnoreCase("injure")
 				&& Permissions.isAdmin(sender)) {
 			return filter(List.of("permanent"), args[3]);
+		}
+
+		if (args.length == 5
+				&& args[0].equalsIgnoreCase("admin")
+				&& args[1].equalsIgnoreCase("injure")
+				&& Permissions.isAdmin(sender)) {
+			return filter(List.of("permanent"), args[4]);
 		}
 
 		if (args.length == 4
