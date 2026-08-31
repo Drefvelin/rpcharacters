@@ -43,6 +43,7 @@ import net.tfminecraft.RPCharacters.Objects.PermissionGroupDefinition;
 import net.tfminecraft.RPCharacters.Objects.WebCreatorRealmAccess;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Objects.Trait.TraitEffectResolver;
 import net.tfminecraft.RPCharacters.api.ProvinceSystemClient;
 import net.tfminecraft.RPCharacters.kit.EditableKitPreviewBuilder;
 import net.tfminecraft.RPCharacters.mmocore.MmoCoreClassGuiHelper;
@@ -303,7 +304,9 @@ public final class CreationCatalogSyncService {
 			sb.append(',');
 			appendStringList(sb, "mutually_exclusive", trait.getTraitData().getExclusive());
 			sb.append(',');
-			appendStringList(sb, "description", stripList(trait.getDesc()));
+			List<String> description = new ArrayList<>(trait.getDesc());
+			TraitEffectResolver.appendBlockOffhandLore(trait, description);
+			appendStringList(sb, "description", stripList(description));
 			if (trait.getTraitData().hasDependency()) {
 				sb.append(',');
 				appendDependency(sb, trait.getTraitData().getDependency());

@@ -1,10 +1,12 @@
 package net.tfminecraft.RPCharacters.Objects.Trait;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeModifier;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
+import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public final class TraitEffectResolver {
 
@@ -33,11 +35,23 @@ public final class TraitEffectResolver {
 		if (trait == null) {
 			return List.of();
 		}
+		List<String> lines;
 		TraitVariant variant = resolveActiveVariant(character, trait);
 		if (variant != null && !variant.getDescription().isEmpty()) {
-			return variant.getDescription();
+			lines = new ArrayList<>(variant.getDescription());
+		} else {
+			lines = new ArrayList<>(trait.getDesc());
 		}
-		return trait.getDesc();
+		appendBlockOffhandLore(trait, lines);
+		return lines;
+	}
+
+	public static void appendBlockOffhandLore(Trait trait, List<String> lore) {
+		if (lore == null || trait == null || trait.getTraitData() == null
+				|| !trait.getTraitData().blocksOffhand()) {
+			return;
+		}
+		lore.add(RPTexts.MUTED + "Cannot use the offhand or two-handed items.");
 	}
 
 	public static List<PotionData> resolvePotionEffects(RPCharacter character, Trait trait) {

@@ -2,6 +2,7 @@
 bandit:
     name: "#d65c5cBandit"
     key: evil
+    can-loot-graves: true
     required-account-playtime: 24
     dependency:
         type: trait

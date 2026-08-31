@@ -25,6 +25,8 @@ public class TraitData {
 	private TraitVariant poweredVariant;
 	private TraitVariant depoweredVariant;
 	private Material icon;
+	private boolean blockOffhand;
+	private boolean canLootGraves;
 	
 	public TraitData(ConfigurationSection config) {
 		key = config.getString("key");
@@ -72,6 +74,8 @@ public class TraitData {
 		if (config.isConfigurationSection("depowered")) {
 			depoweredVariant = new TraitVariant(config.getConfigurationSection("depowered"));
 		}
+		blockOffhand = config.getBoolean("block-offhand", false);
+		canLootGraves = config.getBoolean("can-loot-graves", false);
 		if (config.contains("icon")) {
 			String raw = config.getString("icon");
 			if (raw != null && !raw.isBlank()) {
@@ -189,5 +193,13 @@ public class TraitData {
 
 	public Material getIcon() {
 		return icon;
+	}
+
+	public boolean blocksOffhand() {
+		return blockOffhand;
+	}
+
+	public boolean canLootGraves() {
+		return canLootGraves;
 	}
 }

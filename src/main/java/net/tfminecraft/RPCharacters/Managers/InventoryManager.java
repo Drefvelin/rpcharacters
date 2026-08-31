@@ -1213,7 +1213,7 @@ public class InventoryManager {
 		} else if(s.getType().equalsIgnoreCase("trait")) {
 			Trait t = TraitLoader.getByString(s.getId());
 			List<String> lore = new ArrayList<>();
-			for(String d : t.getDesc()) {
+			for(String d : TraitEffectResolver.resolveDescription(cc.getCharacter(), t)) {
 				lore.add(d);
 			}
 			if(t.getTraitData().hasDependency()) {

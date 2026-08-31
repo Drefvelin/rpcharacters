@@ -79,6 +79,11 @@ import net.tfminecraft.RPCharacters.mmocore.AttributePointService;
 import net.tfminecraft.RPCharacters.professions.ProfessionCommandHandler;
 import net.tfminecraft.RPCharacters.professions.ProfessionEffectService;
 import net.tfminecraft.RPCharacters.professions.ProfessionListener;
+import net.tfminecraft.RPCharacters.grave.GraveDeathListener;
+import net.tfminecraft.RPCharacters.grave.GraveInteractListener;
+import net.tfminecraft.RPCharacters.grave.GraveLoader;
+import net.tfminecraft.RPCharacters.grave.GraveManager;
+import net.tfminecraft.RPCharacters.grave.LastSolidTracker;
 import net.tfminecraft.RPCharacters.pvp.PvpCommand;
 import net.tfminecraft.RPCharacters.pvp.PvpKnockoutManager;
 import net.tfminecraft.RPCharacters.roll.RollManager;
@@ -149,6 +154,7 @@ public class RPCharacters extends JavaPlugin{
 	private ProstheticLoader prostheticLoader;
 	private KitLoader kitLoader;
 	private PvpLoader pvpLoader;
+	private GraveLoader graveLoader;
 	private final PvpCommand pvpCommand = new PvpCommand();
 	private final PvpKnockoutManager pvpKnockoutManager = new PvpKnockoutManager();
 
@@ -185,6 +191,7 @@ public class RPCharacters extends JavaPlugin{
 		prostheticLoader = new ProstheticLoader();
 		kitLoader = new KitLoader();
 		pvpLoader = new PvpLoader();
+		graveLoader = new GraveLoader();
 	}
 	
 	@Override
@@ -196,6 +203,7 @@ public class RPCharacters extends JavaPlugin{
 		registerListeners();
 		loadConfigs();
 		spawnedClueManager.loadAllFromDisk();
+		GraveManager.get().loadAll();
 		MailRecipientDirectory.scanFromDisk();
 		loadPlayers();
 		startManagers();
@@ -221,6 +229,8 @@ public class RPCharacters extends JavaPlugin{
 		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().shutdown();
 		spawnedClueManager.shutdown();
 		pvpKnockoutManager.shutdown();
+		LastSolidTracker.get().shutdown();
+		GraveManager.get().saveAll();
 		save();
 	}
 	
@@ -266,6 +276,8 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(speechBubbleListener, this);
 		getServer().getPluginManager().registerEvents(wardrobeListener, this);
 		getServer().getPluginManager().registerEvents(pvpKnockoutManager, this);
+		getServer().getPluginManager().registerEvents(new GraveDeathListener(), this);
+		getServer().getPluginManager().registerEvents(new GraveInteractListener(), this);
 	}
 	public void startManagers() {
 		playerManager.start();
@@ -276,6 +288,7 @@ public class RPCharacters extends JavaPlugin{
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.startPeriodicPull(this);
 		WardrobeService.startSoftRefresh(this);
 		pvpKnockoutManager.start();
+		LastSolidTracker.get().start();
 	}
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
@@ -320,6 +333,7 @@ public class RPCharacters extends JavaPlugin{
 		stageLoader.load(new File(getDataFolder(), "stages.yml"));
 		kitLoader.loadPreferred(getDataFolder());
 		pvpLoader.load(new File(getDataFolder(), "pvp.yml"));
+		graveLoader.load(new File(getDataFolder(), "graves.yml"));
 		WorldGuardBridge.init();
 		net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService.pushAsync(this);
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.tryPullAsync(this);
@@ -338,6 +352,8 @@ public class RPCharacters extends JavaPlugin{
 		subFolder = new File(getDataFolder(), "professions");
 		if(!subFolder.exists()) subFolder.mkdir();
 		subFolder = new File(getDataFolder(), "assets");
+		if(!subFolder.exists()) subFolder.mkdir();
+		subFolder = new File(getDataFolder(), "graves");
 		if(!subFolder.exists()) subFolder.mkdir();
 	}
 	
@@ -365,7 +381,8 @@ public class RPCharacters extends JavaPlugin{
 				"fuel-templates.yml",
 				"prosthetics.yml",
 				"kits.yml",
-				"pvp.yml"
+				"pvp.yml",
+				"graves.yml"
 				};
 		for(String s : files) {
 			File newConfigFile = new File(getDataFolder(), s);
@@ -423,6 +440,7 @@ public class RPCharacters extends JavaPlugin{
 	
 	public void reload() {
 		loadConfigs();
+		LastSolidTracker.get().start();
 		ProfessionCommandHandler.reapplyActiveCharacterPerms();
 		// Catalog + pending pull already run inside loadConfigs(); also refresh website sheets.
 		net.tfminecraft.RPCharacters.ingest.RosterSyncService.pushAllOnlineAsync();

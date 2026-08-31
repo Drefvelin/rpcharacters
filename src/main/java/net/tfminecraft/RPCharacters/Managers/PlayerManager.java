@@ -33,6 +33,7 @@ import net.Indyuce.mmocore.api.player.attribute.PlayerAttributes.AttributeInstan
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.identity.TempAliasService;
 import net.tfminecraft.RPCharacters.injuries.InjuryHealingService;
+import net.tfminecraft.RPCharacters.injuries.OffhandBlockService;
 import net.tfminecraft.RPCharacters.prosthetics.ProstheticFuelService;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
@@ -245,6 +246,7 @@ public class PlayerManager implements Listener{
 		Bukkit.getLogger().info("[RPCharacters] Starting Player Manager");
 		traitPotionPulse();
 		InjuryHealingService.start();
+		OffhandBlockService.start();
 		ProstheticFuelService.start();
 		new BukkitRunnable()
 		{

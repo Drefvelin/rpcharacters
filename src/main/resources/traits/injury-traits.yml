@@ -1,6 +1,7 @@
 broken_arm:
   name: "#d65c5cBroken Arm"
   key: injury
+  block-offhand: true
   duration: 48h
   gained-message: "#d65c5cYou broke your arm!"
   lost-message: "#87d65cYour arm has healed."
@@ -17,6 +18,7 @@ broken_arm:
 one_handed:
   name: "#d65c5cOne-Handed"
   key: injury
+  block-offhand: true
   gained-message: "#d65c5cYou lost an arm!"
   potion-effects:
     - weakness(0)

@@ -33,5 +33,9 @@ permissions:
     default: true
   rpchar.pvp:
     default: true
+  rpchar.grave.protect:
+    default: true
+  rpchar.grave.admin:
+    default: op
   professions.admin:
     default: op

@@ -1,6 +1,7 @@
 wooden_claw_arm:
   name: "#b57f6eWooden Claw Arm"
   key: prosthetic
+  block-offhand: true
   cost: 1
   description:
     - "§7A crude wooden claw replaces this character's arm."

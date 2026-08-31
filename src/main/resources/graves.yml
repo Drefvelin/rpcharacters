@@ -1,0 +1,33 @@
+enabled: true
+protect-by-default: true
+hologram-show-killer: true
+snapshot-interval-ticks: 20
+# 0 = never
+expire-seconds: 0
+material: CHEST
+hologram-offset-y: 1.2
+
+# Optional: never copy these slots at all.
+# excluded-slots: []
+
+# TLibs paths skipped only in that slot (stash, not grave).
+# v.diamond_hoe matches remodeled vanilla hoes; MMOItems in these slots still go in the grave.
+excluded-slot-items:
+  9:
+    - v.diamond_hoe
+  10:
+    - v.diamond_hoe
+  11:
+    - v.diamond_hoe
+  12:
+    - v.diamond_hoe
+
+# TLibs item paths that never enter a grave (any slot).
+excluded-items: []
+
+messages:
+  locked: "&cThis grave is locked."
+  recovered: "&aYou recovered your belongings."
+  inventory-full: "&eSome items did not fit and were dropped."
+  empty: "&7There is nothing left here."
+  placed: "&eYour grave was placed at &f{x}, {y}, {z} &ein {world}."
