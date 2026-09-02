@@ -25,6 +25,8 @@ public class Cache {
 	public static Map<String, net.tfminecraft.RPCharacters.Objects.WebCreatorRealmAccess> webCreatorAccessByRealm = new HashMap<>();
 
 	public static boolean requireCharacter;
+	/** Playtest server: tag in-game creates and stop syncing characters with the website. */
+	public static boolean devCharacters;
 	public static boolean noCharacterFreeze;
 	public static boolean lackingCluesFreeze;
 	public static boolean excessCharactersFreeze;

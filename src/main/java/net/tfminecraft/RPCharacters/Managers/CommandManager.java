@@ -31,6 +31,7 @@ import net.tfminecraft.RPCharacters.Loaders.PermadeathZoneLoader;
 import net.tfminecraft.RPCharacters.clues.discovery.ClueAdminModeService;
 import net.tfminecraft.RPCharacters.permadeath.PermadeathAdminCommands;
 import net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager;
+import net.tfminecraft.RPCharacters.Creation.CreationStageHelp;
 import net.tfminecraft.RPCharacters.command.CharCommand;
 import net.tfminecraft.RPCharacters.enums.Status;
 import net.tfminecraft.RPCharacters.injuries.RpInjureService;
@@ -115,10 +116,18 @@ public class CommandManager implements Listener, CommandExecutor{
 				RPTexts.send(sender, RPTexts.ERROR + "Usage: /rpcharacter pending sync");
 				return true;
 			}
+			if (Cache.devCharacters) {
+				RPTexts.send(sender, RPTexts.ERROR + "Website character sync is off while "
+						+ RPTexts.WARN + "dev-characters" + RPTexts.ERROR + " is enabled.");
+				return true;
+			}
 			RPTexts.send(sender, RPTexts.COMMAND + "Pulling pending web character creates…");
 			net.tfminecraft.RPCharacters.ingest.CharacterIngestService.forcePullAsync(RPCharacters.plugin);
 			RPTexts.send(sender, RPTexts.SUCCESS + "Pending sync started (see console for results).");
 			return true;
+		}
+		if (args.length >= 1 && args[0].equalsIgnoreCase("wipe")) {
+			return net.tfminecraft.RPCharacters.wipe.WipeCommand.handle(sender, args);
 		}
 		if (args.length >= 1 && args[0].equalsIgnoreCase("reclaimkit")) {
 			if (!Permissions.isAdmin(sender)) {
@@ -223,6 +232,13 @@ public class CommandManager implements Listener, CommandExecutor{
 					return true;
 				}
 				CreationManager.back(p);
+				return true;
+			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("help") && args.length == 1) {
+				if(!CreationManager.activeCreators.containsKey(p)) {
+					RPTexts.send(p, RPTexts.ERROR + "You dont have an active creator");
+					return true;
+				}
+				CreationStageHelp.send(p, CreationManager.activeCreators.get(p));
 				return true;
 			} else if(cmd.getName().equalsIgnoreCase(cmd1) && args[0].equalsIgnoreCase("menu") && args.length >= 1) {
 				Player target = p;

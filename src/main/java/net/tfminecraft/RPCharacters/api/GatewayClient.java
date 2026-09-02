@@ -48,6 +48,21 @@ public final class GatewayClient {
 		}
 	}
 
+	/**
+	 * TFMCWeb realm id, or null when TFMCWeb is unreachable. Callers that delete
+	 * data must abort on null instead of assuming {@code main}.
+	 */
+	public static String realmId() {
+		try {
+			Class<?> cls = Class.forName("net.tfminecraft.TFMCWeb.TFMCWeb");
+			Object raw = cls.getMethod("getRealmId").invoke(null);
+			String realm = raw == null ? "" : String.valueOf(raw).trim();
+			return realm.isEmpty() ? null : realm;
+		} catch (Throwable t) {
+			return null;
+		}
+	}
+
 	public static Result request(String method, String path, String jsonBody) {
 		try {
 			Class<?> cls = Class.forName(

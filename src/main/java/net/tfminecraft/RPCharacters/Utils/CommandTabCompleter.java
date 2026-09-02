@@ -45,6 +45,7 @@ public class CommandTabCompleter implements TabCompleter {
 			completions.add("back");
 			completions.add("menu");
 			completions.add("cancel");
+			completions.add("help");
 			completions.add("edit");
 			completions.add("clues");
 			completions.add("wardrobe");
@@ -55,6 +56,7 @@ public class CommandTabCompleter implements TabCompleter {
 				completions.add("reload");
 				completions.add("catalog");
 				completions.add("pending");
+				completions.add("wipe");
 				completions.add("reclaimkit");
 				completions.add("resetkit");
 				completions.add("stage");
@@ -97,6 +99,9 @@ public class CommandTabCompleter implements TabCompleter {
 			}
 			if (args[0].equalsIgnoreCase("pending") && Permissions.isAdmin(sender)) {
 				return filter(List.of("sync"), args[1]);
+			}
+			if (args[0].equalsIgnoreCase("wipe") && Permissions.isAdmin(sender)) {
+				return filter(List.of("website", "tagged"), args[1]);
 			}
 			if (args[0].equalsIgnoreCase("stage") && Permissions.isAdmin(sender)) {
 				return filter(List.of("preview"), args[1]);
@@ -176,6 +181,9 @@ public class CommandTabCompleter implements TabCompleter {
 						completions.add(stage.getId());
 					}
 				}
+			} else if (args[0].equalsIgnoreCase("wipe") && Permissions.isAdmin(sender)
+					&& (args[1].equalsIgnoreCase("website") || args[1].equalsIgnoreCase("tagged"))) {
+				completions.add("confirm");
 			} else if (args[0].equalsIgnoreCase("discordgate") && Permissions.isAdmin(sender)) {
 				completions.add("on");
 				completions.add("off");

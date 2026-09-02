@@ -61,12 +61,16 @@ public class RPCharacter {
 	private List<String> playerClues = new ArrayList<>();
 
 	private int createdAtEpochSeconds;
+	/** Real time this character has spent online. Not wall-clock age; see getAgeSeconds. */
+	private int onlinePlaytimeSeconds;
 	private Map<String, Integer> conversationCounts = new HashMap<>();
 	private Map<String, Long> conversationLastAtMs = new HashMap<>();
 
 	private String alias;
 	private String slug;
 	private boolean hidden;
+	/** Throwaway character made in-game while dev-characters is on. */
+	private boolean dev;
 	/** Per grant-kit id. Empty/missing kit = legacy never claim for that kit. */
 	private final Map<String, net.tfminecraft.RPCharacters.kit.KitStatus> kitStatuses =
 			new HashMap<>();
@@ -429,6 +433,14 @@ public class RPCharacter {
 		this.hidden = hidden;
 	}
 
+	public boolean isDev() {
+		return dev;
+	}
+
+	public void setDev(boolean dev) {
+		this.dev = dev;
+	}
+
 	public Map<String, net.tfminecraft.RPCharacters.kit.KitStatus> getKitStatuses() {
 		return kitStatuses;
 	}
@@ -659,6 +671,22 @@ public class RPCharacter {
 		}
 		long age = Instant.now().getEpochSecond() - createdAtEpochSeconds;
 		return (int) Math.max(0L, age);
+	}
+
+	public int getOnlinePlaytimeSeconds() {
+		return onlinePlaytimeSeconds;
+	}
+
+	public void setOnlinePlaytimeSeconds(int onlinePlaytimeSeconds) {
+		this.onlinePlaytimeSeconds = Math.max(0, onlinePlaytimeSeconds);
+	}
+
+	public void addOnlinePlaytimeSeconds(int seconds) {
+		if (seconds <= 0) {
+			return;
+		}
+		long sum = (long) onlinePlaytimeSeconds + seconds;
+		this.onlinePlaytimeSeconds = (int) Math.min(Integer.MAX_VALUE, sum);
 	}
 
 	public Map<String, Integer> getConversationCounts() {

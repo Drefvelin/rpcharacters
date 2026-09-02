@@ -34,6 +34,8 @@ import net.tfminecraft.RPCharacters.Creation.Stages.SummaryStage;
 
 import net.tfminecraft.RPCharacters.RPCharacters;
 
+import net.tfminecraft.RPCharacters.Cache;
+
 import net.tfminecraft.RPCharacters.Loaders.StageLoader;
 
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
@@ -772,6 +774,12 @@ public class CharacterCreation {
 		}
 
 		character.update();
+
+		if (Cache.devCharacters) {
+
+			character.setDev(true);
+
+		}
 
 		pd.addCharacter(character);
 

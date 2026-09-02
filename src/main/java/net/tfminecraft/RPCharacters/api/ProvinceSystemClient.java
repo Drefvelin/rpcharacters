@@ -68,6 +68,36 @@ public final class ProvinceSystemClient {
 		}
 	}
 
+	public static final class RealmWipeResult {
+		public final boolean ok;
+		public final String realmId;
+		public final int total;
+		public final int pngsDeleted;
+		public final String error;
+
+		private RealmWipeResult(
+			boolean ok,
+			String realmId,
+			int total,
+			int pngsDeleted,
+			String error
+		) {
+			this.ok = ok;
+			this.realmId = realmId;
+			this.total = total;
+			this.pngsDeleted = pngsDeleted;
+			this.error = error;
+		}
+
+		public static RealmWipeResult success(String realmId, int total, int pngsDeleted) {
+			return new RealmWipeResult(true, realmId, total, pngsDeleted, null);
+		}
+
+		public static RealmWipeResult fail(String error) {
+			return new RealmWipeResult(false, null, 0, 0, error);
+		}
+	}
+
 	public static final class SimpleResult {
 		public final boolean ok;
 		public final String error;
@@ -202,6 +232,57 @@ public final class ProvinceSystemClient {
 	/** PUT /characters/plugin/roster */
 	public static SimpleResult pushRoster(String jsonBody) {
 		return request("PUT", "/characters/plugin/roster", jsonBody);
+	}
+
+	/**
+	 * DELETE /characters/plugin/realm-data?realm_id=
+	 * Wipes every website character row for one realm. Player meta stays.
+	 */
+	public static RealmWipeResult wipeRealmCharacterData(String realm) {
+		if (realm == null || realm.isBlank()) {
+			return RealmWipeResult.fail("realm_id is required");
+		}
+		SimpleResult raw;
+		try {
+			String q = "?realm_id=" + java.net.URLEncoder.encode(realm.trim(), StandardCharsets.UTF_8);
+			raw = request("DELETE", "/characters/plugin/realm-data" + q, null);
+		} catch (Exception e) {
+			return RealmWipeResult.fail(e.getMessage() != null ? e.getMessage() : "encode failed");
+		}
+		if (!raw.ok) {
+			return RealmWipeResult.fail(raw.error);
+		}
+		String realmId = jsonString(raw.body, "realm_id");
+		return RealmWipeResult.success(
+			realmId == null ? realm.trim() : realmId,
+			jsonInt(raw.body, "total"),
+			jsonInt(raw.body, "pngs_deleted")
+		);
+	}
+
+	/**
+	 * POST /characters/plugin/characters/delete
+	 * Drops site rows for characters deleted in-game. Pending creates are kept.
+	 */
+	public static SimpleResult deleteCharacters(String realm, List<String> characterIds) {
+		if (realm == null || realm.isBlank()) {
+			return SimpleResult.fail("realm_id is required");
+		}
+		JSONArray ids = new JSONArray();
+		if (characterIds != null) {
+			for (String id : characterIds) {
+				if (id != null && !id.isBlank()) {
+					ids.add(id.trim());
+				}
+			}
+		}
+		if (ids.isEmpty()) {
+			return SimpleResult.fail("character_ids is required");
+		}
+		JSONObject root = new JSONObject();
+		root.put("realm_id", realm.trim());
+		root.put("character_ids", ids);
+		return request("POST", "/characters/plugin/characters/delete", root.toJSONString());
 	}
 
 	/** GET /characters/plugin/wardrobe/{playerUuid}/{characterId} */

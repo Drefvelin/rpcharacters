@@ -36,6 +36,7 @@ public class ConfigLoader implements LoaderInterface{
         Cache.backgroundTraitTypes = config.getStringList("background-trait-types");
         Cache.continent = config.getString("continent", "Cerrith");
         Cache.requireCharacter = config.getBoolean("require-character", false);
+        Cache.devCharacters = config.getBoolean("dev-characters", false);
         Cache.noCharacterFreeze = config.getBoolean("no-character-freeze", true);
         Cache.lackingCluesFreeze = config.getBoolean("lacking-clues-freeze", true);
         Cache.excessCharactersFreeze = config.getBoolean("excess-characters-freeze", true);

@@ -107,6 +107,8 @@ public class RPCharacters extends JavaPlugin{
 	private final MagnifyingGlassListener magnifyingGlassListener = new MagnifyingGlassListener();
 	private final ClueDisturbanceListener clueDisturbanceListener = new ClueDisturbanceListener();
 	private final SpawnedClueManager spawnedClueManager = SpawnedClueManager.get();
+	private final net.tfminecraft.RPCharacters.playtime.PlaytimeListener playtimeListener =
+			new net.tfminecraft.RPCharacters.playtime.PlaytimeListener();
 	private final SkillPointTomeListener skillPointTomeListener = new SkillPointTomeListener();
 	private final SkillPointCommandListener skillPointCommandListener = new SkillPointCommandListener();
 	private final AttributePointTomeListener attributePointTomeListener = new AttributePointTomeListener();
@@ -205,6 +207,7 @@ public class RPCharacters extends JavaPlugin{
 		registerListeners();
 		loadConfigs();
 		spawnedClueManager.loadAllFromDisk();
+		net.tfminecraft.RPCharacters.playtime.PlaytimeService.loadAllFromDisk();
 		GraveManager.get().loadAll();
 		MailRecipientDirectory.scanFromDisk();
 		loadPlayers();
@@ -230,6 +233,7 @@ public class RPCharacters extends JavaPlugin{
 		SpeechBubbleManager.get().shutdown();
 		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().shutdown();
 		spawnedClueManager.shutdown();
+		net.tfminecraft.RPCharacters.playtime.PlaytimeService.shutdown();
 		pvpKnockoutManager.shutdown();
 		LastSolidTracker.get().shutdown();
 		GraveManager.get().saveAll();
@@ -266,6 +270,7 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(attributePointSpendListener, this);
 		getServer().getPluginManager().registerEvents(commandManager, this);
 		getServer().getPluginManager().registerEvents(spawnedClueManager, this);
+		getServer().getPluginManager().registerEvents(playtimeListener, this);
 		getServer().getPluginManager().registerEvents(conversationManager, this);
 		getServer().getPluginManager().registerEvents(chatManager, this);
 		getServer().getPluginManager().registerEvents(ChatCooldownManager.get(), this);
@@ -286,6 +291,7 @@ public class RPCharacters extends JavaPlugin{
 	public void startManagers() {
 		playerManager.start();
 		spawnedClueManager.startTicks();
+		net.tfminecraft.RPCharacters.playtime.PlaytimeService.startTicks();
 		SpeechBubbleManager.get().startTicks();
 		ProtocolLibBridge.init(this);
 		FakeBubbleManager.get().startTicks();

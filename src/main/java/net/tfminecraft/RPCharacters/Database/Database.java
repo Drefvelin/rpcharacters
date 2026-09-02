@@ -260,6 +260,9 @@ public class Database {
     						json.containsKey("playtime-seconds") ? ((Number) json.get("playtime-seconds")).intValue() : 0,
     						file);
     				c.setCreatedAtEpochSeconds(createdAtEpochSeconds);
+    				if (json.containsKey("online-playtime-seconds")) {
+    					c.setOnlinePlaytimeSeconds(((Number) json.get("online-playtime-seconds")).intValue());
+    				}
     				c.setConversationCounts(loadConversationCounts(json));
     				c.setConversationLastAtMs(loadConversationLastAt(json));
     				loadPersonaFields(c, json);
@@ -395,6 +398,9 @@ public class Database {
 			if (c.getCreatedAtEpochSeconds() > 0) {
 				defaults.put("created-at", c.getCreatedAtEpochSeconds());
 			}
+			// Distinct from the legacy "playtime-seconds" key, which DurationParser reads as a
+			// created-at fallback. Reusing that name would corrupt character ages.
+			defaults.put("online-playtime-seconds", c.getOnlinePlaytimeSeconds());
 			defaults.put("conversations", toConversationCountsJson(c.getConversationCounts()));
 			defaults.put("conversation-last-at", toConversationLastAtJson(c.getConversationLastAtMs()));
 			savePersonaFields(defaults, c);
@@ -624,6 +630,9 @@ public class Database {
 		if (characterJson.containsKey("hidden")) {
 			character.setHidden(Boolean.parseBoolean(characterJson.get("hidden").toString()));
 		}
+		if (characterJson.containsKey("dev")) {
+			character.setDev(Boolean.parseBoolean(characterJson.get("dev").toString()));
+		}
 		if (characterJson.containsKey("kit-statuses")) {
 			Object raw = characterJson.get("kit-statuses");
 			if (raw instanceof JSONObject statuses) {
@@ -724,6 +733,9 @@ public class Database {
 		}
 		if (character.isHidden()) {
 			defaults.put("hidden", "true");
+		}
+		if (character.isDev()) {
+			defaults.put("dev", "true");
 		}
 		if (!character.getKitStatuses().isEmpty()) {
 			JSONObject statuses = new JSONObject();
