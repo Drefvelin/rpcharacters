@@ -122,14 +122,14 @@ Public API on `Grave` / `GraveManager` for Thievery:
 
 ## Hologram
 
-Real `TextDisplay` via existing `TextDisplayHelper`. Billboard center, persistent, PDC tagged to the grave id.
-
-Line 1: `DisplayIdentityService.resolveCharacterName(victim)` (same as `%rpcharacters_name%`). Fallback: Minecraft name if no character.
+Per-viewer fake `TextDisplay` packets via ProtocolLib (`GraveVisualManager`), not a shared world entity. Billboard center. Line 1: `DisplayIdentityService.resolveCharacterName(victim)` (same as `%rpcharacters_name%`). Fallback: Minecraft name if no character.
 
 Optional line 2 if `hologram-show-killer: true`:
 
 - Killer is a player: `resolveCharacterName(killer)` then Minecraft name
-- Else: damage cause name (`EntityDamageEvent.DamageCause`) or last damager type
+- Else: damage cause name (`EntityDamageEvent.DamageCause`) or last damager type (death-time only; reload uses stored killer UUID)
+
+Extra line for viewers who pass `GraveLootRules.canSteal`: configurable `messages.rob-hint` (default `Right click to rob`).
 
 Player-facing text: hyphens only, never em dash (U+2014).
 

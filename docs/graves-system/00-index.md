@@ -20,7 +20,7 @@ On death, keep loot in a chest at the last solid ground the player stood on. Own
 | Death listener | `PlayerDeathEvent` at `HIGHEST` (mutate drops last) |
 | Spawn location | Last solid snapshot (1s tick), not void/air death pos |
 | Block | Vanilla chest + PDC + Gson persist |
-| Hologram | Real `TextDisplay` (not fake packets). Line 1: character name. Optional killer line |
+| Hologram | Per-viewer fake `TextDisplay` (ProtocolLib). Line 1: character name. Optional killer line. Rob hint only for eligible killers |
 | Owner click | No GUI. Give all items into inventory. Overflow drops at grave. Then remove grave if empty |
 | Thief click | No GUI. Thievery greedy steal: budget + space. Remainder stays in grave |
 | Lock | Protected graves: only killer UUID may steal. Owner always recovers |

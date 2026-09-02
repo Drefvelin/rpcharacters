@@ -1,10 +1,8 @@
 package net.tfminecraft.RPCharacters.grave;
 
 import java.util.Iterator;
-import java.util.Map;
 
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
@@ -26,8 +24,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
-import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
-
 public final class GraveInteractListener implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -47,11 +43,11 @@ public final class GraveInteractListener implements Listener {
 		}
 		Player player = event.getPlayer();
 		if (GraveLootRules.canRecover(player, grave)) {
-			recover(player, grave);
+			GraveRecover.recover(player, grave, GraveRecover.graveOverflowLocation(grave, player));
 			return;
 		}
 		if (!GraveLootRules.canSteal(player, grave)) {
-			send(player, GraveLoader.getMessageLocked());
+			GraveRecover.sendMessage(player, GraveLoader.getMessageLocked());
 		}
 	}
 
@@ -98,66 +94,6 @@ public final class GraveInteractListener implements Listener {
 		if (isGraveInventory(event.getSource()) || isGraveInventory(event.getDestination())) {
 			event.setCancelled(true);
 		}
-	}
-
-	private static void recover(Player player, Grave grave) {
-		if (grave.isEmpty()) {
-			send(player, GraveLoader.getMessageEmpty());
-			GraveManager.get().despawn(grave);
-			return;
-		}
-		Location dropAt = grave.getBlockLocation();
-		World world = dropAt != null ? dropAt.getWorld() : player.getWorld();
-		if (dropAt == null) {
-			dropAt = player.getLocation();
-		} else {
-			dropAt = dropAt.clone().add(0.5, 0.5, 0.5);
-		}
-		boolean dropped = false;
-		for (int slot = 0; slot < Grave.TOTAL_LOGICAL_SLOTS; slot++) {
-			ItemStack item = grave.getItem(slot);
-			if (Grave.isBlank(item)) {
-				continue;
-			}
-			Map<Integer, ItemStack> leftover = player.getInventory().addItem(item.clone());
-			for (ItemStack left : leftover.values()) {
-				if (!Grave.isBlank(left) && world != null) {
-					world.dropItemNaturally(dropAt, left);
-					dropped = true;
-				}
-			}
-			grave.setItem(slot, null);
-		}
-		for (ItemStack extra : grave.getExtras()) {
-			if (Grave.isBlank(extra)) {
-				continue;
-			}
-			Map<Integer, ItemStack> leftover = player.getInventory().addItem(extra.clone());
-			for (ItemStack left : leftover.values()) {
-				if (!Grave.isBlank(left) && world != null) {
-					world.dropItemNaturally(dropAt, left);
-					dropped = true;
-				}
-			}
-		}
-		grave.clearExtras();
-		int experience = grave.getExperience();
-		if (experience > 0) {
-			player.giveExp(experience);
-			grave.setExperience(0);
-		}
-		send(player, GraveLoader.getMessageRecovered());
-		if (dropped) {
-			send(player, GraveLoader.getMessageInventoryFull());
-		}
-		GraveManager.get().despawn(grave);
-	}
-
-	private static void send(Player player, String message) {
-		if (player == null || message == null || message.isBlank()) {
-			return;
-		}
-		player.sendMessage(StringFormatter.formatHex(message.replace('&', '\u00A7')));
 	}
 
 	private static void removeGravesFrom(java.util.List<Block> blocks) {

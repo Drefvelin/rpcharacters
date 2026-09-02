@@ -329,6 +329,7 @@ public class PlayerManager implements Listener{
 	public void onLeave(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
 		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().clearViewer(p.getUniqueId());
+		net.tfminecraft.RPCharacters.grave.GraveVisualManager.get().clearViewer(p.getUniqueId());
 		net.tfminecraft.RPCharacters.clues.discovery.ClueAdminModeService.clear(p);
 		TempAliasService.clear(p);
 		PlayerData pd = get(p);

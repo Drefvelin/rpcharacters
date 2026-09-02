@@ -21,7 +21,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.TileState;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.util.io.BukkitObjectInputStream;
@@ -31,8 +30,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import net.tfminecraft.RPCharacters.RPCharacters;
-import net.tfminecraft.RPCharacters.display.TextDisplayHelper;
-import net.tfminecraft.RPCharacters.identity.DisplayIdentityService;
 
 public final class GraveManager {
 
@@ -70,6 +67,59 @@ public final class GraveManager {
 
 	public boolean isGrave(Block block) {
 		return getAt(block) != null;
+	}
+
+	public Grave findNewestByOwner(UUID ownerId) {
+		if (ownerId == null) {
+			return null;
+		}
+		Grave newest = null;
+		for (Grave grave : byId.values()) {
+			if (!grave.isOwner(ownerId)) {
+				continue;
+			}
+			if (newest == null || grave.getCreated() > newest.getCreated()) {
+				newest = grave;
+			}
+		}
+		return newest;
+	}
+
+	public List<Grave> getGravesNear(Location center, double radius) {
+		List<Grave> result = new ArrayList<>();
+		if (center == null || center.getWorld() == null || radius <= 0.0) {
+			return result;
+		}
+		double radiusSq = radius * radius;
+		World world = center.getWorld();
+		for (Grave grave : byId.values()) {
+			Location loc = grave.getBlockLocation();
+			if (loc == null || loc.getWorld() == null || !loc.getWorld().equals(world)) {
+				continue;
+			}
+			if (!loc.getChunk().isLoaded()) {
+				continue;
+			}
+			if (center.distanceSquared(loc) > radiusSq) {
+				continue;
+			}
+			if (!isGraveBlockPresent(grave)) {
+				continue;
+			}
+			result.add(grave);
+		}
+		return result;
+	}
+
+	public boolean isGraveBlockPresent(Grave grave) {
+		if (grave == null) {
+			return false;
+		}
+		Location loc = grave.getBlockLocation();
+		if (loc == null || loc.getWorld() == null) {
+			return false;
+		}
+		return loc.getBlock().getType() == GraveLoader.getMaterial();
 	}
 
 	public void register(Grave grave) {
@@ -147,7 +197,7 @@ public final class GraveManager {
 					continue;
 				}
 				register(grave);
-				ensureHologram(grave);
+				GraveVisualManager.cleanupLegacyHologram(grave);
 			} catch (Exception e) {
 				RPCharacters.plugin.getLogger().warning("Could not load grave file " + file.getName() + ": " + e.getMessage());
 			}
@@ -173,9 +223,6 @@ public final class GraveManager {
 		copyInto(grave, storage, armor, offhand, extras);
 
 		applyPdc(chestBlock, grave);
-		Player killerPlayer = killer != null ? Bukkit.getPlayer(killer) : null;
-		String hologramText = buildHologramText(victim, killerPlayer, causeLabel);
-		spawnHologram(grave, hologramText);
 		save(grave);
 		return grave;
 	}
@@ -212,36 +259,6 @@ public final class GraveManager {
 		return pickOnSolid(cached.getBlock());
 	}
 
-	public void ensureHologram(Grave grave) {
-		if (grave == null || grave.getBlockLocation() == null) {
-			return;
-		}
-		Location loc = grave.getBlockLocation();
-		if (loc.getWorld() == null) {
-			return;
-		}
-		Block block = loc.getBlock();
-		if (block.getType() != GraveLoader.getMaterial()) {
-			return;
-		}
-		if (grave.getHologramId() != null && TextDisplayHelper.findDisplay(grave.getHologramId()) != null) {
-			return;
-		}
-		Player owner = Bukkit.getPlayer(grave.getOwner());
-		Player killer = grave.getKiller() != null ? Bukkit.getPlayer(grave.getKiller()) : null;
-		String name = owner != null ? characterOrName(owner) : offlineName(grave.getOwner());
-		String killerLine = null;
-		if (GraveLoader.isHologramShowKiller()) {
-			if (killer != null) {
-				killerLine = characterOrName(killer);
-			} else if (grave.getKiller() != null) {
-				killerLine = offlineName(grave.getKiller());
-			}
-		}
-		spawnHologram(grave, formatHologram(name, killerLine));
-		save(grave);
-	}
-
 	private static void copyInto(Grave grave, ItemStack[] storage, ItemStack[] armor, ItemStack offhand,
 			List<ItemStack> extras) {
 		if (storage != null) {
@@ -260,58 +277,6 @@ public final class GraveManager {
 				grave.addExtra(extra);
 			}
 		}
-	}
-
-	private void spawnHologram(Grave grave, String text) {
-		Location loc = grave.getBlockLocation();
-		if (loc == null || loc.getWorld() == null) {
-			return;
-		}
-		Location hologramLoc = loc.clone().add(0.5, GraveLoader.getHologramOffsetY(), 0.5);
-		TextDisplay display = loc.getWorld().spawn(hologramLoc, TextDisplay.class, spawned -> {
-			TextDisplayHelper.applyDisplay(spawned, text, TextDisplayHelper.createScaleTransformation(1.0f), true);
-			TextDisplayHelper.setTag(spawned, GraveKeys.graveId(), grave.getId().toString());
-		});
-		grave.setHologramId(display.getUniqueId());
-	}
-
-	private static String buildHologramText(Player victim, Player killer, String causeLabel) {
-		String name = characterOrName(victim);
-		String killerLine = null;
-		if (GraveLoader.isHologramShowKiller()) {
-			if (killer != null) {
-				killerLine = characterOrName(killer);
-			} else if (causeLabel != null && !causeLabel.isBlank()) {
-				killerLine = causeLabel;
-			}
-		}
-		return formatHologram(name, killerLine);
-	}
-
-	private static String formatHologram(String name, String killerLine) {
-		if (killerLine == null || killerLine.isBlank()) {
-			return name;
-		}
-		return name + "\n" + killerLine;
-	}
-
-	private static String characterOrName(Player player) {
-		if (player == null) {
-			return "Unknown";
-		}
-		String character = DisplayIdentityService.resolveCharacterName(player);
-		if (character != null && !character.isBlank()) {
-			return character;
-		}
-		return player.getName() != null ? player.getName() : "Unknown";
-	}
-
-	private static String offlineName(UUID id) {
-		if (id == null) {
-			return "Unknown";
-		}
-		String name = Bukkit.getOfflinePlayer(id).getName();
-		return name != null && !name.isBlank() ? name : "Unknown";
 	}
 
 	private static Block findColumnSupport(Location deathLocation) {
@@ -414,7 +379,8 @@ public final class GraveManager {
 		if (grave == null) {
 			return;
 		}
-		TextDisplayHelper.removeDisplay(grave.getHologramId());
+		GraveVisualManager.get().removeGrave(grave.getId());
+		GraveVisualManager.cleanupLegacyHologram(grave);
 		Location loc = grave.getBlockLocation();
 		if (loc != null && loc.getWorld() != null) {
 			Block block = loc.getBlock();
@@ -465,7 +431,7 @@ public final class GraveManager {
 		record.protect = grave.isProtected();
 		record.created = grave.getCreated();
 		record.experience = grave.getExperience();
-		record.hologramUuid = grave.getHologramId() != null ? grave.getHologramId().toString() : null;
+		record.hologramUuid = null;
 		Location loc = grave.getBlockLocation();
 		if (loc != null && loc.getWorld() != null) {
 			record.world = loc.getWorld().getUID().toString();

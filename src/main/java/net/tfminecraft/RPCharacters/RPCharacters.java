@@ -81,9 +81,11 @@ import net.tfminecraft.RPCharacters.professions.ProfessionCommandHandler;
 import net.tfminecraft.RPCharacters.professions.ProfessionEffectService;
 import net.tfminecraft.RPCharacters.professions.ProfessionListener;
 import net.tfminecraft.RPCharacters.grave.GraveDeathListener;
+import net.tfminecraft.RPCharacters.grave.GraveInsuranceListener;
 import net.tfminecraft.RPCharacters.grave.GraveInteractListener;
 import net.tfminecraft.RPCharacters.grave.GraveLoader;
 import net.tfminecraft.RPCharacters.grave.GraveManager;
+import net.tfminecraft.RPCharacters.grave.GraveVisualManager;
 import net.tfminecraft.RPCharacters.grave.LastSolidTracker;
 import net.tfminecraft.RPCharacters.pvp.PvpCommand;
 import net.tfminecraft.RPCharacters.pvp.PvpKnockoutManager;
@@ -230,6 +232,7 @@ public class RPCharacters extends JavaPlugin{
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.stopPeriodicPull();
 		WardrobeService.stopSoftRefresh();
 		ProtocolLibBridge.shutdown();
+		GraveVisualManager.get().shutdown();
 		SpeechBubbleManager.get().shutdown();
 		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().shutdown();
 		spawnedClueManager.shutdown();
@@ -287,6 +290,7 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(pvpCommand, this);
 		getServer().getPluginManager().registerEvents(new GraveDeathListener(), this);
 		getServer().getPluginManager().registerEvents(new GraveInteractListener(), this);
+		getServer().getPluginManager().registerEvents(new GraveInsuranceListener(), this);
 	}
 	public void startManagers() {
 		playerManager.start();
@@ -294,6 +298,7 @@ public class RPCharacters extends JavaPlugin{
 		net.tfminecraft.RPCharacters.playtime.PlaytimeService.startTicks();
 		SpeechBubbleManager.get().startTicks();
 		ProtocolLibBridge.init(this);
+		GraveVisualManager.get().startTicks();
 		FakeBubbleManager.get().startTicks();
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.startPeriodicPull(this);
 		WardrobeService.startSoftRefresh(this);

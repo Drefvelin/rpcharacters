@@ -6,6 +6,7 @@ snapshot-interval-ticks: 20
 expire-seconds: 0
 material: CHEST
 hologram-offset-y: 1.2
+hologram-radius: 32
 
 # Optional: never copy these slots at all.
 # excluded-slots: []
@@ -23,7 +24,13 @@ excluded-slot-items:
     - v.diamond_hoe
 
 # TLibs item paths that never enter a grave (any slot).
-excluded-items: []
+excluded-items:
+  - m.miscellanea.grave_insurance
+
+# Right-click to recover your newest grave from anywhere (consumes one charge on success).
+insurance:
+  item: m.miscellanea.grave_insurance
+  consume: true
 
 messages:
   locked: "&cThis grave is locked."
@@ -31,3 +38,5 @@ messages:
   inventory-full: "&eSome items did not fit and were dropped."
   empty: "&7There is nothing left here."
   placed: "&eYour grave was placed at &f{x}, {y}, {z} &ein {world}."
+  insurance-none: "&eYou have no grave to recover."
+  rob-hint: "&aRight click to rob"

@@ -29,15 +29,21 @@ public final class GraveLoader implements LoaderInterface {
 	private static int expireSeconds = 0;
 	private static Material material = Material.CHEST;
 	private static double hologramOffsetY = 1.2;
+	private static double hologramRadius = 32.0;
 	private static Set<Integer> excludedSlots = new HashSet<>();
 	private static List<String> excludedItems = new ArrayList<>();
 	private static Map<Integer, List<String>> excludedSlotItems = new HashMap<>();
+
+	private static String insuranceItemPath = "m.miscellanea.grave_insurance";
+	private static boolean insuranceConsume = true;
 
 	private static String messageLocked = "&cThis grave is locked.";
 	private static String messageRecovered = "&aYou recovered your belongings.";
 	private static String messageInventoryFull = "&eSome items did not fit and were dropped.";
 	private static String messageEmpty = "&7There is nothing left here.";
 	private static String messagePlaced = "&eYour grave was placed at &f{x}, {y}, {z} &ein {world}.";
+	private static String messageInsuranceNone = "&eYou have no grave to recover.";
+	private static String messageRobHint = "&aRight click to rob";
 
 	@Override
 	public void load(File configFile) {
@@ -54,6 +60,7 @@ public final class GraveLoader implements LoaderInterface {
 		snapshotIntervalTicks = Math.max(1L, config.getLong("snapshot-interval-ticks", 20L));
 		expireSeconds = Math.max(0, config.getInt("expire-seconds", 0));
 		hologramOffsetY = config.getDouble("hologram-offset-y", 1.2);
+		hologramRadius = config.getDouble("hologram-radius", 32.0);
 
 		Material parsed = Material.matchMaterial(config.getString("material", "CHEST"));
 		material = parsed != null ? parsed : Material.CHEST;
@@ -62,11 +69,17 @@ public final class GraveLoader implements LoaderInterface {
 		excludedItems = parseExcludedItems(config.getStringList("excluded-items"));
 		excludedSlotItems = parseExcludedSlotItems(config.getConfigurationSection("excluded-slot-items"));
 
+		String configuredInsurance = config.getString("insurance.item", insuranceItemPath);
+		insuranceItemPath = configuredInsurance != null ? configuredInsurance.trim() : "";
+		insuranceConsume = config.getBoolean("insurance.consume", true);
+
 		messageLocked = config.getString("messages.locked", messageLocked);
 		messageRecovered = config.getString("messages.recovered", messageRecovered);
 		messageInventoryFull = config.getString("messages.inventory-full", messageInventoryFull);
 		messageEmpty = config.getString("messages.empty", messageEmpty);
 		messagePlaced = config.getString("messages.placed", messagePlaced);
+		messageInsuranceNone = config.getString("messages.insurance-none", messageInsuranceNone);
+		messageRobHint = config.getString("messages.rob-hint", messageRobHint);
 	}
 
 	private static Set<Integer> parseExcludedSlots(List<Integer> configured) {
@@ -165,6 +178,10 @@ public final class GraveLoader implements LoaderInterface {
 		return hologramOffsetY;
 	}
 
+	public static double getHologramRadius() {
+		return hologramRadius;
+	}
+
 	public static Set<Integer> getExcludedSlots() {
 		return Collections.unmodifiableSet(excludedSlots);
 	}
@@ -203,5 +220,28 @@ public final class GraveLoader implements LoaderInterface {
 
 	public static String getMessagePlaced() {
 		return messagePlaced;
+	}
+
+	public static boolean isInsuranceEnabled() {
+		return insuranceItemPath != null && !insuranceItemPath.isBlank();
+	}
+
+	public static boolean isInsuranceConsume() {
+		return insuranceConsume;
+	}
+
+	public static boolean isInsuranceItem(ItemStack item) {
+		if (!isInsuranceEnabled() || Grave.isBlank(item)) {
+			return false;
+		}
+		return TLibs.getItemAPI().getChecker().checkItemWithPath(item, insuranceItemPath);
+	}
+
+	public static String getMessageInsuranceNone() {
+		return messageInsuranceNone;
+	}
+
+	public static String getMessageRobHint() {
+		return messageRobHint;
 	}
 }
