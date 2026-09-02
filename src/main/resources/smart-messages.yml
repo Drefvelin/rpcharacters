@@ -1,5 +1,5 @@
 enabled: true
-debug-messages: true
+debug-messages: false
 generic-muffle: true
 sender-hears-self: true
 fade-start-percent: 0.6
