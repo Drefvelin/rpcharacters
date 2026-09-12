@@ -15,9 +15,9 @@ public final class PartyLoader implements LoaderInterface {
 	private static int maxNameLength = 32;
 
 	private static String playersOnly = "&cPlayers only.";
-	private static String usage = "&7Usage: /party create <name> | invite <player> | join | leave | kick <player> | info";
+	private static String usage = "&7Usage: /rpcharacter party create <name> | invite <player> | join | leave | kick <player> | info";
 	private static String created = "&aCreated party &e{name}&a.";
-	private static String invitedTarget = "&a{leader} invited you to party &e{name}&a. Type &e/party join &ato accept.";
+	private static String invitedTarget = "&a{leader} invited you to party &e{name}&a. Type &e/rpcharacter party join &ato accept.";
 	private static String invitedLeader = "&aInvited &e{player} &ato party &e{name}&a.";
 	private static String joined = "&aYou joined party &e{name}&a.";
 	private static String joinedNotify = "&a{player} joined the party.";
@@ -34,7 +34,7 @@ public final class PartyLoader implements LoaderInterface {
 	private static String targetInParty = "&cThat player is already in a party.";
 	private static String targetHasInvite = "&cThat player is already considering another party invite.";
 	private static String invalidName = "&cEnter a valid party name.";
-	private static String cannotKickSelf = "&cUse /party leave to leave the party.";
+	private static String cannotKickSelf = "&cUse /rpcharacter party leave to leave the party.";
 	private static String infoHeader = "&7Party &e{name} &7— leader: &e{leader}";
 	private static String infoLine = "&7- &f{player}";
 

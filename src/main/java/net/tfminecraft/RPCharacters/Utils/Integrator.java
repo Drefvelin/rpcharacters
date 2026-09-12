@@ -53,6 +53,15 @@ public class Integrator {
 		if(attribute == null) return;
 		attribute.setBase(attribute.getBase()-amount);
 	}
+
+	public void applyPendingRemoves(Player p, List<String> pending) {
+		if (p == null || pending == null || pending.isEmpty()) {
+			return;
+		}
+		for (String a : pending) {
+			remove(p, a);
+		}
+	}
 	public List<String> getRemoveList(Player p, RPCharacter c) {
 		List<String> remove = new ArrayList<>();
 		for(AttributeModifier m : c.getAttributeData().getModifiers()) {

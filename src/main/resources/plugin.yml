@@ -28,9 +28,6 @@ commands:
     usage: /<command> <start|lethal|nonlethal>
     description: PvP start warning and lethal or nonlethal mode
     permission: rpchar.pvp
-  party:
-    usage: /<command> create <name> | invite <player> | join | leave | kick <player> | info
-    description: Temporary party chat groups
 permissions:
   rpchar.profession.use:
     default: true

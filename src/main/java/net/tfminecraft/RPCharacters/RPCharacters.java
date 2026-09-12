@@ -93,7 +93,6 @@ import net.tfminecraft.RPCharacters.grave.LastSolidTracker;
 import net.tfminecraft.RPCharacters.pvp.PvpCommand;
 import net.tfminecraft.RPCharacters.pvp.PvpKnockoutManager;
 import net.tfminecraft.RPCharacters.party.PartyChatRecipientResolver;
-import net.tfminecraft.RPCharacters.party.PartyCommand;
 import net.tfminecraft.RPCharacters.party.PartyListener;
 import net.tfminecraft.RPCharacters.chat.ChatRecipientResolverRegistry;
 import net.tfminecraft.RPCharacters.roll.RollManager;
@@ -171,7 +170,6 @@ public class RPCharacters extends JavaPlugin{
 	private GraveLoader graveLoader;
 	private final PvpCommand pvpCommand = new PvpCommand();
 	private final PvpKnockoutManager pvpKnockoutManager = new PvpKnockoutManager();
-	private final PartyCommand partyCommand = new PartyCommand();
 	private final PartyListener partyListener = new PartyListener();
 	private final PartyChatRecipientResolver partyChatRecipientResolver = new PartyChatRecipientResolver();
 
@@ -237,8 +235,6 @@ public class RPCharacters extends JavaPlugin{
 		getCommand("channeltoggle").setTabCompleter(chatChannelCommandHandler);
 		getCommand(PvpCommand.COMMAND).setExecutor(pvpCommand);
 		getCommand(PvpCommand.COMMAND).setTabCompleter(pvpCommand);
-		getCommand(PartyCommand.COMMAND).setExecutor(partyCommand);
-		getCommand(PartyCommand.COMMAND).setTabCompleter(partyCommand);
 		ChatRecipientResolverRegistry.register(
 				net.tfminecraft.RPCharacters.party.PartyManager.PARTY_RESOLVER_ID,
 				partyChatRecipientResolver);
@@ -277,6 +273,7 @@ public class RPCharacters extends JavaPlugin{
 	
 	public void registerListeners() {
 		getServer().getPluginManager().registerEvents(playerManager, this);
+		getServer().getPluginManager().registerEvents(new net.tfminecraft.RPCharacters.mmocore.MmoCorePlayerReady(), this);
 		getServer().getPluginManager().registerEvents(creationManager, this);
 		getServer().getPluginManager().registerEvents(clueInputManager, this);
 		getServer().getPluginManager().registerEvents(placeClueManager, this);

@@ -3,38 +3,32 @@ package net.tfminecraft.RPCharacters.party;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import net.tfminecraft.RPCharacters.Loaders.PartyLoader;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
-public final class PartyCommand implements CommandExecutor, TabCompleter {
+public final class PartyCommand {
 
-	public static final String COMMAND = "party";
+	public static final String SUBCOMMAND = "party";
 
-	@Override
-	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if (!COMMAND.equalsIgnoreCase(command.getName())) {
-			return false;
-		}
+	private PartyCommand() {}
+
+	public static boolean handle(CommandSender sender, String[] args) {
 		if (!(sender instanceof Player player)) {
 			RPTexts.send(sender, PartyLoader.getPlayersOnly());
 			return true;
 		}
-		if (args == null || args.length == 0) {
+		if (args == null || args.length < 2) {
 			RPTexts.send(player, PartyLoader.getUsage());
 			return true;
 		}
 
-		String sub = args[0].toLowerCase(Locale.ROOT);
+		String sub = args[1].toLowerCase(Locale.ROOT);
 		return switch (sub) {
 			case "create" -> handleCreate(player, args);
 			case "invite" -> handleInvite(player, args);
@@ -49,24 +43,24 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
 		};
 	}
 
-	private boolean handleCreate(Player player, String[] args) {
-		if (args.length < 2) {
+	private static boolean handleCreate(Player player, String[] args) {
+		if (args.length < 3) {
 			RPTexts.send(player, PartyLoader.getUsage());
 			return true;
 		}
-		String name = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
+		String name = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
 		deliver(player, PartyManager.get().create(player.getUniqueId(), name));
 		return true;
 	}
 
-	private boolean handleInvite(Player player, String[] args) {
-		if (args.length != 2) {
+	private static boolean handleInvite(Player player, String[] args) {
+		if (args.length != 3) {
 			RPTexts.send(player, PartyLoader.getUsage());
 			return true;
 		}
-		Player target = Bukkit.getPlayerExact(args[1]);
+		Player target = Bukkit.getPlayerExact(args[2]);
 		if (target == null) {
-			RPTexts.send(player, PartyLoader.getTargetNotFound().replace("{player}", args[1]));
+			RPTexts.send(player, PartyLoader.getTargetNotFound().replace("{player}", args[2]));
 			return true;
 		}
 		PartyResult result = PartyManager.get().invite(player.getUniqueId(), target.getUniqueId());
@@ -82,7 +76,7 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
 		return true;
 	}
 
-	private boolean handleJoin(Player player) {
+	private static boolean handleJoin(Player player) {
 		PartyResult result = PartyManager.get().join(player.getUniqueId());
 		deliver(player, result);
 		if (result.ok() && result.kind() == PartyResult.Kind.MEMBER_JOINED) {
@@ -96,19 +90,19 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
 		return true;
 	}
 
-	private boolean handleLeave(Player player) {
+	private static boolean handleLeave(Player player) {
 		deliver(player, PartyManager.get().leave(player.getUniqueId()));
 		return true;
 	}
 
-	private boolean handleKick(Player player, String[] args) {
-		if (args.length != 2) {
+	private static boolean handleKick(Player player, String[] args) {
+		if (args.length != 3) {
 			RPTexts.send(player, PartyLoader.getUsage());
 			return true;
 		}
-		Player target = Bukkit.getPlayerExact(args[1]);
+		Player target = Bukkit.getPlayerExact(args[2]);
 		if (target == null) {
-			RPTexts.send(player, PartyLoader.getTargetNotFound().replace("{player}", args[1]));
+			RPTexts.send(player, PartyLoader.getTargetNotFound().replace("{player}", args[2]));
 			return true;
 		}
 		PartyResult result = PartyManager.get().kick(player.getUniqueId(), target.getUniqueId());
@@ -119,7 +113,7 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
 		return true;
 	}
 
-	private boolean handleInfo(Player player) {
+	private static boolean handleInfo(Player player) {
 		Party party = PartyManager.get().getParty(player.getUniqueId());
 		if (party == null) {
 			RPTexts.send(player, PartyLoader.getNotInParty());
@@ -131,7 +125,7 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
 		return true;
 	}
 
-	private void deliver(Player player, PartyResult result) {
+	private static void deliver(Player player, PartyResult result) {
 		switch (result.kind()) {
 			case MEMBER_LEFT -> {
 				notifyMembers(result.notifyIds(), result.message());
@@ -170,13 +164,12 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
 		}
 	}
 
-	@Override
-	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+	public static List<String> tabComplete(CommandSender sender, String[] args) {
 		if (!(sender instanceof Player player)) {
 			return List.of();
 		}
-		if (args.length == 1) {
-			String prefix = args[0].toLowerCase(Locale.ROOT);
+		if (args.length == 2) {
+			String prefix = args[1].toLowerCase(Locale.ROOT);
 			List<String> options = List.of("create", "invite", "join", "leave", "kick", "info");
 			List<String> matches = new ArrayList<>();
 			for (String option : options) {
@@ -186,14 +179,14 @@ public final class PartyCommand implements CommandExecutor, TabCompleter {
 			}
 			return matches;
 		}
-		if (args.length == 2) {
-			String sub = args[0].toLowerCase(Locale.ROOT);
+		if (args.length == 3) {
+			String sub = args[1].toLowerCase(Locale.ROOT);
 			if ("invite".equals(sub) || "kick".equals(sub)) {
 				Party party = PartyManager.get().getParty(player.getUniqueId());
 				if (party == null || !party.isLeader(player.getUniqueId())) {
 					return List.of();
 				}
-				String prefix = args[1].toLowerCase(Locale.ROOT);
+				String prefix = args[2].toLowerCase(Locale.ROOT);
 				List<String> matches = new ArrayList<>();
 				for (Player online : Bukkit.getOnlinePlayers()) {
 					if ("kick".equals(sub) && online.equals(player)) {

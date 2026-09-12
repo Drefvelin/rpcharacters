@@ -37,6 +37,7 @@ import net.tfminecraft.RPCharacters.enums.Status;
 import net.tfminecraft.RPCharacters.injuries.RpInjureService;
 import net.tfminecraft.RPCharacters.identity.TempAliasService;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
+import net.tfminecraft.RPCharacters.party.PartyCommand;
 import net.tfminecraft.RPCharacters.wardrobe.WardrobeCommand;
 
 public class CommandManager implements Listener, CommandExecutor{
@@ -53,6 +54,9 @@ public class CommandManager implements Listener, CommandExecutor{
 		}
 		if (args.length >= 1 && args[0].equalsIgnoreCase(WardrobeCommand.SUBCOMMAND)) {
 			return WardrobeCommand.handle(sender, label, args);
+		}
+		if (args.length >= 1 && args[0].equalsIgnoreCase(PartyCommand.SUBCOMMAND)) {
+			return PartyCommand.handle(sender, args);
 		}
 		if (args.length >= 1 && args[0].equalsIgnoreCase("admin")) {
 			return handleAdmin(sender, args);

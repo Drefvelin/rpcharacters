@@ -3,9 +3,9 @@ max-name-length: 32
 
 messages:
   players-only: '&cPlayers only.'
-  usage: '&7Usage: /party create <name> | invite <player> | join | leave | kick <player> | info'
-  created: '&aCreated party &e{name}&a. Invite friends with &e/party invite <player>&a.'
-  invited-target: '&a{leader} invited you to party &e{name}&a. Type &e/party join &ato accept.'
+  usage: '&7Usage: /rpcharacter party create <name> | invite <player> | join | leave | kick <player> | info'
+  created: '&aCreated party &e{name}&a. Invite friends with &e/rpcharacter party invite <player>&a.'
+  invited-target: '&a{leader} invited you to party &e{name}&a. Type &e/rpcharacter party join &ato accept.'
   invited-leader: '&aInvited &e{player} &ato party &e{name}&a.'
   joined: '&aYou joined party &e{name}&a.'
   joined-notify: '&a{player} joined the party.'
@@ -22,6 +22,6 @@ messages:
   target-in-party: '&cThat player is already in a party.'
   target-has-invite: '&cThat player is already considering another party invite.'
   invalid-name: '&cEnter a valid party name.'
-  cannot-kick-self: '&cUse /party leave to leave the party.'
+  cannot-kick-self: '&cUse /rpcharacter party leave to leave the party.'
   info-header: '&7Party &e{name} &7— leader: &e{leader}'
   info-line: '&7- &f{player}'

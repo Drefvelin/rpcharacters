@@ -55,6 +55,7 @@ import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.mmocore.AttributePointService;
 import net.tfminecraft.RPCharacters.mmocore.ClassService;
+import net.tfminecraft.RPCharacters.mmocore.MmoCorePlayerReady;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
 import net.tfminecraft.RPCharacters.enums.ConfirmType;
@@ -332,6 +333,7 @@ public class PlayerManager implements Listener{
 		net.tfminecraft.RPCharacters.grave.GraveVisualManager.get().clearViewer(p.getUniqueId());
 		net.tfminecraft.RPCharacters.clues.discovery.ClueAdminModeService.clear(p);
 		TempAliasService.clear(p);
+		MmoCorePlayerReady.cancel(p.getUniqueId());
 		PlayerData pd = get(p);
 		if (pd != null && pd.hasActiveCharacter()) {
 			// Prevent MMOCore from persisting stacked attribute bases for the next login.
@@ -366,35 +368,45 @@ public class PlayerManager implements Listener{
 			if(pd == null) {
 				pd = new PlayerData(p);
 			}
-			data.add(pd);
-			AttributePointService.migrateAttributePointsIfNeeded(p, pd);
-			if(!pd.hasActiveCharacter() && pd.getCharacters(Status.ALIVE).size() > 0) {
-				pd.setActiveCharacter(pd.getCharacters(Status.ALIVE).get(0));
-			} else if(pd.hasActiveCharacter()) {
-				RPCharacter active = pd.getActiveCharacter();
-				AttributePointService.syncOnActivate(active);
-				net.tfminecraft.RPCharacters.professions.ProfessionIntegrator.apply(p, active);
-				net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle.fireActivated(
-						p, pd.getUniqueId(), active, null);
-			} else {
-				net.Indyuce.mmocore.api.player.PlayerData.get(p).setAttributePoints(0);
+			final PlayerData loaded = pd;
+			data.add(loaded);
+			if(!loaded.hasActiveCharacter() && loaded.getCharacters(Status.ALIVE).size() > 0) {
+				loaded.setActiveCharacter(loaded.getCharacters(Status.ALIVE).get(0));
 			}
-			net.Indyuce.mmocore.api.player.PlayerData.get(p).setAttributeReallocationPoints(0);
-			PermissionGroupService.enforceNameColourOnLogin(p, pd);
-			ClassService.migrateSkillPointsIfNeeded(p);
-			ClassService.trackFromPlayer(p);
-			ClassService.sanitizeForeignSkillLevels(p);
-			net.tfminecraft.RPCharacters.professions.ProfessionPointService.bootstrapLifetimeFromMmoCore(p);
-			ClassService.applyFreeSkillPoints(p);
+			PermissionGroupService.enforceNameColourOnLogin(p, loaded);
 			net.tfminecraft.RPCharacters.clues.discovery.InvestigationPointService.bootstrap(p);
 			reevaluateFreeze(p);
-			if (pd.hasActiveCharacter()) {
+			if (loaded.hasActiveCharacter()) {
 				net.tfminecraft.RPCharacters.kit.KitCustomiseApplyService.applyStoredForPlayer(
-						p, pd.getActiveCharacter()
+						p, loaded.getActiveCharacter()
 				);
 				net.tfminecraft.RPCharacters.wardrobe.WardrobeService.refreshActiveAsync(p);
 			}
+			MmoCorePlayerReady.runWhenLoaded(p, () -> applyMmoOnJoin(p, loaded));
 		}
+	}
+
+	private void applyMmoOnJoin(Player p, PlayerData pd) {
+		if (p == null || !p.isOnline() || pd == null) {
+			return;
+		}
+		new Integrator().applyPendingRemoves(p, pd.takePendingMmoAttributeRemoves());
+		AttributePointService.migrateAttributePointsIfNeeded(p, pd);
+		if(pd.hasActiveCharacter()) {
+			RPCharacter active = pd.getActiveCharacter();
+			AttributePointService.syncOnActivate(active);
+			net.tfminecraft.RPCharacters.professions.ProfessionIntegrator.apply(p, active);
+			net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle.fireActivated(
+					p, pd.getUniqueId(), active, null);
+		} else {
+			net.Indyuce.mmocore.api.player.PlayerData.get(p).setAttributePoints(0);
+		}
+		net.Indyuce.mmocore.api.player.PlayerData.get(p).setAttributeReallocationPoints(0);
+		ClassService.migrateSkillPointsIfNeeded(p);
+		ClassService.trackFromPlayer(p);
+		ClassService.sanitizeForeignSkillLevels(p);
+		net.tfminecraft.RPCharacters.professions.ProfessionPointService.bootstrapLifetimeFromMmoCore(p);
+		ClassService.applyFreeSkillPoints(p);
 	}
 	public void confirmClick(Player p, RPCharacter c, ConfirmType t) {
 		if(t.equals(ConfirmType.KILL)) {

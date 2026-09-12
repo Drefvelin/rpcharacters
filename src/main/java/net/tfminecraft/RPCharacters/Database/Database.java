@@ -79,17 +79,13 @@ public class Database {
 		if (file.exists()) {
         	try {
 				json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+				List<String> pendingMmoRemoves = new ArrayList<>();
 				if(json.containsKey("to remove")) {
-					List<String> remove = new ArrayList<>();
-					int i = 0;
 					JSONArray removeArray = (JSONArray) json.get("to remove");
+					int i = 0;
 					while(i < removeArray.size()) {
-						remove.add(removeArray.get(i).toString());
+						pendingMmoRemoves.add(removeArray.get(i).toString());
 						i++;
-					}
-					Integrator integrator = new Integrator();
-					for(String a : remove) {
-						integrator.remove(p, a);
 					}
 				}
 				Long lastCharacterSwitchAtMs = null;
@@ -133,6 +129,7 @@ public class Database {
 					pd.setLastKitGrantAtMs(((Number) json.get("last-kit-grant-ms")).longValue());
 				}
 				loadCharacters(pd);
+				pd.setPendingMmoAttributeRemoves(pendingMmoRemoves);
 				return pd;
 			} catch (Exception ex) {
 				ex.printStackTrace();

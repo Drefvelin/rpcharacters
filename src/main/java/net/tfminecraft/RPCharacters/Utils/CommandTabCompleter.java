@@ -21,6 +21,7 @@ import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Permissions;
 import net.tfminecraft.RPCharacters.command.CharCommand;
 import net.tfminecraft.RPCharacters.persona.PermissionGroupService;
+import net.tfminecraft.RPCharacters.party.PartyCommand;
 import net.tfminecraft.RPCharacters.wardrobe.WardrobeCommand;
 
 public class CommandTabCompleter implements TabCompleter {
@@ -49,6 +50,7 @@ public class CommandTabCompleter implements TabCompleter {
 			completions.add("edit");
 			completions.add("clues");
 			completions.add("wardrobe");
+			completions.add("party");
 			completions.add("injure");
 			completions.addAll(PERSONA_SUBCOMMANDS);
 			if (Permissions.isAdmin(sender)) {
@@ -84,6 +86,9 @@ public class CommandTabCompleter implements TabCompleter {
 		String sub = args[0].toLowerCase(Locale.ROOT);
 		if (CharCommand.isPersonaSubcommand(sub)) {
 			return completePersona(sender, sub, args);
+		}
+		if (sub.equals(PartyCommand.SUBCOMMAND)) {
+			return PartyCommand.tabComplete(sender, args);
 		}
 
 		List<String> completions = new ArrayList<>();
