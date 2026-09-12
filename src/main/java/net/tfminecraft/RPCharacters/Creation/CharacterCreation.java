@@ -80,6 +80,7 @@ public class CharacterCreation {
 	
 
 	private AttributeData tempData;
+	private final java.util.Map<String, AttributeData> attributeStageContributions = new java.util.HashMap<>();
 
 
 
@@ -353,6 +354,15 @@ public class CharacterCreation {
 
 		return tempData;
 
+	}
+
+	public void setAttributeStageContribution(String key, AttributeData data) {
+		// Replace only bonuses previously included in this session's preview totals.
+		AttributeData previous = attributeStageContributions.put(key.toLowerCase(java.util.Locale.ROOT), data);
+		if (previous != null) {
+			tempData.mergeFromReverse(previous);
+		}
+		tempData.mergeFrom(data);
 	}
 
 	
