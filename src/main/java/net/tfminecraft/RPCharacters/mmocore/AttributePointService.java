@@ -30,6 +30,9 @@ public final class AttributePointService {
 		Map<String, Integer> allocation = new HashMap<>();
 		int spent = 0;
 		for (AttributeInstance instance : mmoPd.getAttributes().getInstances()) {
+			if (IgnoredAttributes.isIgnored(instance.getId())) {
+				continue;
+			}
 			int creationBase = character.getCreationBaseAmount(instance.getId());
 			int extra = Math.max(0, instance.getBase() - creationBase);
 			if (extra > 0) {
@@ -47,6 +50,9 @@ public final class AttributePointService {
 		}
 		net.Indyuce.mmocore.api.player.PlayerData mmoPd = net.Indyuce.mmocore.api.player.PlayerData.get(player);
 		for (Map.Entry<String, Integer> entry : character.getExtraAttributeAllocation().entrySet()) {
+			if (IgnoredAttributes.isIgnored(entry.getKey())) {
+				continue;
+			}
 			AttributeInstance instance = mmoPd.getAttributes().getInstance(entry.getKey());
 			if (instance == null || entry.getValue() == null || entry.getValue() <= 0) {
 				continue;
@@ -224,6 +230,9 @@ public final class AttributePointService {
 			String target = null;
 			int highest = 0;
 			for (Map.Entry<String, Integer> entry : mutable.entrySet()) {
+				if (IgnoredAttributes.isIgnored(entry.getKey())) {
+					continue;
+				}
 				if (entry.getValue() != null && entry.getValue() > highest) {
 					highest = entry.getValue();
 					target = entry.getKey();
@@ -257,6 +266,9 @@ public final class AttributePointService {
 	private static void zeroAllBases(Player player) {
 		net.Indyuce.mmocore.api.player.PlayerData mmoPd = net.Indyuce.mmocore.api.player.PlayerData.get(player);
 		for (AttributeInstance instance : mmoPd.getAttributes().getInstances()) {
+			if (IgnoredAttributes.isIgnored(instance.getId())) {
+				continue;
+			}
 			instance.setBase(0);
 		}
 	}

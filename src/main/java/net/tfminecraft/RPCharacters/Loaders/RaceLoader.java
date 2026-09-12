@@ -23,6 +23,7 @@ public class RaceLoader implements LoaderInterface{
 	
 	@Override
 	public void load(File configFile) {
+		oList.clear();
 		
 		FileConfiguration config = new YamlConfiguration();
         try {

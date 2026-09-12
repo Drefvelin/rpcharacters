@@ -73,6 +73,37 @@ public final class PartyLoader implements LoaderInterface {
 		cannotKickSelf = config.getString("messages.cannot-kick-self", cannotKickSelf);
 		infoHeader = config.getString("messages.info-header", infoHeader);
 		infoLine = config.getString("messages.info-line", infoLine);
+
+		playersOnly = migratePartyCommand(playersOnly);
+		usage = migratePartyCommand(usage);
+		created = migratePartyCommand(created);
+		invitedTarget = migratePartyCommand(invitedTarget);
+		invitedLeader = migratePartyCommand(invitedLeader);
+		joined = migratePartyCommand(joined);
+		joinedNotify = migratePartyCommand(joinedNotify);
+		noInvite = migratePartyCommand(noInvite);
+		inviteExpired = migratePartyCommand(inviteExpired);
+		alreadyInParty = migratePartyCommand(alreadyInParty);
+		notInParty = migratePartyCommand(notInParty);
+		notLeader = migratePartyCommand(notLeader);
+		disbanded = migratePartyCommand(disbanded);
+		memberLeft = migratePartyCommand(memberLeft);
+		memberKicked = migratePartyCommand(memberKicked);
+		kickedNotify = migratePartyCommand(kickedNotify);
+		targetNotFound = migratePartyCommand(targetNotFound);
+		targetInParty = migratePartyCommand(targetInParty);
+		targetHasInvite = migratePartyCommand(targetHasInvite);
+		invalidName = migratePartyCommand(invalidName);
+		cannotKickSelf = migratePartyCommand(cannotKickSelf);
+		infoHeader = migratePartyCommand(infoHeader);
+		infoLine = migratePartyCommand(infoLine);
+	}
+
+	static String migratePartyCommand(String message) {
+		if (message == null || message.isEmpty()) {
+			return message;
+		}
+		return message.replace("/party", "/rpcharacter party");
 	}
 
 	public static int getInviteExpirySeconds() {

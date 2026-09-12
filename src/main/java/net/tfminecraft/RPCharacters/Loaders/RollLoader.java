@@ -2,9 +2,11 @@ package net.tfminecraft.RPCharacters.Loaders;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -72,6 +74,17 @@ public final class RollLoader implements LoaderInterface {
 			}
 			attributeModifiers.put(attributeId.toLowerCase(Locale.ROOT), table);
 		}
+	}
+
+	public static boolean isKnownAttribute(String attributeId) {
+		if (attributeId == null || attributeId.isBlank()) {
+			return false;
+		}
+		return attributeModifiers.containsKey(attributeId.toLowerCase(Locale.ROOT));
+	}
+
+	public static Set<String> getAttributeIds() {
+		return Collections.unmodifiableSet(attributeModifiers.keySet());
 	}
 
 	public static int getModifier(String attributeId, int attributeValue) {

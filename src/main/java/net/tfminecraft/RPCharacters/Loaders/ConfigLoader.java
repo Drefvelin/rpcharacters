@@ -3,7 +3,10 @@ package net.tfminecraft.RPCharacters.Loaders;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -27,6 +30,13 @@ public class ConfigLoader implements LoaderInterface{
         if(config.contains("attributes")) {
         	Cache.attributes = config.getStringList("attributes");
         }
+        Set<String> ignoredAttributes = new HashSet<>();
+        for (String attributeId : config.getStringList("ignored-attributes")) {
+        	if (attributeId != null && !attributeId.isBlank()) {
+        		ignoredAttributes.add(attributeId.trim().toLowerCase(Locale.ROOT));
+        	}
+        }
+        Cache.ignoredAttributes = ignoredAttributes;
         if(config.contains("professions")) {
         	Cache.professions = config.getStringList("professions");
         }

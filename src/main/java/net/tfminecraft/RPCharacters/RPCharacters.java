@@ -227,6 +227,7 @@ public class RPCharacters extends JavaPlugin{
 		getCommand(commandManager.cmd1).setExecutor(commandManager);
 		getCommand("rpcharacter").setTabCompleter(new CommandTabCompleter());
 		getCommand("roll").setExecutor(rollManager);
+		getCommand("roll").setTabCompleter(rollManager);
 		getCommand(ProfessionCommandHandler.COMMAND).setExecutor(professionCommandHandler);
 		getCommand(ProfessionCommandHandler.COMMAND).setTabCompleter(professionCommandHandler);
 		getCommand("channel").setExecutor(chatChannelCommandHandler);

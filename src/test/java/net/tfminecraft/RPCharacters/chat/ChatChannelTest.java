@@ -13,7 +13,7 @@ class ChatChannelTest {
 	void parsesRecipientResolverFromConfig() {
 		YamlConfiguration config = new YamlConfiguration();
 		config.set("commands", java.util.List.of("gooc"));
-		config.set("format", "&f[&6GOOC&f] &f{display}&7: &6{message}");
+		config.set("format", "&f[&6GOOC&f] &f{player}: &7{message}");
 		config.set("recipient-resolver", "simplefactions:guild");
 
 		ChatChannel channel = new ChatChannel("gooc", config);

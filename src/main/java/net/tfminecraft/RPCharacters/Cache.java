@@ -2,11 +2,14 @@ package net.tfminecraft.RPCharacters;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Cache {
 	public static List<String> attributes = new ArrayList<>();
+	public static Set<String> ignoredAttributes = new HashSet<>();
 	public static List<String> professions = new ArrayList<>();
 	
 	public static List<String> backgroundTraitTypes = new ArrayList<>();

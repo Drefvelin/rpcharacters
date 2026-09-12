@@ -3,7 +3,6 @@ package net.tfminecraft.RPCharacters.chat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.bukkit.configuration.ConfigurationSection;
 
 public final class ChatChannel {

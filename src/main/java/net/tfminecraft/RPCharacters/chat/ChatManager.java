@@ -137,10 +137,10 @@ public final class ChatManager implements Listener {
 
 		Set<Player> recipients = buildRecipients(player, channel);
 
-		boolean wearingMask = MaskService.isMasked(player);
-		String displayName = channel.isMasked() && wearingMask
-			? MaskService.getMaskedLabel()
-			: DisplayIdentityService.resolveDisplayUnmasked(player);
+		boolean wearingMask = channel.isMasked() && MaskService.isMasked(player);
+		String displayName = wearingMask
+				? MaskService.getMaskedLabel()
+				: DisplayIdentityService.resolveDisplayUnmasked(player);
 
 		if (SpeechBubbleDebug.isEnabled() && channel.hasSpeechBubble()) {
 			SpeechBubbleDebug.log("chat-dispatch", "firing CharacterChatEvent, recipients=" + recipients.size());

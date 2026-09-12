@@ -155,8 +155,7 @@ channels:
     use-perm: rpchar.chat.use
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
-    masked: true
-    format: '&f[&6GOOC&f] &f{display}&7: &6{message}'
+    format: '&f[&6GOOC&f] &f{player}: &7{message}'
     recipient-resolver: simplefactions:guild
     cooldown: 3
     bubble: false
@@ -167,8 +166,7 @@ channels:
     use-perm: rpchar.chat.use
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
-    masked: true
-    format: '&f[&bFOOC&f] &f{display}&7: &b{message}'
+    format: '&f[&bFOOC&f] &f{player}: &7{message}'
     recipient-resolver: simplefactions:faction
     cooldown: 3
     bubble: false
@@ -179,8 +177,7 @@ channels:
     use-perm: rpchar.chat.use
     read-perm: rpchar.chat.use
     color-code-perm: rpchar.chat.colors
-    masked: true
-    format: '&f[&dPOOC&f] &f{display}&7: &d{message}'
+    format: '&f[&dPOOC&f] &f{player}: &7{message}'
     recipient-resolver: rpcharacters:party
     cooldown: 3
     bubble: false
