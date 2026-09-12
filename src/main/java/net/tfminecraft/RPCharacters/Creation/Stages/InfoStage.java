@@ -112,10 +112,12 @@ public class InfoStage extends Stage{
 		if(type.equalsIgnoreCase("title")) {
 
 			p.sendTitle(info, " ", 5, interval-10, 5);
+			p.sendMessage(info);
 
 		} else if(type.equalsIgnoreCase("subtitle")) {
 
 			p.sendTitle(" ", info, 5, interval-10, 5);
+			p.sendMessage(info);
 
 		} else if(type.equalsIgnoreCase("chat")) {
 

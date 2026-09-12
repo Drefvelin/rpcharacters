@@ -6,7 +6,7 @@ welcome_stage:
   messages:
   - title(§aWelcome to TFMC)
   - subtitle(§ePlease pay attention to the screen)
-  - subtitle(§eIf you cannot see the full text your GUI scale is too big)
+  - subtitle(§eYou can also read these instructions in chat)
   - 'subtitle(§eMissed something? Use #32ed73/rpcharacter help§e to read it in chat)'
   - subtitle(§eTo play on the server you must first make a character)
   - 'subtitle(§eUse #32ed73/rpcharacter next§e to move on)'

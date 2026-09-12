@@ -48,8 +48,10 @@ public class ClueStage extends Stage {
 		String info = RPTexts.formatGui(message.split("\\(")[1].replace(")", ""));
 		if (type.equalsIgnoreCase("title")) {
 			p.sendTitle(info, " ", 5, 50, 5);
+			p.sendMessage(info);
 		} else if (type.equalsIgnoreCase("subtitle")) {
 			p.sendTitle(" ", info, 5, 50, 5);
+			p.sendMessage(info);
 		} else if (type.equalsIgnoreCase("chat")) {
 			p.sendMessage(info);
 		}
