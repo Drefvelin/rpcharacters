@@ -999,7 +999,7 @@ public class InventoryManager {
 			if(amount > 0) {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.GUI_SUCCESS + "+" + amount));
 			} else if(amount < 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.MUTED + amount));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.ERROR + amount));
 			} else {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.GUI_WARN + "0"));
 			}
@@ -1010,7 +1010,7 @@ public class InventoryManager {
 			if(amount > 0) {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.GUI_SUCCESS + "+" + amount + "%"));
 			} else if(amount < 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.MUTED + amount + "%"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.ERROR + amount + "%"));
 			} else {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.GUI_WARN + "0%"));
 			}
@@ -1300,7 +1300,7 @@ public class InventoryManager {
 			} else if(added == 0) {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + amount));
 			} else {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + amount + " " + RPTexts.MUTED + "(" + added + ")"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + amount + " " + RPTexts.ERROR + "(" + added + ")"));
 			}
 		}
 		lore.add(RPTexts.spacer());
@@ -1317,7 +1317,7 @@ public class InventoryManager {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + amount + RPTexts.GUI_WARN + "%"));
 			} else if(added < 0){
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + amount + RPTexts.GUI_WARN + "% "
-						+ RPTexts.MUTED + "(" + added + RPTexts.GUI_WARN + "%" + RPTexts.MUTED + ")"));
+						+ RPTexts.ERROR + "(" + added + RPTexts.GUI_WARN + "%" + RPTexts.ERROR + ")"));
 			}
 		}
 	}
