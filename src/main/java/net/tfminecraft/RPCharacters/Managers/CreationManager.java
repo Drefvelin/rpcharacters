@@ -188,24 +188,33 @@ public class CreationManager implements Listener{
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void chatEvent(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
-		if (!activeCreators.containsKey(player)) {
+		CharacterCreation cc = activeCreators.get(player);
+		if (cc == null) {
 			return;
 		}
 		if (ClueInputManager.isPending(player)) {
 			return;
 		}
 		event.setCancelled(true);
-		CharacterCreation cc = activeCreators.get(player);
 		Stage activeStage = cc.getActiveStage();
-		if (activeStage instanceof QuestionStage) {
-			cc.answerQuestion(event.getMessage());
-		} else if (activeStage instanceof SetterStage setter) {
-			setter.finish(event.getMessage(), player, cc);
-		} else if (activeStage instanceof ClueStage clue) {
-			clue.finish(event.getMessage(), player, cc);
-		} else {
-			sendChatBlockedDuringCreationHint(player);
-		}
+		String message = event.getMessage();
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				// Serialize submissions and never apply queued input to a different stage/session.
+				if (activeCreators.get(player) != cc || cc.isCancelled()
+						|| cc.getActiveStage() != activeStage) return;
+				if (activeStage instanceof QuestionStage) {
+					cc.answerQuestion(message);
+				} else if (activeStage instanceof SetterStage setter) {
+					setter.finish(message, player, cc);
+				} else if (activeStage instanceof ClueStage clue) {
+					clue.finish(message, player, cc);
+				} else {
+					sendChatBlockedDuringCreationHint(player);
+				}
+			}
+		}.runTask(RPCharacters.plugin);
 	}
 
 	public static void next(Player p) {

@@ -3,6 +3,7 @@ package net.tfminecraft.RPCharacters.Creation.Stages;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import me.plugins.tlibs.shaded.lang3.text.WordUtils;
 import net.tfminecraft.RPCharacters.Cache;
@@ -10,6 +11,7 @@ import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
+import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.calendar.AgeCalculator;
 import net.tfminecraft.RPCharacters.calendar.FantasyCalendar;
@@ -22,6 +24,8 @@ public class SetterStage extends Stage{
 	private String target;
 	
 	private String message;
+	private boolean submitted;
+	private BukkitTask advanceTask;
 	
 	public SetterStage(Stage s, ConfigurationSection config) {
 		copyBaseFields(s);
@@ -56,6 +60,11 @@ public class SetterStage extends Stage{
 	}
 	public void execute(Player p, CharacterCreation cc) {
 		if(cc.isCancelled()) return;
+		if (advanceTask != null) {
+			advanceTask.cancel();
+			advanceTask = null;
+		}
+		submitted = false;
 		runMessage(p, message);
 	}
 
@@ -82,6 +91,11 @@ public class SetterStage extends Stage{
 
 	@SuppressWarnings("deprecation")
 	public void finish(String n, Player p, CharacterCreation cc) {
+		if (cc.isCancelled() || cc.getActiveStage() != this) return;
+		if (submitted) {
+			RPTexts.send(p, RPTexts.MUTED + "Already saved. Wait for the next prompt.");
+			return;
+		}
 		if (target != null && target.equalsIgnoreCase("age")) {
 			handleAge(n, p, cc);
 			return;
@@ -111,7 +125,7 @@ public class SetterStage extends Stage{
 				RPTexts.send(p, RPTexts.ERROR + "Write " + RPTexts.WARN + "yes " + RPTexts.MUTED + "or " + RPTexts.WARN + "no.");
 				return;
 			}
-			scheduleAdvance(cc);
+			scheduleAdvance(p, cc);
 			return;
 		}
 
@@ -131,7 +145,7 @@ public class SetterStage extends Stage{
 		RPTexts.title(p, " ", RPTexts.MUTED + WordUtils.capitalize(target) + " set to " + RPTexts.WARN + n, 5, 50, 5);
 		RPTexts.send(p, RPTexts.MUTED + WordUtils.capitalize(target) + " set to " + RPTexts.WARN + n);
 		cc.getCharacter().modify(target, n);
-		scheduleAdvance(cc);
+		scheduleAdvance(p, cc);
 	}
 
 	private void handleDescription(String input, Player p, CharacterCreation cc) {
@@ -144,7 +158,7 @@ public class SetterStage extends Stage{
 		cc.getCharacter().setPersonaDescription(text);
 		RPTexts.title(p, " ", RPTexts.MUTED + "Description saved", 5, 50, 5);
 		RPTexts.send(p, RPTexts.MUTED + "Description saved (" + RPTexts.WARN + text.length() + RPTexts.MUTED + " characters).");
-		scheduleAdvance(cc);
+		scheduleAdvance(p, cc);
 	}
 
 	private void handleAge(String input, Player p, CharacterCreation cc) {
@@ -181,7 +195,7 @@ public class SetterStage extends Stage{
 		RPTexts.title(p, " ", RPTexts.MUTED + "Age set to " + RPTexts.WARN + age, 5, 50, 5);
 		RPTexts.send(p, RPTexts.MUTED + "Age set to " + RPTexts.WARN + age + RPTexts.MUTED + " (born "
 				+ RPTexts.WARN + formattedBirthday + RPTexts.MUTED + ").");
-		scheduleAdvance(cc);
+		scheduleAdvance(p, cc);
 	}
 
 	private static Integer parseAge(String input) {
@@ -199,11 +213,14 @@ public class SetterStage extends Stage{
 		}
 	}
 
-	private void scheduleAdvance(CharacterCreation cc) {
-		new BukkitRunnable()
+	private void scheduleAdvance(Player p, CharacterCreation cc) {
+		submitted = true;
+		advanceTask = new BukkitRunnable()
 		{
 			public void run()
 			{
+				if (cc.isCancelled() || cc.getActiveStage() != SetterStage.this
+						|| CreationManager.activeCreators.get(p) != cc) return;
 				if (cc.isEditingFromSummary()) {
 					cc.returnToSummary();
 				} else if(autoNext()) {

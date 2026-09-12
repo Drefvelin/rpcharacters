@@ -9,10 +9,12 @@ import java.util.Set;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
+import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Objects.Question;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
@@ -22,6 +24,8 @@ public class QuestionStage extends Stage{
 	
 	private int amount;
 	private int currentQuestion;
+	private boolean awaitingNextQuestion;
+	private BukkitTask questionTask;
 	
 	public QuestionStage(Stage s, ConfigurationSection config) {
 		copyBaseFields(s);
@@ -75,19 +79,30 @@ public class QuestionStage extends Stage{
 	}
 	public void execute(Player p, CharacterCreation cc) {
 		if(cc.isCancelled()) return;
+		if (questionTask != null) {
+			questionTask.cancel();
+			questionTask = null;
+		}
 		if(currentQuestion >= questions.size()) {
 			if(autoNext()) {
 				cc.runStage();
 			} else {
 				cc.setCanNext(true);
 			}
+			return;
 		}
+		awaitingNextQuestion = false;
 		Question q = questions.get(currentQuestion);
 		RPTexts.title(p, RPTexts.SUCCESS + "Question " + (currentQuestion + 1),
 				RPTexts.formatGui(q.getQuestion()), 5, 60, 5);
 	}
 	
 	public void checkAnswer(String m, Player p, CharacterCreation cc) {
+		if (cc.isCancelled() || cc.getActiveStage() != this) return;
+		if (awaitingNextQuestion) {
+			RPTexts.send(p, RPTexts.MUTED + "Answer saved. Wait for the next prompt.");
+			return;
+		}
 		if(currentQuestion >= questions.size()) {
 			return;
 		}
@@ -95,10 +110,13 @@ public class QuestionStage extends Stage{
 		if(q.isCorrect(m)) {
 			RPTexts.title(p, RPTexts.SUCCESS + "Correct!", " ", 2, 16, 2);
 			currentQuestion++;
-			new BukkitRunnable()
+			awaitingNextQuestion = true;
+			questionTask = new BukkitRunnable()
 			{
 				public void run()
 				{
+					if (cc.isCancelled() || cc.getActiveStage() != QuestionStage.this
+							|| CreationManager.activeCreators.get(p) != cc) return;
 					execute(p, cc);
 				}
 			}.runTaskLater(RPCharacters.plugin, 20L);

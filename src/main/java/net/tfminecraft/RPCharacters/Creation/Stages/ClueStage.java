@@ -3,10 +3,12 @@ package net.tfminecraft.RPCharacters.Creation.Stages;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
+import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.enums.ClueAddResult;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
@@ -14,6 +16,8 @@ import net.tfminecraft.RPCharacters.Utils.RPTexts;
 public class ClueStage extends Stage {
 
 	private String message;
+	private boolean submitted;
+	private BukkitTask advanceTask;
 
 	public ClueStage(Stage s, ConfigurationSection config) {
 		copyBaseFields(s);
@@ -31,6 +35,11 @@ public class ClueStage extends Stage {
 
 	public void execute(Player p, CharacterCreation cc) {
 		if (cc.isCancelled()) return;
+		if (advanceTask != null) {
+			advanceTask.cancel();
+			advanceTask = null;
+		}
+		submitted = false;
 		RPCharacter character = cc.getCharacter();
 		runMessage(p, formatMessage(message, character));
 	}
@@ -58,7 +67,11 @@ public class ClueStage extends Stage {
 	}
 
 	public void finish(String raw, Player p, CharacterCreation cc) {
-		if (cc.isCancelled()) return;
+		if (cc.isCancelled() || cc.getActiveStage() != this) return;
+		if (submitted) {
+			RPTexts.send(p, RPTexts.MUTED + "All clues saved. Wait for the next prompt.");
+			return;
+		}
 		RPCharacter character = cc.getCharacter();
 		ClueAddResult result = character.addPlayerClue(raw);
 		if (result != ClueAddResult.SUCCESS) {
@@ -79,9 +92,12 @@ public class ClueStage extends Stage {
 			return;
 		}
 
-		new BukkitRunnable() {
+		submitted = true;
+		advanceTask = new BukkitRunnable() {
 			@Override
 			public void run() {
+				if (cc.isCancelled() || cc.getActiveStage() != ClueStage.this
+						|| CreationManager.activeCreators.get(p) != cc) return;
 				if (autoNext()) {
 					cc.runStage();
 				} else {
