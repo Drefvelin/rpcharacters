@@ -166,6 +166,23 @@ public class CreationManager implements Listener{
 		return cc != null && !cc.isEditing() && !cc.isPreview()
 				&& cc.getCharacter().getId().equals(characterId);
 	}
+
+	public static void sendChatBlockedDuringCreationHint(Player player) {
+		RPTexts.send(player, RPTexts.ERROR + "Chat is blocked during character creation.");
+		RPTexts.send(player, RPTexts.MUTED + "Type " + RPTexts.COMMAND + "/rpcharacter help "
+				+ RPTexts.MUTED + "for guidance on this stage.");
+	}
+
+	public static boolean isChatInputStage(Player player) {
+		CharacterCreation cc = activeCreators.get(player);
+		if (cc == null) {
+			return false;
+		}
+		Stage stage = cc.getActiveStage();
+		return stage instanceof QuestionStage
+				|| stage instanceof SetterStage
+				|| stage instanceof ClueStage;
+	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void chatEvent(AsyncPlayerChatEvent event) {
@@ -186,8 +203,7 @@ public class CreationManager implements Listener{
 		} else if (activeStage instanceof ClueStage clue) {
 			clue.finish(event.getMessage(), player, cc);
 		} else {
-			RPTexts.send(player, RPTexts.ERROR + "Use the summary buttons or "
-					+ RPTexts.COMMAND + "/rpcharacter back.");
+			sendChatBlockedDuringCreationHint(player);
 		}
 	}
 

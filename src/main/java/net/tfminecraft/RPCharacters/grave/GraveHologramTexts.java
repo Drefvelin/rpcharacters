@@ -21,14 +21,28 @@ public final class GraveHologramTexts {
 		Player owner = Bukkit.getPlayer(grave.getOwner());
 		String name = owner != null ? characterOrName(owner) : offlineName(grave.getOwner());
 		lines.add(name);
-		if (GraveLoader.isHologramShowKiller() && grave.getKiller() != null) {
-			Player killer = Bukkit.getPlayer(grave.getKiller());
-			String killerLine = killer != null ? characterOrName(killer) : offlineName(grave.getKiller());
+		if (GraveLoader.isHologramShowKiller()) {
+			String killerLine = killerLine(grave);
 			if (killerLine != null && !killerLine.isBlank()) {
 				lines.add(killerLine);
 			}
 		}
+		String timerLine = GraveTimerFormat.timerLine(grave);
+		if (timerLine != null && !timerLine.isBlank()) {
+			lines.add(timerLine);
+		}
 		return lines;
+	}
+
+	private static String killerLine(Grave grave) {
+		String stored = grave.getKillerDisplay();
+		if (stored != null && !stored.isBlank()) {
+			return stored;
+		}
+		if (grave.getKiller() != null) {
+			return "Killed by " + offlineName(grave.getKiller());
+		}
+		return null;
 	}
 
 	public static List<String> linesForViewer(Player viewer, Grave grave) {

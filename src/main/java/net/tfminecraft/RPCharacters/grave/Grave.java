@@ -17,6 +17,7 @@ public final class Grave {
 	private final UUID id;
 	private final UUID owner;
 	private UUID killer;
+	private String killerDisplay;
 	private boolean protect;
 	private final long created;
 	private int experience;
@@ -37,12 +38,13 @@ public final class Grave {
 		this.extras = new ArrayList<>();
 	}
 
-	Grave(UUID id, UUID owner, UUID killer, boolean protect, long created, int experience,
+	Grave(UUID id, UUID owner, UUID killer, String killerDisplay, boolean protect, long created, int experience,
 			ItemStack[] storage, ItemStack[] armor, ItemStack offhand, List<ItemStack> extras,
 			UUID hologramId, Location block) {
 		this.id = id;
 		this.owner = owner;
 		this.killer = killer;
+		this.killerDisplay = killerDisplay;
 		this.protect = protect;
 		this.created = created;
 		this.experience = Math.max(0, experience);
@@ -72,6 +74,14 @@ public final class Grave {
 
 	public void setKiller(UUID killer) {
 		this.killer = killer;
+	}
+
+	public String getKillerDisplay() {
+		return killerDisplay;
+	}
+
+	public void setKillerDisplay(String killerDisplay) {
+		this.killerDisplay = killerDisplay;
 	}
 
 	public boolean isProtected() {

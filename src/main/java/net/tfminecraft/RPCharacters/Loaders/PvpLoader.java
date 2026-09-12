@@ -20,6 +20,7 @@ public final class PvpLoader implements LoaderInterface {
 
 	private static String startWarning = "&ePvP will start in {seconds} seconds!";
 	private static String countdown = "&c{count}";
+	private static String startedTitle = "&cPVP STARTED";
 	private static String lethal = "&aThis character is now in lethal PvP.";
 	private static String nonlethal = "&aThis character is now in nonlethal PvP.";
 	private static String usage = "&7Usage: /pvp start | lethal | nonlethal";
@@ -45,6 +46,7 @@ public final class PvpLoader implements LoaderInterface {
 
 		startWarning = config.getString("messages.start-warning", startWarning);
 		countdown = config.getString("messages.countdown", countdown);
+		startedTitle = config.getString("messages.started-title", startedTitle);
 		lethal = config.getString("messages.lethal", lethal);
 		nonlethal = config.getString("messages.nonlethal", nonlethal);
 		usage = config.getString("messages.usage", usage);
@@ -83,6 +85,10 @@ public final class PvpLoader implements LoaderInterface {
 
 	public static String getCountdown() {
 		return countdown;
+	}
+
+	public static String getStartedTitle() {
+		return startedTitle;
 	}
 
 	public static String getLethal() {

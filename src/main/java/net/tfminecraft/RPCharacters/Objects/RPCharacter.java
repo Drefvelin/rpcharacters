@@ -92,6 +92,13 @@ public class RPCharacter {
 
 	/** Default lethal (vanilla death). Missing JSON key loads as true. */
 	private boolean pvpLethal = true;
+
+	private static final int MAX_FOOD_VALUE = 200;
+	private static final int MAX_DIET_SCORE = 40;
+
+	private int foodValue;
+	private int dietScore;
+	private String lastDietTierId;
 	
 	private AttributeData attributeData;
 	
@@ -190,6 +197,30 @@ public class RPCharacter {
 
 	public void setPvpLethal(boolean pvpLethal) {
 		this.pvpLethal = pvpLethal;
+	}
+
+	public int getFoodValue() {
+		return foodValue;
+	}
+
+	public void setFoodValue(int foodValue) {
+		this.foodValue = Math.max(0, Math.min(foodValue, MAX_FOOD_VALUE));
+	}
+
+	public int getDietScore() {
+		return dietScore;
+	}
+
+	public void setDietScore(int dietScore) {
+		this.dietScore = Math.max(0, Math.min(dietScore, MAX_DIET_SCORE));
+	}
+
+	public String getLastDietTierId() {
+		return lastDietTierId;
+	}
+
+	public void setLastDietTierId(String lastDietTierId) {
+		this.lastDietTierId = lastDietTierId;
 	}
 
 	public String getLastLocationWorld() {

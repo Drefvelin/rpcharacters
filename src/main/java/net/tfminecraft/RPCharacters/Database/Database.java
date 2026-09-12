@@ -271,6 +271,7 @@ public class Database {
 				loadTraitState(c, json);
 				loadLastLocation(c, json);
 				loadPvpLethal(c, json);
+				loadNutritionFields(c, json);
 				c.ensureTraitStateDefaults();
     				if (c.getSlug() == null || c.getSlug().isBlank()) {
     					pd.assignSlug(c);
@@ -409,6 +410,7 @@ public class Database {
 			saveTraitState(defaults, c);
 			saveLastLocation(defaults, c);
 			defaults.put("pvp-lethal", String.valueOf(c.isPvpLethal()));
+			saveNutritionFields(defaults, c);
         	save(file, defaults);
 			net.tfminecraft.RPCharacters.mail.MailRecipientDirectory.upsert(pd.getUniqueId(), c);
         } catch (Throwable ex) {
@@ -586,6 +588,35 @@ public class Database {
 		}
 		if (raw != null) {
 			character.setPvpLethal(Boolean.parseBoolean(String.valueOf(raw)));
+		}
+	}
+
+	private void loadNutritionFields(RPCharacter character, JSONObject characterJson) {
+		if (characterJson == null) {
+			return;
+		}
+		if (characterJson.containsKey("food-value")) {
+			character.setFoodValue(((Number) characterJson.get("food-value")).intValue());
+		}
+		if (characterJson.containsKey("diet-score")) {
+			character.setDietScore(((Number) characterJson.get("diet-score")).intValue());
+		}
+		if (characterJson.containsKey("last-diet-tier")) {
+			Object raw = characterJson.get("last-diet-tier");
+			if (raw != null) {
+				character.setLastDietTierId(raw.toString());
+			}
+		}
+	}
+
+	private void saveNutritionFields(HashMap<String, Object> defaults, RPCharacter c) {
+		if (c == null) {
+			return;
+		}
+		defaults.put("food-value", c.getFoodValue());
+		defaults.put("diet-score", c.getDietScore());
+		if (c.getLastDietTierId() != null && !c.getLastDietTierId().isBlank()) {
+			defaults.put("last-diet-tier", c.getLastDietTierId());
 		}
 	}
 

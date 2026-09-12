@@ -2,7 +2,6 @@ package net.tfminecraft.RPCharacters.grave;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -57,9 +55,9 @@ public final class GraveDeathListener implements Listener {
 				: null;
 		boolean protect = GraveLoader.isProtectByDefault() || victim.hasPermission(PROTECT_PERMISSION);
 		int experience = event.getDroppedExp();
-		String causeLabel = causeLabel(victim);
+		String killerDisplay = GraveKillerDisplay.build(victim, killerPlayer);
 
-		Grave grave = GraveManager.get().spawn(victim, chestBlock, killer, causeLabel, experience, protect,
+		Grave grave = GraveManager.get().spawn(victim, chestBlock, killer, killerDisplay, experience, protect,
 				storage, armor, offhand, List.of());
 		if (grave == null) {
 			return;
@@ -165,17 +163,5 @@ public final class GraveDeathListener implements Listener {
 				.replace("{world}", world);
 		String formatted = StringFormatter.formatHex(text.replace('&', '\u00A7'));
 		placedNotice.put(player.getUniqueId(), formatted);
-	}
-
-	private static String causeLabel(Player victim) {
-		EntityDamageEvent last = victim.getLastDamageCause();
-		if (last == null) {
-			return null;
-		}
-		String raw = last.getCause().name().toLowerCase(Locale.ROOT).replace('_', ' ');
-		if (raw.isEmpty()) {
-			return null;
-		}
-		return Character.toUpperCase(raw.charAt(0)) + raw.substring(1);
 	}
 }

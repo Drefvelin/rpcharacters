@@ -1,15 +1,10 @@
 package net.tfminecraft.RPCharacters.chat;
 
-import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import net.tfminecraft.RPCharacters.Loaders.ChatLoader;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 public final class ChatChannelExecutor implements CommandExecutor {
@@ -21,28 +16,22 @@ public final class ChatChannelExecutor implements CommandExecutor {
 			return true;
 		}
 
-		String channelKey = ChatLoader.resolveChannelFromCommand(label.toLowerCase(Locale.ROOT));
-		if (channelKey == null) {
+		String raw = "/" + label;
+		if (args != null && args.length > 0) {
+			raw = raw + " " + String.join(" ", args);
+		}
+
+		ParsedChannelCommand parsed = ChatChannelCommandParser.parse(raw);
+		if (parsed == null) {
 			return true;
 		}
 
-		ChatChannel channel = ChatLoader.getChannel(channelKey);
-		if (channel == null) {
+		if (!parsed.hasMessage()) {
+			RPTexts.send(player, RPTexts.ERROR + "Usage: /" + parsed.label() + " <message>");
 			return true;
 		}
 
-		if (args == null || args.length == 0) {
-			RPTexts.send(player, RPTexts.ERROR + "Usage: /" + label + " <message>");
-			return true;
-		}
-
-		String message = Stream.of(args).collect(Collectors.joining(" ")).stripLeading();
-		if (message.isEmpty()) {
-			RPTexts.send(player, RPTexts.ERROR + "Usage: /" + label + " <message>");
-			return true;
-		}
-
-		ChatManager.dispatch(player, channel, message, true);
+		ChatManager.dispatch(player, parsed.channel(), parsed.message(), true);
 		return true;
 	}
 }

@@ -1,0 +1,27 @@
+invite-expiry-seconds: 60
+max-name-length: 32
+
+messages:
+  players-only: '&cPlayers only.'
+  usage: '&7Usage: /party create <name> | invite <player> | join | leave | kick <player> | info'
+  created: '&aCreated party &e{name}&a. Invite friends with &e/party invite <player>&a.'
+  invited-target: '&a{leader} invited you to party &e{name}&a. Type &e/party join &ato accept.'
+  invited-leader: '&aInvited &e{player} &ato party &e{name}&a.'
+  joined: '&aYou joined party &e{name}&a.'
+  joined-notify: '&a{player} joined the party.'
+  no-invite: '&cYou have no party invite to accept.'
+  invite-expired: '&cThat party invite has expired.'
+  already-in-party: '&cYou are already in a party.'
+  not-in-party: '&cYou are not in a party.'
+  not-leader: '&cOnly the party leader can do that.'
+  disbanded: '&eThe party has been disbanded.'
+  member-left: '&e{player} left the party.'
+  member-kicked: '&c{player} was removed from the party.'
+  kicked-notify: '&cYou were removed from the party.'
+  target-not-found: '&cCould not find the player {player}.'
+  target-in-party: '&cThat player is already in a party.'
+  target-has-invite: '&cThat player is already considering another party invite.'
+  invalid-name: '&cEnter a valid party name.'
+  cannot-kick-self: '&cUse /party leave to leave the party.'
+  info-header: '&7Party &e{name} &7— leader: &e{leader}'
+  info-line: '&7- &f{player}'
