@@ -127,7 +127,7 @@ public class Cache {
 	public static int rollAltMax = 200;
 	public static int rollD20Min = 1;
 	public static int rollD20Max = 20;
-	public static String rollBroadcastText = "&e{player} &7rolled a &6{roll}{modifier} &7out of {max}.";
+	public static String rollBroadcastText = "&e{display} &7rolled a &6{roll}{modifier} &7out of {max}.";
 	public static int rollBroadcastRange = 20;
 
 	public static int calendarYearOffset = 1654;

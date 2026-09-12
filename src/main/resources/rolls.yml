@@ -14,7 +14,7 @@ d20:
   max: 20
 
 broadcast:
-  text: '&e{player} &7rolled a &6{roll}{modifier} &7out of {max}.'
+  text: '&e{display} &7rolled a &6{roll}{modifier} &7out of {max}.'
   range: 20
 
 attribute-modifiers:

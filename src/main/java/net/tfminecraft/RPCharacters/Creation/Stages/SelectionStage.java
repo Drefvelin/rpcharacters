@@ -251,6 +251,10 @@ public class SelectionStage extends Stage{
 			RPTexts.send(p, RPTexts.ERROR + "Need at least " + minSelect + ".");
 			return;
 		}
+		if(hasPoints && points < 0) {
+			RPTexts.send(p, RPTexts.ERROR + "Cannot afford this trait");
+			return;
+		}
 		active = false;
 		p.closeInventory();
 		if(cc != null) {
