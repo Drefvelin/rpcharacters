@@ -13,6 +13,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 
 
@@ -31,6 +32,7 @@ public class InfoStage extends Stage{
 	
 
 	private int interval;
+	private BukkitTask messageTask;
 
 	
 
@@ -136,8 +138,11 @@ public class InfoStage extends Stage{
 	}
 
 	public void execute(Player p, CharacterCreation cc) {
+		stopMessages();
+		if (cc.isCancelled()) return;
+		cc.setCanNext(true);
 
-		new BukkitRunnable()
+		messageTask = new BukkitRunnable()
 
 		{
 
@@ -147,9 +152,10 @@ public class InfoStage extends Stage{
 
 			{
 
-				if(isCancelled() || cc.isCancelled()) {
+				if(InfoStage.this.isCancelled() || cc.isCancelled() || cc.getActiveStage() != InfoStage.this) {
 
 					this.cancel();
+					return;
 
 				}
 
@@ -179,6 +185,13 @@ public class InfoStage extends Stage{
 
 		}.runTaskTimer(RPCharacters.plugin, 0L, interval*1L);
 
+	}
+
+	public void stopMessages() {
+		if (messageTask != null) {
+			messageTask.cancel();
+			messageTask = null;
+		}
 	}
 
 }

@@ -24,6 +24,7 @@ import net.tfminecraft.RPCharacters.Creation.SummaryEditSupport;
 import net.tfminecraft.RPCharacters.Creation.StageEditLock;
 import net.tfminecraft.RPCharacters.Creation.Stages.AttributesStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.ClueStage;
+import net.tfminecraft.RPCharacters.Creation.Stages.InfoStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
@@ -210,6 +211,10 @@ public class CreationManager implements Listener{
 	public static void next(Player p) {
 		if(activeCreators.containsKey(p)) {
 			CharacterCreation cc = activeCreators.get(p);
+			if (cc.getActiveStage() instanceof InfoStage info) {
+				info.stopMessages();
+				p.resetTitle();
+			}
 			if (cc.isEditingFromSummary()) {
 				cc.returnToSummary();
 				return;
