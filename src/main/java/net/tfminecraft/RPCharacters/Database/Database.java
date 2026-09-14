@@ -594,6 +594,8 @@ public class Database {
 		}
 		if (characterJson.containsKey("food-value")) {
 			character.setFoodValue(((Number) characterJson.get("food-value")).intValue());
+		} else {
+			character.setFoodValue(RPCharacter.MAX_FOOD_VALUE);
 		}
 		if (characterJson.containsKey("diet-score")) {
 			character.setDietScore(((Number) characterJson.get("diet-score")).intValue());

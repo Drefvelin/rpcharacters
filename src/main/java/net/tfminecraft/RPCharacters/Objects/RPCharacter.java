@@ -93,10 +93,10 @@ public class RPCharacter {
 	/** Default lethal (vanilla death). Missing JSON key loads as true. */
 	private boolean pvpLethal = true;
 
-	private static final int MAX_FOOD_VALUE = 200;
+	public static final int MAX_FOOD_VALUE = 200;
 	private static final int MAX_DIET_SCORE = 40;
 
-	private int foodValue;
+	private int foodValue = MAX_FOOD_VALUE;
 	private int dietScore;
 	private String lastDietTierId;
 	

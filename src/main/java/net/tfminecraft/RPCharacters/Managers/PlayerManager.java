@@ -29,7 +29,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.Indyuce.mmocore.api.event.PlayerChangeClassEvent;
 import net.Indyuce.mmocore.api.event.PlayerLevelUpEvent;
 import net.Indyuce.mmocore.api.event.PlayerExperienceGainEvent;
-import net.Indyuce.mmocore.api.player.attribute.PlayerAttributes.AttributeInstance;
 import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.identity.TempAliasService;
 import net.tfminecraft.RPCharacters.injuries.InjuryHealingService;
@@ -836,6 +835,12 @@ public class PlayerManager implements Listener{
 			if (!ClassService.isApplying(player.getUniqueId())) {
 				ClassService.restoreAccountProgression(player);
 			}
+			if (cc.isEditing()) {
+				RPCharacter character = cc.getCharacter();
+				if (character.isActive()) {
+					scheduleAttributeReapply(player, character);
+				}
+			}
 			return;
 		}
 
@@ -845,7 +850,6 @@ public class PlayerManager implements Listener{
 
 		if (pd.hasActiveCharacter()) {
 			RPCharacter c = pd.getActiveCharacter();
-			final Map<String, Integer> map = (new Integrator()).get(player, c);
 			String oldClassId = c.getMMOClass();
 			String newClassId = e.getData().getProfess().getId();
 			c.setMMOClass(newClassId);
@@ -854,20 +858,19 @@ public class PlayerManager implements Listener{
 			if (!ClassService.isApplying(player.getUniqueId())) {
 				ClassService.restoreAccountProgression(player);
 			}
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					net.Indyuce.mmocore.api.player.PlayerData mpd = net.Indyuce.mmocore.api.player.PlayerData.get(player);
-					for (Map.Entry<String, Integer> entry : map.entrySet()) {
-						for (AttributeInstance a : mpd.getAttributes().getInstances()) {
-							if (a.getId().equalsIgnoreCase(entry.getKey())) {
-								a.setBase(entry.getValue());
-							}
-						}
-					}
-					AttributePointService.applyFreeAttributePoints(player, c);
-				}
-			}.runTaskLater(RPCharacters.plugin, 1L);
+			scheduleAttributeReapply(player, c);
 		}
+	}
+
+	private static void scheduleAttributeReapply(Player player, RPCharacter character) {
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				if (!player.isOnline() || character == null) {
+					return;
+				}
+				AttributePointService.applyCharacterAttributes(player, character);
+			}
+		}.runTaskLater(RPCharacters.plugin, 1L);
 	}
 }
