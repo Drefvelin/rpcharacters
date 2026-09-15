@@ -3,7 +3,6 @@ package net.tfminecraft.RPCharacters.professions;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -18,47 +17,70 @@ import net.tfminecraft.RPCharacters.Utils.RPTexts;
 public final class ProfessionItemFactory {
 	private ProfessionItemFactory() {}
 
-	public static ItemStack fromNode(Object node) {
+	public static ProfessionItemSpec snapshot(Object node) {
 		if (node == null) {
-			return new ItemStack(Material.BARRIER);
+			return ProfessionItemSpec.empty();
 		}
 		if (node instanceof String path) {
-			ItemStack item = fromPath(path);
-			return item != null ? item : new ItemStack(Material.BARRIER);
+			return new ProfessionItemSpec(path, null, null, null, List.of(), false, List.of());
 		}
 		if (node instanceof ConfigurationSection section) {
-			return fromConfig(section);
+			String path = section.getString("item");
+			if (path == null || path.isBlank()) {
+				path = section.getString("path");
+			}
+			String material = section.contains("material") ? section.getString("material") : null;
+			String name = section.contains("name") ? section.getString("name") : null;
+			Integer modelData = section.contains("model_data") ? section.getInt("model_data") : null;
+			List<String> enchants = section.contains("enchants")
+					? new ArrayList<>(section.getStringList("enchants"))
+					: List.of();
+			List<String> lore = section.contains("lore")
+					? new ArrayList<>(section.getStringList("lore"))
+					: List.of();
+			return new ProfessionItemSpec(path, material, name, modelData, enchants,
+					section.getBoolean("hide_enchants", false), lore);
 		}
-		return new ItemStack(Material.BARRIER);
+		return ProfessionItemSpec.empty();
 	}
 
-	public static ItemStack fromConfig(ConfigurationSection section) {
-		if (section == null) {
+	public static ItemStack fromNode(Object node) {
+		return build(snapshot(node));
+	}
+
+	public static ItemStack build(ProfessionItemSpec spec) {
+		if (spec == null) {
 			return new ItemStack(Material.BARRIER);
 		}
-		ItemStack item = resolveBase(section);
+		ItemStack item = resolveBase(spec);
 		ItemMeta meta = item.getItemMeta();
 		if (meta == null) {
 			return item;
 		}
-		if (section.contains("name")) {
-			meta.setDisplayName(formatItemText(section.getString("name")));
+		if (spec.hasName()) {
+			meta.setDisplayName(formatItemText(spec.getName()));
 		}
-		if (section.contains("model_data")) {
-			meta.setCustomModelData(section.getInt("model_data"));
+		if (spec.hasModelData()) {
+			meta.setCustomModelData(spec.getModelData());
 		}
-		if (section.contains("enchants")) {
-			for (String enchantSpec : section.getStringList("enchants")) {
+		if (spec.hasEnchants()) {
+			for (String enchantSpec : spec.getEnchants()) {
 				String[] parts = enchantSpec.split("\\.");
-				meta.addEnchant(Enchantment.getByKey(NamespacedKey.minecraft(parts[0])),
-						Integer.parseInt(parts[1]), true);
+				if (parts.length < 2) {
+					continue;
+				}
+				Enchantment enchant = Enchantment.getByKey(NamespacedKey.minecraft(parts[0]));
+				if (enchant == null) {
+					continue;
+				}
+				meta.addEnchant(enchant, Integer.parseInt(parts[1]), true);
 			}
 		}
-		if (section.getBoolean("hide_enchants", false)) {
+		if (spec.isHideEnchants()) {
 			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		}
 		List<String> lore = new ArrayList<>();
-		for (String line : section.getStringList("lore")) {
+		for (String line : spec.getLore()) {
 			lore.add(formatItemText(line));
 		}
 		if (!lore.isEmpty()) {
@@ -68,19 +90,9 @@ public final class ProfessionItemFactory {
 		return item;
 	}
 
-	private static ItemStack resolveBase(ConfigurationSection section) {
-		String path = section.getString("item");
-		if (path == null || path.isBlank()) {
-			path = section.getString("path");
-		}
-		Material fallbackMaterial = null;
-		if (section.contains("material")) {
-			try {
-				fallbackMaterial = Material.valueOf(section.getString("material", "BARRIER").toUpperCase());
-			} catch (IllegalArgumentException ignored) {
-				fallbackMaterial = Material.BARRIER;
-			}
-		}
+	private static ItemStack resolveBase(ProfessionItemSpec spec) {
+		Material fallbackMaterial = parseMaterial(spec.getMaterial());
+		String path = spec.getPath();
 		if (path != null && !path.isBlank()) {
 			ItemStack fromPath = fromPath(path);
 			if (fromPath != null) {
@@ -89,13 +101,23 @@ public final class ProfessionItemFactory {
 			if (fallbackMaterial != null) {
 				return new ItemStack(fallbackMaterial, 1);
 			}
-			Bukkit.getLogger().warning("[RPCharacters] Profession item path unresolved: " + path);
 			return new ItemStack(Material.BARRIER);
 		}
 		if (fallbackMaterial != null) {
 			return new ItemStack(fallbackMaterial, 1);
 		}
 		return new ItemStack(Material.BARRIER);
+	}
+
+	private static Material parseMaterial(String raw) {
+		if (raw == null || raw.isBlank()) {
+			return null;
+		}
+		try {
+			return Material.valueOf(raw.toUpperCase());
+		} catch (IllegalArgumentException ignored) {
+			return Material.BARRIER;
+		}
 	}
 
 	private static ItemStack fromPath(String ref) {

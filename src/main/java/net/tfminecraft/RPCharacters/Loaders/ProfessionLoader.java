@@ -48,7 +48,7 @@ public class ProfessionLoader implements LoaderInterface {
 				ProfessionUpgradeDefinition upgrade = new ProfessionUpgradeDefinition(
 						upgradeKey,
 						id,
-						ProfessionItemFactory.fromNode(upgradeSection.get("item")),
+						ProfessionItemFactory.snapshot(upgradeSection.get("item")),
 						upgradeSection.getInt("cost", 0),
 						upgradeSection.getString("type", "permission"),
 						requirements,
@@ -63,7 +63,7 @@ public class ProfessionLoader implements LoaderInterface {
 		ProfessionDefinition profession = new ProfessionDefinition(
 				id,
 				name,
-				ProfessionItemFactory.fromNode(config.get("item")),
+				ProfessionItemFactory.snapshot(config.get("item")),
 				upgradeDefs);
 		List<ProfessionDefinition> professions = new ArrayList<>(ProfessionRegistry.getProfessions());
 		professions.removeIf(p -> p.getId().equalsIgnoreCase(id));

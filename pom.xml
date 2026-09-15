@@ -9,18 +9,15 @@
     <version>1.1.6</version>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <worldguard.version>7.0.9</worldguard.version>
-        <tfmc.refs>${project.basedir}/libs</tfmc.refs>
+        <tfmc.refs>D:/Documents/TFMC/ReferenceLibs</tfmc.refs>
+        <tfmc.builds>D:/Documents/TFMC/Builds/RPCharacters</tfmc.builds>
+        <tfmc.tlibs>D:/Documents/TFMC/Builds/TLibs</tfmc.tlibs>
     </properties>
 
     <repositories>
-        <repository>
-            <id>papermc</id>
-            <url>https://repo.papermc.io/repository/maven-public/</url>
-        </repository>
         <repository>
             <id>enginehub</id>
             <url>https://maven.enginehub.org/repo/</url>
@@ -31,28 +28,30 @@
         <dependency>
             <groupId>local</groupId>
             <artifactId>ItemsAdder</artifactId>
-            <version>4.0.17</version>
+            <version>3.5.0-r2</version>
             <scope>system</scope>
-            <systemPath>${tfmc.refs}/ItemsAdder_4.0.17.jar</systemPath>
+            <systemPath>${tfmc.refs}/ItemsAdder_3.5.0-r2.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>TLibs</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${tfmc.refs}/TLibs-1.0.jar</systemPath>
+            <systemPath>${tfmc.tlibs}/TLibs.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
+            <groupId>local</groupId>
             <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
-            <scope>provided</scope>
+            <version>1.1</version>
+            <scope>system</scope>
+            <systemPath>${tfmc.refs}/json-simple-1.1.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>com.google.code.gson</groupId>
+            <groupId>local</groupId>
             <artifactId>gson</artifactId>
             <version>2.10.1</version>
-            <scope>provided</scope>
+            <scope>system</scope>
+            <systemPath>${tfmc.refs}/gson-2.10.1.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
@@ -64,16 +63,16 @@
         <dependency>
             <groupId>local</groupId>
             <artifactId>MMOItems</artifactId>
-            <version>6.10.1</version>
+            <version>6.10</version>
             <scope>system</scope>
-            <systemPath>${tfmc.refs}/MMOItems-6.10.1.jar</systemPath>
+            <systemPath>${tfmc.refs}/MMOItems-6.10.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>MythicLib</artifactId>
-            <version>1.7.1</version>
+            <version>1.7</version>
             <scope>system</scope>
-            <systemPath>${tfmc.refs}/MythicLib-dist-1.7.1.jar</systemPath>
+            <systemPath>${tfmc.refs}/MythicLib-1.7.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
@@ -82,12 +81,12 @@
             <scope>system</scope>
             <systemPath>${tfmc.refs}/PlaceholderAPI-2.12.2.jar</systemPath>
         </dependency>
-        <!-- Compile-time only; LuckPerms plugin provides API at runtime -->
         <dependency>
-            <groupId>net.luckperms</groupId>
-            <artifactId>api</artifactId>
+            <groupId>local</groupId>
+            <artifactId>LuckPerms</artifactId>
             <version>5.4</version>
-            <scope>provided</scope>
+            <scope>system</scope>
+            <systemPath>${tfmc.refs}/api-5.4.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>local</groupId>
@@ -97,16 +96,18 @@
             <systemPath>${tfmc.refs}/ProtocolLib.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>org.joml</groupId>
+            <groupId>local</groupId>
             <artifactId>joml</artifactId>
-            <version>1.10.5</version>
-            <scope>provided</scope>
+            <version>1.10.8</version>
+            <scope>system</scope>
+            <systemPath>${tfmc.refs}/joml-1.10.8.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>1.21.10-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <groupId>local</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.21.10</version>
+            <scope>system</scope>
+            <systemPath>${tfmc.refs}/spigot-api.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
@@ -117,9 +118,9 @@
         <dependency>
             <groupId>local</groupId>
             <artifactId>MythicMobs</artifactId>
-            <version>5.13.1-SNAPSHOT</version>
+            <version>5.8.0-SNAPSHOT</version>
             <scope>system</scope>
-            <systemPath>${tfmc.refs}/MythicMobsPremium-5.13.1-SNAPSHOT.jar</systemPath>
+            <systemPath>${tfmc.refs}/MythicMobs-5.8.0-SNAPSHOT.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -130,46 +131,35 @@
     </dependencies>
 
     <build>
-        <finalName>RPCharacters</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.1</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${tfmc.builds}"/>
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                    tofile="${tfmc.builds}/${project.build.finalName}.jar"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>deploy-live</id>
-            <activation>
-                <file>
-                    <exists>C:/Users/HP/Desktop/Java/Minecraft/Server Stuff/plugins/RPCharacters</exists>
-                </file>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>3.1.0</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals><goal>run</goal></goals>
-                                <configuration>
-                                    <target>
-                                        <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                              tofile="C:/Users/HP/Desktop/Java/Minecraft/Server Stuff/plugins/RPCharacters.jar"/>
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
 </project>
