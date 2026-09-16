@@ -13,17 +13,16 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
-import net.tfminecraft.RPCharacters.Loaders.ProstheticLoader;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.InventoryManager;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
-import net.tfminecraft.RPCharacters.Objects.ProstheticReplacement;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Utils.ProstheticTraitRules;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle;
 import net.tfminecraft.RPCharacters.mmocore.MmoCoreClassGuiHelper;
@@ -303,20 +302,9 @@ public class SelectionStage extends Stage{
 					}
 				}
 			}
-			if (target.equalsIgnoreCase("trait") && key != null && key.equalsIgnoreCase("prosthetic")) {
-				for (SelectableItem item : options) {
-					if (!item.isSelected() || !item.getType().equalsIgnoreCase("trait")) {
-						continue;
-					}
-					ProstheticReplacement replacement = ProstheticLoader.getReplacementForProsthetic(item.getId());
-					if (replacement == null) {
-						continue;
-					}
-					Trait injury = TraitLoader.getByString(replacement.getPermanentInjuryId());
-					if (injury != null) {
-						cc.getCharacter().removeTrait(injury);
-					}
-				}
+			if (target.equalsIgnoreCase("trait") && key != null
+					&& (key.equalsIgnoreCase("injury") || key.equalsIgnoreCase("prosthetic"))) {
+				ProstheticTraitRules.stripReplacedInjuries(cc.getCharacter());
 			}
 			new BukkitRunnable()
 			{

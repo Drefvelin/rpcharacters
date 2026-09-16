@@ -9,6 +9,8 @@ import me.Plugins.SimpleFactions.Map.MapRegion;
 import me.Plugins.SimpleFactions.Map.ProvinceGrid;
 import me.Plugins.SimpleFactions.Map.presence.ProvincePresenceService;
 import me.Plugins.SimpleFactions.SimpleFactions;
+import me.Plugins.SimpleFactions.War.battle.engine.core.Battle;
+import me.Plugins.SimpleFactions.War.battle.engine.core.BattleManager;
 import net.tfminecraft.RPCharacters.Loaders.PermadeathZoneLoader;
 import net.tfminecraft.RPCharacters.Objects.PermadeathZoneDefinition;
 import net.tfminecraft.RPCharacters.RPCharacters;
@@ -26,9 +28,19 @@ public final class SimpleFactionsRegionBridge {
 
 	public static void init() {
 		available = Bukkit.getPluginManager().isPluginEnabled("SimpleFactions");
-		if (available) {
-			RPCharacters.plugin.getLogger().info(
-					"SimpleFactions bridge enabled for permadeath map regions.");
+		if (!available) {
+			return;
+		}
+		RPCharacters.plugin.getLogger().info(
+				"SimpleFactions bridge enabled for permadeath map regions.");
+		try {
+			PermadeathBattleExemption.set(player -> {
+				Battle battle = BattleManager.getBattleByMemberId(player.getUniqueId());
+				return battle != null && battle.hasStarted();
+			});
+		} catch (NoClassDefFoundError | Exception ex) {
+			RPCharacters.plugin.getLogger().warning(
+					"SimpleFactions battle exemption failed: " + ex.getMessage());
 		}
 	}
 

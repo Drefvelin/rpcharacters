@@ -16,5 +16,7 @@ tutorial:
 # Keys under permadeath-zones are WorldGuard region ids or SimpleFactions
 # map-region ids from Input/regions.json (for example REGION_1).
 permadeath-zones:
-  mini_vard:
+  REGION_1:
+    name: "Westmarshes"
+  REGION_2:
     name: "Mount Vard"

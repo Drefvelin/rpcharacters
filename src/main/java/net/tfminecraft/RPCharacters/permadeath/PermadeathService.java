@@ -44,6 +44,9 @@ public final class PermadeathService {
 		if (ClueAdminModeService.isEnabled(player)) {
 			return;
 		}
+		if (PermadeathBattleExemption.isInStartedBattle(player)) {
+			return;
+		}
 		if (PermadeathAreaLookup.getPermadeathZoneAt(player, deathLocation) == null) {
 			return;
 		}

@@ -18,6 +18,7 @@ Two optional character creator stages for backstory permanent injuries and one p
 
 ```yaml
 type: selection
+lock-time: 24h
 target: trait
 key: injury
 filter: permanent-only   # new flag OR filter traits without duration
@@ -27,6 +28,8 @@ max-select: 99           # practical cap or unlimited
 gui-size: 54
 slots: [...]
 ```
+
+Locked 24 hours after character creation (wall-clock age), same as race selection. Staff with `rpchar.edit.bypass-lock` can still edit.
 
 ### `prosthetic_info_stage` (type: info)
 
@@ -38,6 +41,7 @@ slots: [...]
 
 ```yaml
 type: selection
+lock-time: 24h
 target: trait
 key: prosthetic
 min-select: 0
@@ -46,6 +50,19 @@ points: 1
 gui-size: 54
 slots: [...]
 ```
+
+Also locked 24 hours after character creation.
+
+## Prosthetic-wins sanitize
+
+If a character owns a prosthetic and the matching backstory permanent injury (see `prosthetics.yml` replacements, e.g. `one_handed` / `one_legged`), the injury is removed automatically:
+
+- On injury or prosthetic selection confirm (`SelectionStage`)
+- On edit save / return to summary (`CharacterCreation.persistEdits`)
+- On creation finish (`CharacterCreation.finish`)
+- On web create submit and wizard trait changes (ProvinceSystem)
+
+Prosthetic always wins; players cannot keep both via re-editing the injury stage within the lock window.
 
 ## `SelectionStage` / `InventoryManager` changes
 
@@ -68,4 +85,6 @@ Add `web-messages` blocks for both info stages (ProvinceSystem batch 10).
 - [x] Can pick multiple permanent injuries, 0 points
 - [x] Can pick at most one prosthetic, costs 1 point
 - [x] Prosthetic selectable without permanent injury
+- [x] Injury/prosthetic selection locked 24h after creation
+- [x] Matching backstory injury removed when prosthetic is present
 - [x] All option icons distinct and clear

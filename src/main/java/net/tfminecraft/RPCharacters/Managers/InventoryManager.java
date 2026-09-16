@@ -1213,7 +1213,14 @@ public class InventoryManager {
 		} else if(s.getType().equalsIgnoreCase("trait")) {
 			Trait t = TraitLoader.getByString(s.getId());
 			List<String> lore = new ArrayList<>();
-			for(String d : TraitEffectResolver.resolveDescription(cc.getCharacter(), t)) {
+			RPCharacter viewer = cc != null ? cc.getCharacter() : null;
+			if (viewer == null) {
+				PlayerData pd = PlayerManager.get(p);
+				if (pd != null && pd.hasActiveCharacter()) {
+					viewer = pd.getActiveCharacter();
+				}
+			}
+			for(String d : TraitEffectResolver.resolveDescription(viewer, t)) {
 				lore.add(d);
 			}
 			if(t.getTraitData().hasDependency()) {
@@ -1237,9 +1244,10 @@ public class InventoryManager {
 				}
 				lore.add(t(RPTexts.MUTED + "------------------------"));
 			}
-			if(t.getTraitData().getAttributeData().hasModifiers()) {
+			AttributeData traitAttributes = TraitEffectResolver.resolveAttributeData(viewer, t);
+			if(traitAttributes.hasModifiers()) {
 				lore.add(RPTexts.spacer());
-				addModifiers(p, lore, t.getTraitData().getAttributeData(), cc);
+				addModifiers(p, lore, traitAttributes, cc);
 				lore.add(RPTexts.spacer());
 			}
 			if(t.getTraitData().hasCost()) {
@@ -1282,6 +1290,9 @@ public class InventoryManager {
 	
 	@SuppressWarnings("deprecation")
 	public void addModifiers(Player p, List<String> lore, AttributeData data, CharacterCreation cc) {
+		if (data == null) {
+			return;
+		}
 		AttributeData current = null;
 		if(cc != null) {
 			current = cc.getTempData();
@@ -1289,33 +1300,31 @@ public class InventoryManager {
 			if(!PlayerManager.get(p).hasActiveCharacter()) return;
 			current = PlayerManager.get(p).getActiveCharacter().getAttributeData();
 		}
-		for(AttributeModifier m : current.getModifiers()) {
-			int displayAmount = Math.max(0, m.getAmount());
-			int added = 0;
-			if(data.hasModifier(m)) {
-				added = data.getAmount(m);
+		if (current == null) {
+			return;
+		}
+		for(AttributeModifier m : data.getModifiers()) {
+			int added = m.getAmount();
+			if (added == 0) {
+				continue;
 			}
+			int displayAmount = Math.max(0, current.getAmount(m));
 			if(added > 0) {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + displayAmount + " " + RPTexts.GUI_SUCCESS + "(+" + added + ")"));
-			} else if(added == 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + displayAmount));
 			} else {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + displayAmount + " " + RPTexts.ERROR + "(" + added + ")"));
 			}
 		}
-		lore.add(RPTexts.spacer());
-		for(ExperienceModifier m : current.getExperienceModifiers()) {
-			int displayAmount = Math.max(0, m.getModifier());
-			int added = 0;
-			if(data.hasXPModifier(m)) {
-				added = data.getAmount(m);
+		for(ExperienceModifier m : data.getExperienceModifiers()) {
+			int added = m.getModifier();
+			if (added == 0) {
+				continue;
 			}
+			int displayAmount = Math.max(0, current.getAmount(m));
 			if(added > 0) {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + displayAmount + RPTexts.GUI_WARN + "% "
 						+ RPTexts.GUI_SUCCESS + "(+" + added + RPTexts.GUI_WARN + "%" + RPTexts.GUI_SUCCESS + ")"));
-			} else if(added == 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + displayAmount + RPTexts.GUI_WARN + "%"));
-			} else if(added < 0){
+			} else {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + displayAmount + RPTexts.GUI_WARN + "% "
 						+ RPTexts.ERROR + "(" + added + RPTexts.GUI_WARN + "%" + RPTexts.ERROR + ")"));
 			}

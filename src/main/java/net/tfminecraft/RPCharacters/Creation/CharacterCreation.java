@@ -49,9 +49,12 @@ import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 
 import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
+import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
+import net.tfminecraft.RPCharacters.Objects.Trait.TraitEffectResolver;
 
 import net.tfminecraft.RPCharacters.enums.CharacterSessionMode;
 
+import net.tfminecraft.RPCharacters.Utils.ProstheticTraitRules;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
 
@@ -232,7 +235,7 @@ public class CharacterCreation {
 
 		cc.stages = StageLoader.getNew();
 
-		cc.tempData = new AttributeData();
+		cc.seedEditPreview();
 
 		return cc;
 
@@ -354,6 +357,39 @@ public class CharacterCreation {
 
 		return tempData;
 
+	}
+
+	private void seedEditPreview() {
+		if (character != null && character.getRace() != null) {
+			character.update();
+		}
+		tempData = new AttributeData(character != null ? character.getAttributeData() : null);
+		if (stages == null) {
+			return;
+		}
+		for (Stage stage : stages) {
+			if (!(stage instanceof AttributesStage attributes)) {
+				continue;
+			}
+			String key = attributes.getKey();
+			if (key == null || key.isBlank()) {
+				continue;
+			}
+			AttributeData slice = new AttributeData();
+			slice.clearAll();
+			if (character != null && character.getTraits() != null) {
+				for (Trait trait : character.getTraits()) {
+					if (trait.getTraitData() == null || trait.getTraitData().getKey() == null) {
+						continue;
+					}
+					if (!trait.getTraitData().getKey().equalsIgnoreCase(key)) {
+						continue;
+					}
+					slice.mergeFrom(TraitEffectResolver.resolveAttributeData(character, trait));
+				}
+			}
+			attributeStageContributions.put(key.toLowerCase(java.util.Locale.ROOT), slice);
+		}
 	}
 
 	public void setAttributeStageContribution(String key, AttributeData data) {
@@ -540,6 +576,8 @@ public class CharacterCreation {
 
 
 	public void persistEdits() {
+
+		ProstheticTraitRules.stripReplacedInjuries(character);
 
 		character.update();
 
@@ -782,6 +820,8 @@ public class CharacterCreation {
 			character.setCreatedAtEpochSeconds((int) Instant.now().getEpochSecond());
 
 		}
+
+		ProstheticTraitRules.stripReplacedInjuries(character);
 
 		character.update();
 

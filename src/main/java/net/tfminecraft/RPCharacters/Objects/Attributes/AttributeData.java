@@ -47,6 +47,13 @@ public class AttributeData {
 			}
 		}
 	}
+
+	public AttributeData(AttributeData other) {
+		this();
+		if (other != null) {
+			mergeFrom(other);
+		}
+	}
 	
 	public boolean hasModifiers() {
 		if(modifiers.size() > 0) return true;
