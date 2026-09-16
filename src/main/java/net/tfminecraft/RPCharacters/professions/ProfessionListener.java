@@ -3,6 +3,7 @@ package net.tfminecraft.RPCharacters.professions;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -139,6 +140,8 @@ public class ProfessionListener implements Listener {
 		player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
 		event.getClickedInventory().setItem(event.getSlot(),
 				ProfessionInventoryManager.unlockedItem(upgrade, character));
+		Bukkit.getPluginManager().callEvent(
+				new ProfessionUpgradePurchasedEvent(player, character, upgrade.getId(), upgrade.getCost()));
 	}
 
 	@EventHandler
