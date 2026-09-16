@@ -2,6 +2,7 @@ package net.tfminecraft.RPCharacters.permadeath;
 
 import org.bukkit.entity.Player;
 
+import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -22,7 +23,7 @@ public final class PermadeathTutorialMessages {
 		RPTexts.send(player, RPTexts.separator());
 
 		for (String line : PermadeathZoneLoader.getTutorialLines()) {
-			RPTexts.send(player, line);
+			player.sendMessage(formatTutorialLine(line));
 		}
 
 		int sideDashes = (SEPARATOR_WIDTH - GOT_IT_LABEL.length()) / 2;
@@ -55,5 +56,12 @@ public final class PermadeathTutorialMessages {
 		row.addExtra(gotIt);
 		row.addExtra(right);
 		player.spigot().sendMessage(row);
+	}
+
+	private static String formatTutorialLine(String line) {
+		if (line == null || line.isEmpty()) {
+			return line;
+		}
+		return StringFormatter.formatHex(line.replace('&', '\u00A7'));
 	}
 }
