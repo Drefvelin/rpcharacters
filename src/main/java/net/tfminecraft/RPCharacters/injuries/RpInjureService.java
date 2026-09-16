@@ -146,6 +146,7 @@ public final class RpInjureService {
 		RPTexts.send(attacker, RPTexts.SUCCESS + "Applied " + RPTexts.WARN + ChatColor.stripColor(trait.getName())
 				+ RPTexts.SUCCESS + " to " + RPTexts.WARN + character.getName()
 				+ RPTexts.SUCCESS + " (" + RPTexts.WARN + target.getName() + RPTexts.SUCCESS + ").");
+		Bukkit.getPluginManager().callEvent(new CharacterInjuredEvent(target, attacker, character, trait.getId()));
 		finish(session, true);
 	}
 
