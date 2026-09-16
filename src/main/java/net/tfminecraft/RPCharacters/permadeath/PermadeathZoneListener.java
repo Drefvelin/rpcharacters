@@ -28,32 +28,23 @@ public final class PermadeathZoneListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerMove(PlayerMoveEvent event) {
-		if (!WorldGuardBridge.isAvailable()) {
-			return;
-		}
 		if (event.getFrom().getBlockX() == event.getTo().getBlockX()
 				&& event.getFrom().getBlockY() == event.getTo().getBlockY()
 				&& event.getFrom().getBlockZ() == event.getTo().getBlockZ()) {
 			return;
 		}
 
-		checkZoneTransition(event.getPlayer(), event.getFrom(), event.getTo());
+		syncFromLocation(event.getPlayer(), event.getTo());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerTeleport(PlayerTeleportEvent event) {
-		if (!WorldGuardBridge.isAvailable()) {
-			return;
-		}
-		checkZoneTransition(event.getPlayer(), event.getFrom(), event.getTo());
+		syncFromLocation(event.getPlayer(), event.getTo());
 	}
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		if (!WorldGuardBridge.isAvailable()) {
-			return;
-		}
-		checkZoneTransition(event.getPlayer(), null, event.getPlayer().getLocation());
+		syncFromLocation(event.getPlayer(), event.getPlayer().getLocation());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -77,11 +68,11 @@ public final class PermadeathZoneListener implements Listener {
 	}
 
 	public static void silentZoneSync(Player player, Location location) {
-		if (!WorldGuardBridge.isAvailable() || location == null) {
+		if (location == null) {
 			currentZoneId.remove(player.getUniqueId());
 			return;
 		}
-		PermadeathZoneDefinition zone = WorldGuardBridge.getPermadeathZoneAt(location);
+		PermadeathZoneDefinition zone = PermadeathAreaLookup.getPermadeathZoneAt(player, location);
 		if (zone != null) {
 			currentZoneId.put(player.getUniqueId(), zone.getRegionId().toLowerCase());
 		} else {
@@ -89,14 +80,14 @@ public final class PermadeathZoneListener implements Listener {
 		}
 	}
 
-	private void checkZoneTransition(Player player, Location from, Location to) {
-		if (to == null) {
+	public static void syncFromLocation(Player player, Location to) {
+		if (player == null || to == null) {
 			return;
 		}
 
 		UUID uuid = player.getUniqueId();
 		String previousId = currentZoneId.get(uuid);
-		PermadeathZoneDefinition toZone = WorldGuardBridge.getPermadeathZoneAt(to);
+		PermadeathZoneDefinition toZone = PermadeathAreaLookup.getPermadeathZoneAt(player, to);
 		String toId = toZone != null ? toZone.getRegionId().toLowerCase() : null;
 
 		if (Objects.equals(previousId, toId)) {

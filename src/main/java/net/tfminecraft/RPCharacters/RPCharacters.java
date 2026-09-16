@@ -53,6 +53,7 @@ import net.tfminecraft.RPCharacters.Managers.AttributePointCommandListener;
 import net.tfminecraft.RPCharacters.Managers.AttributePointSpendListener;
 import net.tfminecraft.RPCharacters.Managers.AttributePointTomeListener;
 import net.tfminecraft.RPCharacters.Managers.RemedyListener;
+import net.tfminecraft.RPCharacters.permadeath.PermadeathDependencyListener;
 import net.tfminecraft.RPCharacters.permadeath.PermadeathZoneListener;
 import net.tfminecraft.RPCharacters.permadeath.WorldGuardBridge;
 import net.tfminecraft.RPCharacters.prosthetics.ProstheticInstallListener;
@@ -124,6 +125,8 @@ public class RPCharacters extends JavaPlugin{
 	private final ProstheticRefuelListener prostheticRefuelListener = new ProstheticRefuelListener();
 	private final ProstheticInstallListener prostheticInstallListener = new ProstheticInstallListener();
 	private final PermadeathZoneListener permadeathZoneListener = new PermadeathZoneListener();
+	private final PermadeathDependencyListener permadeathDependencyListener =
+			new PermadeathDependencyListener();
 	private final AttributePointCommandListener attributePointCommandListener = new AttributePointCommandListener();
 	private final AttributePointSpendListener attributePointSpendListener = new AttributePointSpendListener();
 	private final ConversationManager conversationManager = new ConversationManager();
@@ -287,6 +290,7 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(prostheticRefuelListener, this);
 		getServer().getPluginManager().registerEvents(prostheticInstallListener, this);
 		getServer().getPluginManager().registerEvents(permadeathZoneListener, this);
+		getServer().getPluginManager().registerEvents(permadeathDependencyListener, this);
 		getServer().getPluginManager().registerEvents(attributePointCommandListener, this);
 		getServer().getPluginManager().registerEvents(attributePointSpendListener, this);
 		getServer().getPluginManager().registerEvents(commandManager, this);
@@ -372,6 +376,7 @@ public class RPCharacters extends JavaPlugin{
 		partyLoader.load(new File(getDataFolder(), "party.yml"));
 		graveLoader.load(new File(getDataFolder(), "graves.yml"));
 		WorldGuardBridge.init();
+		permadeathDependencyListener.registerSimpleFactionsIfPresent();
 		net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService.pushAsync(this);
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.tryPullAsync(this);
 	}

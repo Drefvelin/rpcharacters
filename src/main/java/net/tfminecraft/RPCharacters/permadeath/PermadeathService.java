@@ -44,10 +44,7 @@ public final class PermadeathService {
 		if (ClueAdminModeService.isEnabled(player)) {
 			return;
 		}
-		if (!WorldGuardBridge.isAvailable()) {
-			return;
-		}
-		if (WorldGuardBridge.getPermadeathZoneAt(deathLocation) == null) {
+		if (PermadeathAreaLookup.getPermadeathZoneAt(player, deathLocation) == null) {
 			return;
 		}
 

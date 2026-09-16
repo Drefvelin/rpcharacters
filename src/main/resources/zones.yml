@@ -13,6 +13,8 @@ tutorial:
   - "§7Prosthetics can replace some permanent injuries."
   - "§7More injuries raise your permakill chance."
 
+# Keys under permadeath-zones are WorldGuard region ids or SimpleFactions
+# map-region ids from Input/regions.json (for example REGION_1).
 permadeath-zones:
   mini_vard:
     name: "Mount Vard"

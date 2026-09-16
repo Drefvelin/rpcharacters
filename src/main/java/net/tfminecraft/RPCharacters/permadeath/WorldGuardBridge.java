@@ -28,7 +28,8 @@ public final class WorldGuardBridge {
 		available = false;
 
 		if (!Bukkit.getPluginManager().isPluginEnabled("WorldGuard")) {
-			RPCharacters.plugin.getLogger().warning("WorldGuard not found — permadeath zones are disabled.");
+			RPCharacters.plugin.getLogger().warning(
+					"WorldGuard not found — cuboid permadeath zones are unavailable.");
 			return;
 		}
 
@@ -38,7 +39,8 @@ public final class WorldGuardBridge {
 			RPCharacters.plugin.getLogger().info("WorldGuard bridge enabled for permadeath zones.");
 		} catch (Exception ex) {
 			RPCharacters.plugin.getLogger().warning(
-					"Failed to initialize WorldGuard bridge — permadeath zones are disabled: " + ex.getMessage());
+					"Failed to initialize WorldGuard bridge — cuboid permadeath zones are unavailable: "
+							+ ex.getMessage());
 			ex.printStackTrace();
 		}
 	}
