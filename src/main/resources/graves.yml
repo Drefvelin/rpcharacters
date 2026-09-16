@@ -3,10 +3,12 @@ protect-by-default: true
 hologram-show-killer: true
 snapshot-interval-ticks: 20
 # 0 = never
-expire-seconds: 0
+expire-seconds: 1200
 material: CHEST
 hologram-offset-y: 1.2
 hologram-radius: 32
+hologram-timer-format: "&7Despawns in &e{time}"
+hologram-timer-expiring: "&7Despawning..."
 
 # Optional: never copy these slots at all.
 # excluded-slots: []

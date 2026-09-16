@@ -204,7 +204,7 @@ public final class GraveManager {
 		}
 	}
 
-	public Grave spawn(Player victim, Block chestBlock, UUID killer, String causeLabel, int experience,
+	public Grave spawn(Player victim, Block chestBlock, UUID killer, String killerDisplay, int experience,
 			boolean protect, ItemStack[] storage, ItemStack[] armor, ItemStack offhand, List<ItemStack> extras) {
 		if (victim == null || chestBlock == null) {
 			return null;
@@ -218,6 +218,7 @@ public final class GraveManager {
 
 		Grave grave = new Grave(UUID.randomUUID(), victim.getUniqueId(), chestBlock.getLocation());
 		grave.setKiller(killer);
+		grave.setKillerDisplay(killerDisplay);
 		grave.setProtected(protect);
 		grave.setExperience(experience);
 		copyInto(grave, storage, armor, offhand, extras);
@@ -403,6 +404,48 @@ public final class GraveManager {
 		return true;
 	}
 
+	public boolean isExpired(Grave grave) {
+		return GraveExpiryLogic.isExpired(
+				grave != null ? grave.getCreated() : 0L,
+				System.currentTimeMillis(),
+				GraveLoader.getExpireSeconds());
+	}
+
+	public void expireGrave(Grave grave) {
+		if (grave == null) {
+			return;
+		}
+		Location loc = grave.getBlockLocation();
+		if (loc == null || loc.getWorld() == null) {
+			despawn(grave);
+			return;
+		}
+		GraveChunkForceLoad.withForcedChunk(loc, () -> {
+			if (!grave.isEmpty()) {
+				Location dropAt = GraveRecover.graveOverflowLocation(grave);
+				if (dropAt != null) {
+					GraveLootDrop.dropAllToWorld(grave, dropAt);
+				}
+			}
+			despawn(grave);
+		});
+	}
+
+	public void expireOverdue() {
+		if (GraveLoader.getExpireSeconds() <= 0) {
+			return;
+		}
+		for (Grave grave : new ArrayList<>(byId.values())) {
+			if (isExpired(grave)) {
+				expireGrave(grave);
+			}
+		}
+	}
+
+	public void tickExpiry() {
+		expireOverdue();
+	}
+
 	public static String blockKey(Block block) {
 		return block.getWorld().getUID() + ":" + block.getX() + ":" + block.getY() + ":" + block.getZ();
 	}
@@ -428,6 +471,7 @@ public final class GraveManager {
 		record.id = grave.getId().toString();
 		record.owner = grave.getOwner() != null ? grave.getOwner().toString() : null;
 		record.killer = grave.getKiller() != null ? grave.getKiller().toString() : null;
+		record.killerDisplay = grave.getKillerDisplay();
 		record.protect = grave.isProtected();
 		record.created = grave.getCreated();
 		record.experience = grave.getExperience();
@@ -459,6 +503,7 @@ public final class GraveManager {
 				UUID.fromString(record.id),
 				UUID.fromString(record.owner),
 				parseUuid(record.killer),
+				record.killerDisplay,
 				record.protect,
 				record.created,
 				record.experience,
@@ -548,6 +593,7 @@ public final class GraveManager {
 		String id;
 		String owner;
 		String killer;
+		String killerDisplay;
 		boolean protect;
 		long created;
 		int experience;

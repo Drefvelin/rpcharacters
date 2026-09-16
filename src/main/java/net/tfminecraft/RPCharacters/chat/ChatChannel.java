@@ -3,7 +3,6 @@ package net.tfminecraft.RPCharacters.chat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.bukkit.configuration.ConfigurationSection;
 
 public final class ChatChannel {
@@ -21,6 +20,7 @@ public final class ChatChannel {
 	private final boolean bubble;
 	private final boolean smartMessages;
 	private final String messageColorPrefix;
+	private final String recipientResolverId;
 
 	public ChatChannel(String id, ConfigurationSection config) {
 		this.id = id;
@@ -37,6 +37,7 @@ public final class ChatChannel {
 		this.bubble = config.getBoolean("bubble", false);
 		this.smartMessages = config.getBoolean("smart-messages", false);
 		this.messageColorPrefix = ChatFormatUtil.extractMessageColorPrefix(format);
+		this.recipientResolverId = config.getString("recipient-resolver", "");
 	}
 
 	public String getId() {
@@ -93,5 +94,13 @@ public final class ChatChannel {
 
 	public String getMessageColorPrefix() {
 		return messageColorPrefix;
+	}
+
+	public String getRecipientResolverId() {
+		return recipientResolverId;
+	}
+
+	public boolean usesRecipientResolver() {
+		return recipientResolverId != null && !recipientResolverId.isBlank();
 	}
 }

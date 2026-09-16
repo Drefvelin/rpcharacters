@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 
 import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.identity.DisplayIdentityService;
 
 public final class RollFormatter {
 
@@ -19,6 +20,7 @@ public final class RollFormatter {
 		}
 		String modifierText = formatModifier(modifier);
 		String withTokens = template
+				.replace("{display}", DisplayIdentityService.resolveDisplay(player))
 				.replace("{player}", player.getName())
 				.replace("{roll}", Integer.toString(roll))
 				.replace("{max}", Integer.toString(max))

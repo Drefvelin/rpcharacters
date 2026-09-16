@@ -35,6 +35,8 @@ public class PlayerData {
 	private boolean permadeathTutorialDismissed;
 	/** Per grant-kit id → last successful claim epoch ms. */
 	private final Map<String, Long> lastKitClaimAtMs = new HashMap<>();
+	/** Creation-layer MMO subtracts from JSON {@code to remove}; applied after MMOCore loads. */
+	private List<String> pendingMmoAttributeRemoves = new ArrayList<>();
 	
 	public PlayerData(Player p) {
 		this.p = p;
@@ -412,6 +414,16 @@ public class PlayerData {
 		}
 		c.activate();
 		CharacterLifecycle.fireActivated(player, uniqueId, c, current);
+	}
+
+	public void setPendingMmoAttributeRemoves(List<String> pending) {
+		pendingMmoAttributeRemoves = pending == null ? new ArrayList<>() : new ArrayList<>(pending);
+	}
+
+	public List<String> takePendingMmoAttributeRemoves() {
+		List<String> taken = pendingMmoAttributeRemoves;
+		pendingMmoAttributeRemoves = new ArrayList<>();
+		return taken;
 	}
 
 	private Player resolveOnlinePlayer() {

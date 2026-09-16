@@ -11,6 +11,7 @@ freeze-period-ticks: 1
 messages:
   start-warning: "&ePvP will start in {seconds} seconds!"
   countdown: "&c{count}"
+  started-title: "&cPVP STARTED"
   lethal: "&aThis character is now in lethal PvP."
   nonlethal: "&aThis character is now in nonlethal PvP."
   usage: "&7Usage: /pvp start | lethal | nonlethal"

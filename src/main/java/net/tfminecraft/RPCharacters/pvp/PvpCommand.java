@@ -123,6 +123,13 @@ public final class PvpCommand implements CommandExecutor, TabCompleter, Listener
 				}
 			}.runTaskLater(RPCharacters.plugin, delaySeconds * 20L);
 		}
+
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				broadcastStartedTitle(targets);
+			}
+		}.runTaskLater(RPCharacters.plugin, warnSeconds * 20L);
 	}
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -151,6 +158,16 @@ public final class PvpCommand implements CommandExecutor, TabCompleter, Listener
 			Player online = Bukkit.getPlayer(id);
 			if (online != null && online.isOnline()) {
 				RPTexts.send(online, raw);
+			}
+		}
+	}
+
+	private void broadcastStartedTitle(List<UUID> targets) {
+		String title = PvpLoader.getStartedTitle();
+		for (UUID id : targets) {
+			Player online = Bukkit.getPlayer(id);
+			if (online != null && online.isOnline()) {
+				RPTexts.title(online, title, " ");
 			}
 		}
 	}

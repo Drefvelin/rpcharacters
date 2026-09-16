@@ -1,8 +1,11 @@
 package net.tfminecraft.RPCharacters.professions;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -283,16 +286,78 @@ public class ProfessionCommandHandler implements CommandExecutor, TabCompleter {
 	}
 
 	@Override
-	public java.util.List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-		if (!ProfessionPermissions.isAdmin(sender)) {
-			return java.util.List.of();
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+		if (args.length == 1) {
+			List<String> subs = new ArrayList<>();
+			subs.add("top");
+			subs.add("confirm");
+			if (ProfessionPermissions.isAdmin(sender)) {
+				subs.add("reload");
+				subs.add("givepoints");
+				subs.add("removeupgrade");
+				subs.add("reset");
+				subs.add("restoreall");
+				subs.add("refund");
+				subs.add("fixperms");
+			}
+			return filter(subs, args[0]);
 		}
-		if (args.length == 2 && (args[0].equalsIgnoreCase("top") || args[0].equalsIgnoreCase("givepoints"))) {
-			return ProfessionRegistry.getProfessions().stream().map(ProfessionDefinition::getId).toList();
+
+		String sub = args[0].toLowerCase(Locale.ROOT);
+		if (args.length == 2) {
+			if (sub.equals("top") || (sub.equals("givepoints") && ProfessionPermissions.isAdmin(sender))) {
+				return filter(professionIds(), args[1]);
+			}
+			if ((sub.equals("removeupgrade") || sub.equals("reset") || sub.equals("refund"))
+					&& ProfessionPermissions.isAdmin(sender)) {
+				return filter(onlinePlayerNames(), args[1]);
+			}
+			return Collections.emptyList();
 		}
-		if (args.length == 3 && args[0].equalsIgnoreCase("givepoints")) {
-			return null;
+
+		if (args.length == 3 && ProfessionPermissions.isAdmin(sender)) {
+			if (sub.equals("givepoints")) {
+				return filter(onlinePlayerNames(), args[2]);
+			}
+			if (sub.equals("removeupgrade")) {
+				return filter(upgradeIds(), args[2]);
+			}
 		}
-		return java.util.List.of();
+
+		return Collections.emptyList();
+	}
+
+	private static List<String> professionIds() {
+		List<String> ids = new ArrayList<>();
+		for (ProfessionDefinition profession : ProfessionRegistry.getProfessions()) {
+			ids.add(profession.getId());
+		}
+		return ids;
+	}
+
+	private static List<String> upgradeIds() {
+		List<String> ids = new ArrayList<>();
+		for (ProfessionUpgradeDefinition upgrade : ProfessionRegistry.getUpgrades()) {
+			ids.add(upgrade.getId());
+		}
+		return ids;
+	}
+
+	private static List<String> onlinePlayerNames() {
+		List<String> names = new ArrayList<>();
+		for (Player online : Bukkit.getOnlinePlayers()) {
+			names.add(online.getName());
+		}
+		return names;
+	}
+
+	private static List<String> filter(List<String> options, String prefix) {
+		if (prefix == null || prefix.isEmpty()) {
+			return new ArrayList<>(options);
+		}
+		String lower = prefix.toLowerCase(Locale.ROOT);
+		return options.stream()
+				.filter(option -> option.toLowerCase(Locale.ROOT).startsWith(lower))
+				.collect(Collectors.toList());
 	}
 }

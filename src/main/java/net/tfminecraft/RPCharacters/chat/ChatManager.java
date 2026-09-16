@@ -137,10 +137,10 @@ public final class ChatManager implements Listener {
 
 		Set<Player> recipients = buildRecipients(player, channel);
 
-		boolean wearingMask = MaskService.isMasked(player);
-		String displayName = channel.isMasked() && wearingMask
-			? MaskService.getMaskedLabel()
-			: DisplayIdentityService.resolveDisplayUnmasked(player);
+		boolean wearingMask = channel.isMasked() && MaskService.isMasked(player);
+		String displayName = wearingMask
+				? MaskService.getMaskedLabel()
+				: DisplayIdentityService.resolveDisplayUnmasked(player);
 
 		if (SpeechBubbleDebug.isEnabled() && channel.hasSpeechBubble()) {
 			SpeechBubbleDebug.log("chat-dispatch", "firing CharacterChatEvent, recipients=" + recipients.size());
@@ -170,7 +170,7 @@ public final class ChatManager implements Listener {
 		if (smartSettings.isEnabled() && channel.isSmartMessages() && !channel.isGlobal()) {
 			SmartMessageService.deliver(chatEvent, channel, player);
 		} else {
-			if (recipients.isEmpty()) {
+			if (chatEvent.getRecipients().isEmpty()) {
 				RPTexts.send(player, RPTexts.ERROR + "No one can hear you in this channel.");
 				return;
 			}
@@ -206,17 +206,19 @@ public final class ChatManager implements Listener {
 	}
 
 	private static Set<Player> buildRecipients(Player sender, ChatChannel channel) {
+		if (channel.usesRecipientResolver()) {
+			return ChatRecipientResolverRegistry.resolve(
+					channel.getRecipientResolverId(), sender, channel);
+		}
+
 		Set<Player> recipients = new HashSet<>();
-		String readPerm = channel.getReadPermission();
 		String channelId = channel.getId();
-		if (canReceive(sender, readPerm)
-				&& ChatChannelPreferenceManager.get().isChannelVisible(sender, channelId)) {
+		if (ChatRecipientFilters.canReceive(sender, channel)) {
 			recipients.add(sender);
 		}
 		if (channel.isGlobal()) {
 			for (Player target : Bukkit.getOnlinePlayers()) {
-				if (!target.equals(sender) && canReceive(target, readPerm)
-						&& ChatChannelPreferenceManager.get().isChannelVisible(target, channelId)) {
+				if (!target.equals(sender) && ChatRecipientFilters.canReceive(target, channel)) {
 					recipients.add(target);
 				}
 			}
@@ -226,10 +228,7 @@ public final class ChatManager implements Listener {
 		Location origin = sender.getLocation();
 		double rangeSq = (double) channel.getRange() * channel.getRange();
 		for (Player target : sender.getWorld().getPlayers()) {
-			if (target.equals(sender) || !canReceive(target, readPerm)) {
-				continue;
-			}
-			if (!ChatChannelPreferenceManager.get().isChannelVisible(target, channelId)) {
+			if (target.equals(sender) || !ChatRecipientFilters.canReceive(target, channel)) {
 				continue;
 			}
 			if (target.getLocation().distanceSquared(origin) <= rangeSq) {
@@ -237,12 +236,5 @@ public final class ChatManager implements Listener {
 			}
 		}
 		return recipients;
-	}
-
-	private static boolean canReceive(Player player, String readPerm) {
-		if (player == null) {
-			return false;
-		}
-		return readPerm == null || readPerm.isBlank() || player.hasPermission(readPerm);
 	}
 }

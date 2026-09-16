@@ -7,6 +7,8 @@ attributes:
     - intelligence
     - wisdom
     - charisma
+ignored-attributes:
+    - nutrition
 professions:
     - miner(#b57f6eMiner Experience)
     - smith(#b57f6eSmith Experience)

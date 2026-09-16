@@ -999,7 +999,7 @@ public class InventoryManager {
 			if(amount > 0) {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.GUI_SUCCESS + "+" + amount));
 			} else if(amount < 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.MUTED + amount));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.ERROR + amount));
 			} else {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getType()) + ": " + RPTexts.GUI_WARN + "0"));
 			}
@@ -1010,7 +1010,7 @@ public class InventoryManager {
 			if(amount > 0) {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.GUI_SUCCESS + "+" + amount + "%"));
 			} else if(amount < 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.MUTED + amount + "%"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.ERROR + amount + "%"));
 			} else {
 				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(modifier.getAlias()) + ": " + RPTexts.GUI_WARN + "0%"));
 			}
@@ -1290,34 +1290,34 @@ public class InventoryManager {
 			current = PlayerManager.get(p).getActiveCharacter().getAttributeData();
 		}
 		for(AttributeModifier m : current.getModifiers()) {
-			int amount = m.getAmount();
+			int displayAmount = Math.max(0, m.getAmount());
 			int added = 0;
 			if(data.hasModifier(m)) {
 				added = data.getAmount(m);
 			}
 			if(added > 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + amount + " " + RPTexts.GUI_SUCCESS + "(+" + added + ")"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + displayAmount + " " + RPTexts.GUI_SUCCESS + "(+" + added + ")"));
 			} else if(added == 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + amount));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + displayAmount));
 			} else {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + amount + " " + RPTexts.MUTED + "(" + added + ")"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getType()) + ": " + displayAmount + " " + RPTexts.ERROR + "(" + added + ")"));
 			}
 		}
 		lore.add(RPTexts.spacer());
 		for(ExperienceModifier m : current.getExperienceModifiers()) {
-			int amount = m.getModifier();
+			int displayAmount = Math.max(0, m.getModifier());
 			int added = 0;
 			if(data.hasXPModifier(m)) {
 				added = data.getAmount(m);
 			}
 			if(added > 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + amount + RPTexts.GUI_WARN + "% "
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + displayAmount + RPTexts.GUI_WARN + "% "
 						+ RPTexts.GUI_SUCCESS + "(+" + added + RPTexts.GUI_WARN + "%" + RPTexts.GUI_SUCCESS + ")"));
 			} else if(added == 0) {
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + amount + RPTexts.GUI_WARN + "%"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + displayAmount + RPTexts.GUI_WARN + "%"));
 			} else if(added < 0){
-				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + amount + RPTexts.GUI_WARN + "% "
-						+ RPTexts.MUTED + "(" + added + RPTexts.GUI_WARN + "%" + RPTexts.MUTED + ")"));
+				lore.add(t(RPTexts.MUTED + WordUtils.capitalize(m.getAlias()) + ": " + displayAmount + RPTexts.GUI_WARN + "% "
+						+ RPTexts.ERROR + "(" + added + RPTexts.GUI_WARN + "%" + RPTexts.ERROR + ")"));
 			}
 		}
 	}

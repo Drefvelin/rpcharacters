@@ -22,8 +22,8 @@ import net.tfminecraft.RPCharacters.Utils.ClueFormatter;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
 /**
- * Chat recap of the creation stage a player is on. Stage copy plays as titles
- * only, so anyone who looked away has no other way back to it.
+ * On-demand chat recap of the creation stage a player is on, including
+ * instructions already shown during the stage and the available controls.
  */
 public final class CreationStageHelp {
 

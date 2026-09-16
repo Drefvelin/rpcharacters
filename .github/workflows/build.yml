@@ -1,0 +1,94 @@
+name: Build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # Fork PRs and Dependabot cannot access the private dependency secret.
+    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Fetch private dependencies
+        env:
+          GH_TOKEN: ${{ secrets.DEPS_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Set DEPS_TOKEN to a token with Contents: read access to JustinasLa/tfmc-deps."
+            exit 1
+          fi
+          mkdir -p libs
+          gh release download v1 --repo JustinasLa/tfmc-deps --dir libs --clobber \
+            --pattern 'ItemsAdder_4.0.17.jar' \
+            --pattern 'TLibs-1.0.jar' \
+            --pattern 'MMOCore-1.13.1.jar' \
+            --pattern 'MMOItems-6.10.1.jar' \
+            --pattern 'MythicLib-dist-1.7.1.jar' \
+            --pattern 'MythicMobsPremium-5.13.1-SNAPSHOT.jar' \
+            --pattern 'PlaceholderAPI-2.12.2.jar' \
+            --pattern 'ProtocolLib.jar'
+
+      - name: Verify private dependencies
+        run: sha256sum -c libs/SHA256SUMS
+
+      - name: Build
+        run: mvn -B --no-transfer-progress -P'!deploy-live' clean package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpcharacters-jar-${{ github.sha }}
+          path: target/*.jar
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    concurrency:
+      group: publish-latest-release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: rpcharacters-jar-${{ github.sha }}
+          path: target
+
+      - name: Publish latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view latest >/dev/null 2>&1; then
+            gh release upload latest target/*.jar --clobber
+          else
+            gh release create latest target/*.jar \
+              --title "Latest build" --notes "Auto-published from main" --latest=false
+          fi

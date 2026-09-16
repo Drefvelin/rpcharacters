@@ -30,6 +30,8 @@ public final class GraveLoader implements LoaderInterface {
 	private static Material material = Material.CHEST;
 	private static double hologramOffsetY = 1.2;
 	private static double hologramRadius = 32.0;
+	private static String hologramTimerFormat = "&7Despawns in &e{time}";
+	private static String hologramTimerExpiring = "&7Despawning...";
 	private static Set<Integer> excludedSlots = new HashSet<>();
 	private static List<String> excludedItems = new ArrayList<>();
 	private static Map<Integer, List<String>> excludedSlotItems = new HashMap<>();
@@ -61,6 +63,8 @@ public final class GraveLoader implements LoaderInterface {
 		expireSeconds = Math.max(0, config.getInt("expire-seconds", 0));
 		hologramOffsetY = config.getDouble("hologram-offset-y", 1.2);
 		hologramRadius = config.getDouble("hologram-radius", 32.0);
+		hologramTimerFormat = config.getString("hologram-timer-format", hologramTimerFormat);
+		hologramTimerExpiring = config.getString("hologram-timer-expiring", hologramTimerExpiring);
 
 		Material parsed = Material.matchMaterial(config.getString("material", "CHEST"));
 		material = parsed != null ? parsed : Material.CHEST;
@@ -180,6 +184,14 @@ public final class GraveLoader implements LoaderInterface {
 
 	public static double getHologramRadius() {
 		return hologramRadius;
+	}
+
+	public static String getHologramTimerFormat() {
+		return hologramTimerFormat;
+	}
+
+	public static String getHologramTimerExpiring() {
+		return hologramTimerExpiring;
 	}
 
 	public static Set<Integer> getExcludedSlots() {

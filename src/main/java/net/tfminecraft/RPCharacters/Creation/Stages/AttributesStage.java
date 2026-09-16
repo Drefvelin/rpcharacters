@@ -16,6 +16,7 @@ import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.InventoryManager;
+import net.tfminecraft.RPCharacters.Objects.Attributes.AttributeData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
@@ -339,6 +340,8 @@ public class AttributesStage extends Stage {
 		for (Trait trait : toRemove) {
 			cc.getCharacter().removeTrait(trait);
 		}
+		AttributeData contribution = new AttributeData();
+		contribution.clearAll();
 		for (String attr : attributes) {
 			int rank = getRank(attr);
 			for (int n = 1; n <= rank; n++) {
@@ -349,8 +352,10 @@ public class AttributesStage extends Stage {
 					continue;
 				}
 				cc.getCharacter().addTrait(t);
+				contribution.mergeFrom(t.getTraitData().getAttributeData());
 			}
 		}
+		cc.setAttributeStageContribution(key, contribution);
 		RPTexts.send(p, RPTexts.SUCCESS + "Attributes set.");
 		new BukkitRunnable() {
 			@Override

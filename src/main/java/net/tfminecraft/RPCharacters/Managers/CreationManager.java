@@ -24,6 +24,7 @@ import net.tfminecraft.RPCharacters.Creation.SummaryEditSupport;
 import net.tfminecraft.RPCharacters.Creation.StageEditLock;
 import net.tfminecraft.RPCharacters.Creation.Stages.AttributesStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.ClueStage;
+import net.tfminecraft.RPCharacters.Creation.Stages.InfoStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.QuestionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SelectionStage;
 import net.tfminecraft.RPCharacters.Creation.Stages.SetterStage;
@@ -166,34 +167,63 @@ public class CreationManager implements Listener{
 		return cc != null && !cc.isEditing() && !cc.isPreview()
 				&& cc.getCharacter().getId().equals(characterId);
 	}
+
+	public static void sendChatBlockedDuringCreationHint(Player player) {
+		RPTexts.send(player, RPTexts.ERROR + "Chat is blocked during character creation.");
+		RPTexts.send(player, RPTexts.MUTED + "Type " + RPTexts.COMMAND + "/rpcharacter help "
+				+ RPTexts.MUTED + "for guidance on this stage.");
+	}
+
+	public static boolean isChatInputStage(Player player) {
+		CharacterCreation cc = activeCreators.get(player);
+		if (cc == null) {
+			return false;
+		}
+		Stage stage = cc.getActiveStage();
+		return stage instanceof QuestionStage
+				|| stage instanceof SetterStage
+				|| stage instanceof ClueStage;
+	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void chatEvent(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
-		if (!activeCreators.containsKey(player)) {
+		CharacterCreation cc = activeCreators.get(player);
+		if (cc == null) {
 			return;
 		}
 		if (ClueInputManager.isPending(player)) {
 			return;
 		}
 		event.setCancelled(true);
-		CharacterCreation cc = activeCreators.get(player);
 		Stage activeStage = cc.getActiveStage();
-		if (activeStage instanceof QuestionStage) {
-			cc.answerQuestion(event.getMessage());
-		} else if (activeStage instanceof SetterStage setter) {
-			setter.finish(event.getMessage(), player, cc);
-		} else if (activeStage instanceof ClueStage clue) {
-			clue.finish(event.getMessage(), player, cc);
-		} else {
-			RPTexts.send(player, RPTexts.ERROR + "Use the summary buttons or "
-					+ RPTexts.COMMAND + "/rpcharacter back.");
-		}
+		String message = event.getMessage();
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				// Serialize submissions and never apply queued input to a different stage/session.
+				if (activeCreators.get(player) != cc || cc.isCancelled()
+						|| cc.getActiveStage() != activeStage) return;
+				if (activeStage instanceof QuestionStage) {
+					cc.answerQuestion(message);
+				} else if (activeStage instanceof SetterStage setter) {
+					setter.finish(message, player, cc);
+				} else if (activeStage instanceof ClueStage clue) {
+					clue.finish(message, player, cc);
+				} else {
+					sendChatBlockedDuringCreationHint(player);
+				}
+			}
+		}.runTask(RPCharacters.plugin);
 	}
 
 	public static void next(Player p) {
 		if(activeCreators.containsKey(p)) {
 			CharacterCreation cc = activeCreators.get(p);
+			if (cc.getActiveStage() instanceof InfoStage info) {
+				info.stopMessages();
+				p.resetTitle();
+			}
 			if (cc.isEditingFromSummary()) {
 				cc.returnToSummary();
 				return;

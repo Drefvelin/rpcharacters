@@ -8,17 +8,17 @@ import org.bukkit.inventory.ItemStack;
 public final class ProfessionUpgradeDefinition {
 	private final String id;
 	private final String professionId;
-	private final ItemStack menuItem;
+	private final ProfessionItemSpec menuItem;
 	private final int cost;
 	private final String type;
 	private final List<String> requirements;
 	private final List<String> unlocks;
 
-	public ProfessionUpgradeDefinition(String id, String professionId, ItemStack menuItem, int cost, String type,
-			List<String> requirements, List<String> unlocks) {
+	public ProfessionUpgradeDefinition(String id, String professionId, ProfessionItemSpec menuItem, int cost,
+			String type, List<String> requirements, List<String> unlocks) {
 		this.id = id;
 		this.professionId = professionId;
-		this.menuItem = menuItem;
+		this.menuItem = menuItem != null ? menuItem : ProfessionItemSpec.empty();
 		this.cost = cost;
 		this.type = type;
 		this.requirements = requirements != null ? requirements : new ArrayList<>();
@@ -34,7 +34,7 @@ public final class ProfessionUpgradeDefinition {
 	}
 
 	public ItemStack getMenuItem() {
-		return menuItem.clone();
+		return ProfessionItemFactory.build(menuItem);
 	}
 
 	public int getCost() {

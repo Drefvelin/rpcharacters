@@ -1,26 +1,28 @@
 package net.tfminecraft.RPCharacters.roll;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import net.tfminecraft.RPCharacters.Cache;
+import net.tfminecraft.RPCharacters.Loaders.RollLoader;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 
-public final class RollManager implements CommandExecutor {
+public final class RollManager implements CommandExecutor, TabCompleter {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (!(sender instanceof Player player)) {
 			RPTexts.send(sender, RPTexts.ERROR + "Only players can roll dice.");
-			return true;
-		}
-		if (player.getGameMode() != GameMode.SURVIVAL) {
 			return true;
 		}
 		if (!checkPermission(player)) {
@@ -32,6 +34,21 @@ public final class RollManager implements CommandExecutor {
 		}
 		handleRollArgs(player, args);
 		return true;
+	}
+
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+		if (args.length != 1) {
+			return List.of();
+		}
+		String prefix = args[0].toLowerCase(Locale.ROOT);
+		List<String> out = new ArrayList<>();
+		for (String name : attributeNames()) {
+			if (name.startsWith(prefix)) {
+				out.add(name);
+			}
+		}
+		return out;
 	}
 
 	public void handleDefaultRoll(Player player) {
@@ -106,18 +123,40 @@ public final class RollManager implements CommandExecutor {
 	}
 
 	private static void broadcast(Player origin, String message) {
+		RPTexts.send(origin, message);
+
 		int range = Cache.rollBroadcastRange;
 		if (range <= 0) {
-			origin.getServer().broadcastMessage(message);
+			for (Player target : origin.getServer().getOnlinePlayers()) {
+				if (!target.getUniqueId().equals(origin.getUniqueId())) {
+					RPTexts.send(target, message);
+				}
+			}
 			return;
 		}
 
 		double rangeSq = (double) range * range;
 		for (Player target : origin.getWorld().getPlayers()) {
+			if (target.getUniqueId().equals(origin.getUniqueId())) {
+				continue;
+			}
 			if (target.getLocation().distanceSquared(origin.getLocation()) <= rangeSq) {
 				RPTexts.send(target, message);
 			}
 		}
+	}
+
+	private static Set<String> attributeNames() {
+		Set<String> names = new LinkedHashSet<>();
+		if (Cache.attributes != null) {
+			for (String attribute : Cache.attributes) {
+				if (attribute != null && !attribute.isBlank()) {
+					names.add(attribute.toLowerCase(Locale.ROOT));
+				}
+			}
+		}
+		names.addAll(RollLoader.getAttributeIds());
+		return names;
 	}
 
 	private static boolean isAttribute(String value) {
@@ -125,8 +164,14 @@ public final class RollManager implements CommandExecutor {
 			return false;
 		}
 		String normalized = value.toLowerCase(Locale.ROOT);
+		if (RollLoader.isKnownAttribute(normalized)) {
+			return true;
+		}
+		if (Cache.attributes == null) {
+			return false;
+		}
 		for (String attribute : Cache.attributes) {
-			if (attribute.equalsIgnoreCase(normalized)) {
+			if (attribute != null && attribute.equalsIgnoreCase(normalized)) {
 				return true;
 			}
 		}

@@ -42,6 +42,7 @@ import net.tfminecraft.RPCharacters.Loaders.ProstheticLoader;
 import net.tfminecraft.RPCharacters.Loaders.KitLoader;
 import net.tfminecraft.RPCharacters.Loaders.PermadeathZoneLoader;
 import net.tfminecraft.RPCharacters.Loaders.PvpLoader;
+import net.tfminecraft.RPCharacters.Loaders.PartyLoader;
 import net.tfminecraft.RPCharacters.Managers.CommandManager;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Managers.ClueDisturbanceListener;
@@ -61,6 +62,7 @@ import net.tfminecraft.RPCharacters.Managers.SkillPointCommandListener;
 import net.tfminecraft.RPCharacters.Managers.SkillPointTomeListener;
 import net.tfminecraft.RPCharacters.Managers.SpawnedClueManager;
 import net.tfminecraft.RPCharacters.chat.ChatChannelCommandHandler;
+import net.tfminecraft.RPCharacters.chat.ChatChannelCommandInterceptor;
 import net.tfminecraft.RPCharacters.chat.ChatChannelPreferenceManager;
 import net.tfminecraft.RPCharacters.chat.ChatCooldownManager;
 import net.tfminecraft.RPCharacters.chat.ChatManager;
@@ -84,11 +86,15 @@ import net.tfminecraft.RPCharacters.grave.GraveDeathListener;
 import net.tfminecraft.RPCharacters.grave.GraveInsuranceListener;
 import net.tfminecraft.RPCharacters.grave.GraveInteractListener;
 import net.tfminecraft.RPCharacters.grave.GraveLoader;
+import net.tfminecraft.RPCharacters.grave.GraveExpiryService;
 import net.tfminecraft.RPCharacters.grave.GraveManager;
 import net.tfminecraft.RPCharacters.grave.GraveVisualManager;
 import net.tfminecraft.RPCharacters.grave.LastSolidTracker;
 import net.tfminecraft.RPCharacters.pvp.PvpCommand;
 import net.tfminecraft.RPCharacters.pvp.PvpKnockoutManager;
+import net.tfminecraft.RPCharacters.party.PartyChatRecipientResolver;
+import net.tfminecraft.RPCharacters.party.PartyListener;
+import net.tfminecraft.RPCharacters.chat.ChatRecipientResolverRegistry;
 import net.tfminecraft.RPCharacters.roll.RollManager;
 import net.tfminecraft.RPCharacters.placeholder.RpCharactersExpansion;
 import net.tfminecraft.RPCharacters.speechbubble.SpeechBubbleListener;
@@ -160,9 +166,12 @@ public class RPCharacters extends JavaPlugin{
 	private ProstheticLoader prostheticLoader;
 	private KitLoader kitLoader;
 	private PvpLoader pvpLoader;
+	private PartyLoader partyLoader;
 	private GraveLoader graveLoader;
 	private final PvpCommand pvpCommand = new PvpCommand();
 	private final PvpKnockoutManager pvpKnockoutManager = new PvpKnockoutManager();
+	private final PartyListener partyListener = new PartyListener();
+	private final PartyChatRecipientResolver partyChatRecipientResolver = new PartyChatRecipientResolver();
 
 	private void initDependencyComponents() {
 		if (configLoader != null) {
@@ -197,6 +206,7 @@ public class RPCharacters extends JavaPlugin{
 		prostheticLoader = new ProstheticLoader();
 		kitLoader = new KitLoader();
 		pvpLoader = new PvpLoader();
+		partyLoader = new PartyLoader();
 		graveLoader = new GraveLoader();
 	}
 	
@@ -217,6 +227,7 @@ public class RPCharacters extends JavaPlugin{
 		getCommand(commandManager.cmd1).setExecutor(commandManager);
 		getCommand("rpcharacter").setTabCompleter(new CommandTabCompleter());
 		getCommand("roll").setExecutor(rollManager);
+		getCommand("roll").setTabCompleter(rollManager);
 		getCommand(ProfessionCommandHandler.COMMAND).setExecutor(professionCommandHandler);
 		getCommand(ProfessionCommandHandler.COMMAND).setTabCompleter(professionCommandHandler);
 		getCommand("channel").setExecutor(chatChannelCommandHandler);
@@ -225,14 +236,20 @@ public class RPCharacters extends JavaPlugin{
 		getCommand("channeltoggle").setTabCompleter(chatChannelCommandHandler);
 		getCommand(PvpCommand.COMMAND).setExecutor(pvpCommand);
 		getCommand(PvpCommand.COMMAND).setTabCompleter(pvpCommand);
+		ChatRecipientResolverRegistry.register(
+				net.tfminecraft.RPCharacters.party.PartyManager.PARTY_RESOLVER_ID,
+				partyChatRecipientResolver);
 		registerPlaceholderApi();
 	}
 	@Override
 	public void onDisable() {
+		ChatRecipientResolverRegistry.unregister(
+				net.tfminecraft.RPCharacters.party.PartyManager.PARTY_RESOLVER_ID);
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.stopPeriodicPull();
 		WardrobeService.stopSoftRefresh();
 		ProtocolLibBridge.shutdown();
 		GraveVisualManager.get().shutdown();
+		GraveExpiryService.get().shutdown();
 		SpeechBubbleManager.get().shutdown();
 		net.tfminecraft.RPCharacters.clues.discovery.ClueDiscoveryVisualManager.get().shutdown();
 		spawnedClueManager.shutdown();
@@ -257,6 +274,7 @@ public class RPCharacters extends JavaPlugin{
 	
 	public void registerListeners() {
 		getServer().getPluginManager().registerEvents(playerManager, this);
+		getServer().getPluginManager().registerEvents(new net.tfminecraft.RPCharacters.mmocore.MmoCorePlayerReady(), this);
 		getServer().getPluginManager().registerEvents(creationManager, this);
 		getServer().getPluginManager().registerEvents(clueInputManager, this);
 		getServer().getPluginManager().registerEvents(placeClueManager, this);
@@ -276,6 +294,7 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(playtimeListener, this);
 		getServer().getPluginManager().registerEvents(conversationManager, this);
 		getServer().getPluginManager().registerEvents(chatManager, this);
+		getServer().getPluginManager().registerEvents(new ChatChannelCommandInterceptor(), this);
 		getServer().getPluginManager().registerEvents(ChatCooldownManager.get(), this);
 		getServer().getPluginManager().registerEvents(ChatChannelPreferenceManager.get(), this);
 		getServer().getPluginManager().registerEvents(profileManager, this);
@@ -288,6 +307,7 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(rpInjureListener, this);
 		getServer().getPluginManager().registerEvents(pvpKnockoutManager, this);
 		getServer().getPluginManager().registerEvents(pvpCommand, this);
+		getServer().getPluginManager().registerEvents(partyListener, this);
 		getServer().getPluginManager().registerEvents(new GraveDeathListener(), this);
 		getServer().getPluginManager().registerEvents(new GraveInteractListener(), this);
 		getServer().getPluginManager().registerEvents(new GraveInsuranceListener(), this);
@@ -299,6 +319,7 @@ public class RPCharacters extends JavaPlugin{
 		SpeechBubbleManager.get().startTicks();
 		ProtocolLibBridge.init(this);
 		GraveVisualManager.get().startTicks();
+		GraveExpiryService.get().start();
 		FakeBubbleManager.get().startTicks();
 		net.tfminecraft.RPCharacters.ingest.CharacterIngestService.startPeriodicPull(this);
 		WardrobeService.startSoftRefresh(this);
@@ -348,6 +369,7 @@ public class RPCharacters extends JavaPlugin{
 		stageLoader.load(new File(getDataFolder(), "stages.yml"));
 		kitLoader.loadPreferred(getDataFolder());
 		pvpLoader.load(new File(getDataFolder(), "pvp.yml"));
+		partyLoader.load(new File(getDataFolder(), "party.yml"));
 		graveLoader.load(new File(getDataFolder(), "graves.yml"));
 		WorldGuardBridge.init();
 		net.tfminecraft.RPCharacters.catalog.CreationCatalogSyncService.pushAsync(this);
@@ -397,6 +419,7 @@ public class RPCharacters extends JavaPlugin{
 				"prosthetics.yml",
 				"kits.yml",
 				"pvp.yml",
+				"party.yml",
 				"graves.yml"
 				};
 		for(String s : files) {
