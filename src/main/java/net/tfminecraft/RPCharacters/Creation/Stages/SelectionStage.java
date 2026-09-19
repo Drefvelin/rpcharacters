@@ -319,6 +319,16 @@ public class SelectionStage extends Stage{
 					}
 				}
 			}.runTaskLater(RPCharacters.plugin, 2L);
+		} else if (target.equalsIgnoreCase("trait") && key != null
+				&& (key.equalsIgnoreCase("injury") || key.equalsIgnoreCase("prosthetic"))) {
+			PlayerData pd = PlayerManager.get(p);
+			if (pd != null && pd.hasActiveCharacter()) {
+				RPCharacter character = pd.getActiveCharacter();
+				if (ProstheticTraitRules.stripReplacedInjuries(character)) {
+					character.update();
+					RPCharacters.getPlayerManager().savePlayer(p);
+				}
+			}
 		}
 	}
 

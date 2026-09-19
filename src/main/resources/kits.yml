@@ -13,8 +13,9 @@ kits:
         3d-template: item_3d
     - path: m.currency.GOLD_COIN
       amount: 32
-    - path: m.foods.WHITE_BREAD
-      amount: 256
+    - path: c.dry_ration(type=dry_ration;quality=1)
+      amount: 32
+      display-name: Dry Ration
     - path: v.OAK_BOAT
       amount: 1
     - path: v.WRITABLE_BOOK

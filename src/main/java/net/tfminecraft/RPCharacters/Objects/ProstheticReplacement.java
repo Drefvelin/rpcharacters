@@ -2,55 +2,52 @@ package net.tfminecraft.RPCharacters.Objects;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 
 public final class ProstheticReplacement {
 
 	private final String permanentInjuryId;
-	private final String installItem;
-	private final List<String> tierTraitIds;
+	private final Map<String, String> itemByTraitId;
 
-	public ProstheticReplacement(String permanentInjuryId, String installItem, List<String> tierTraitIds) {
+	public ProstheticReplacement(String permanentInjuryId, Map<String, String> itemByTraitId) {
 		this.permanentInjuryId = permanentInjuryId;
-		this.installItem = installItem;
-		this.tierTraitIds = Collections.unmodifiableList(tierTraitIds);
+		this.itemByTraitId = Collections.unmodifiableMap(itemByTraitId);
 	}
 
 	public String getPermanentInjuryId() {
 		return permanentInjuryId;
 	}
 
-	public String getInstallItem() {
-		return installItem;
+	public Map<String, String> getItemByTraitId() {
+		return itemByTraitId;
 	}
 
-	public List<String> getTierTraitIds() {
-		return tierTraitIds;
+	public boolean containsTrait(String prostheticTraitId) {
+		return getItemPath(prostheticTraitId) != null;
 	}
 
-	public int getTierIndex(String prostheticTraitId) {
-		if (prostheticTraitId == null) {
-			return -1;
+	public String getItemPath(String prostheticTraitId) {
+		if (prostheticTraitId == null || prostheticTraitId.isBlank()) {
+			return null;
 		}
-		for (int i = 0; i < tierTraitIds.size(); i++) {
-			if (tierTraitIds.get(i).equalsIgnoreCase(prostheticTraitId)) {
-				return i;
+		return itemByTraitId.get(prostheticTraitId.toLowerCase(Locale.ROOT));
+	}
+
+	public String ownedProstheticId(List<Trait> traits) {
+		if (traits == null) {
+			return null;
+		}
+		for (Trait trait : traits) {
+			if (trait == null || trait.getId() == null) {
+				continue;
+			}
+			if (containsTrait(trait.getId())) {
+				return trait.getId().toLowerCase(Locale.ROOT);
 			}
 		}
-		return -1;
-	}
-
-	public String getNextTierId(String currentProstheticId) {
-		int index = getTierIndex(currentProstheticId);
-		if (index < 0 || index + 1 >= tierTraitIds.size()) {
-			return null;
-		}
-		return tierTraitIds.get(index + 1);
-	}
-
-	public String getTierId(int index) {
-		if (index < 0 || index >= tierTraitIds.size()) {
-			return null;
-		}
-		return tierTraitIds.get(index);
+		return null;
 	}
 }

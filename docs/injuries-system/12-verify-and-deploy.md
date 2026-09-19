@@ -32,8 +32,8 @@ Test matrix, deploy steps, operator checklist.
 
 | # | Action | Expected |
 |---|--------|----------|
-| 11 | Install with blaze rod | Injury removed, tier 1 added |
-| 12 | Upgrade twice | Tier 3, fuel % preserved |
+| 11 | Install with matching prosthetic item | Injury removed, that trait added, item consumed |
+| 12 | Swap to a different mapped item | Confirm GUI; old trait destroyed, no item refund; new fuel starts full |
 | 13 | Arcane fuel empty | Depowered name/effects |
 | 14 | Refuel arcane item | Powered restored |
 

@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.identity.CharacterSlug;
 import net.tfminecraft.RPCharacters.enums.Status;
+import net.tfminecraft.RPCharacters.Utils.ProstheticTraitRules;
 import net.tfminecraft.RPCharacters.lifecycle.CharacterLifecycle;
 import net.tfminecraft.RPCharacters.mail.MailRecipientDirectory;
 
@@ -397,8 +398,12 @@ public class PlayerData {
 		if (c == null) {
 			return;
 		}
+		boolean stripped = ProstheticTraitRules.stripReplacedInjuries(c);
 		RPCharacter current = getActiveCharacter();
 		if (current != null && current.getId() != null && current.getId().equals(c.getId())) {
+			if (stripped) {
+				c.update();
+			}
 			return;
 		}
 		Player player = resolveOnlinePlayer();

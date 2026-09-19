@@ -11,7 +11,7 @@
 - Injuries are traits with optional **healing** (`duration`) or **permanent** (no duration).
 - Permadeath zone death: roll permakill first, then either **convert** healing injuries to permanent (conversion **replaces** a new pool roll) or **roll** a new healing injury from the pool.
 - Remedies instantly remove **healing** injuries only.
-- Prosthetics replace permanent injuries via config mapping; tiered upgrades; optional fuel on advanced tiers.
+- Prosthetics replace permanent injuries via config mapping; optional fuel on advanced prosthetics.
 - Character creator: optional backstory stages for permanent injuries (0 cost, many) and one prosthetic (1 point budget, skippable).
 - Web character creator mirrors in game rules.
 
@@ -57,12 +57,11 @@
 
 ## 5. Prosthetics
 
-- `prosthetics.yml`: abstract `replacements` map: **permanent injury trait id** → install item + ordered **tier** trait ids.
-- Right click with install item: install or upgrade prosthetic for mapped injury.
-- Installing removes the permanent injury trait and adds the prosthetic trait.
-- Upgrading swaps prosthetic trait id to higher tier (same mapping entry). Preserve fuel **percentage** on upgrade; fresh install starts at full fuel.
+- `prosthetics.yml`: **permanent injury trait id** → map of prosthetic trait id → install item path.
+- Right click with that prosthetic item: install for the mapped injury, or replace another prosthetic in the same group after confirm (old trait is not refunded as an item).
+- Installing removes the permanent injury trait and adds the prosthetic trait for the held item.
+- Swapping discards old fuel; fresh or swapped fueled traits start at full fuel.
 - No prosthetic entry in config = no replacement path (e.g. blindness). Not hardcoded.
-- Placeholder install item for all tiers: `v.blaze_rod` (config).
 
 ### Fueled prosthetics (arcane tiers)
 
@@ -111,7 +110,7 @@ Creator stages filter by key. Healing injuries identified by `duration` on trait
 | `injuries.yml` | Weighted pool of **healing** trait ids for new zone rolls |
 | `injury-progression.yml` | `healing-trait-id: permanent-trait-id` |
 | `fuel-templates.yml` | Fuel item templates |
-| `prosthetics.yml` | Permanent injury → tiers + install item |
+| `prosthetics.yml` | Permanent injury → prosthetic trait id → install item |
 | `traits/injury-traits.yml` | Injury trait definitions |
 | `traits/prosthetic-traits.yml` | Prosthetic trait definitions |
 | `items.yml` | Remedies (healing traits only) |
@@ -147,5 +146,5 @@ Clear icons on all trait options. Arcane prosthetic disclaimer about fuel.
 
 ## 12. Balance intent
 
-- Prosthetic tiers: gradually better than permanent injury, never as good as uninjured.
+- Prosthetic options: gradually better than permanent injury, never as good as uninjured.
 - All injuries count equally for permadeath risk until replaced by prosthetic (injury removed).

@@ -12,10 +12,15 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <worldguard.version>7.0.9</worldguard.version>
-        <tfmc.refs>D:/Documents/TFMC/ReferenceLibs</tfmc.refs>
-        <tfmc.builds>D:/Documents/TFMC/Builds/RPCharacters</tfmc.builds>
-        <tfmc.tlibs>D:/Documents/TFMC/Builds/TLibs</tfmc.tlibs>
-        <tfmc.simplefactions>D:/Documents/TFMC/Workspace/simplefactions/target</tfmc.simplefactions>
+        <tfmc.refs>D:/Dokumenter/My Plugins/Reference Libs</tfmc.refs>
+        <tfmc.builds>D:/Dokumenter/My Plugins/TFMC/RPCharacters</tfmc.builds>
+        <tfmc.tlibs>D:/Dokumenter/My Plugins/TFMC/TLibs</tfmc.tlibs>
+        <tfmc.simplefactions>D:/Dokumenter/My Plugins/TFMC/SimpleFactions</tfmc.simplefactions>
+        <itemsadder.jar>ItemsAdder_4.0.18.jar</itemsadder.jar>
+        <tlibs.jar>TLibs.jar</tlibs.jar>
+        <mmoitems.jar>MMOItems-6.10.1-20250521.175300-22.jar</mmoitems.jar>
+        <mythiclib.jar>MythicLib-dist-1.7.1.jar</mythiclib.jar>
+        <mythicmobs.jar>MythicMobs-5.8.0-SNAPSHOT.jar</mythicmobs.jar>
     </properties>
 
     <repositories>
@@ -26,6 +31,10 @@
         <repository>
             <id>enginehub</id>
             <url>https://maven.enginehub.org/repo/</url>
+        </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.helpch.at/releases/</url>
         </repository>
     </repositories>
 
@@ -78,11 +87,10 @@
             <systemPath>${tfmc.refs}/${mythiclib.jar}</systemPath>
         </dependency>
         <dependency>
-            <groupId>local</groupId>
-            <artifactId>PlaceholderAPI</artifactId>
-            <version>2.12.2</version>
-            <scope>system</scope>
-            <systemPath>${tfmc.refs}/PlaceholderAPI-2.12.2.jar</systemPath>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.11.6</version>
+            <scope>provided</scope>
         </dependency>
         <!-- Compile-time only; LuckPerms plugin provides API at runtime -->
         <dependency>
@@ -159,6 +167,25 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-to-builds</id>
+                        <phase>package</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${tfmc.builds}"/>
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                      tofile="${tfmc.builds}/${project.build.finalName}.jar"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

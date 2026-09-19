@@ -17,7 +17,7 @@ Healing vs permanent injuries, progression on zone death, remedies, prosthetic r
 | Zone death | Roll permakill → convert all healing OR roll new pool injury (convert replaces roll) |
 | Progression | `injury-progression.yml` map; not hardcoded |
 | Remedies | Instant full cure on healing injuries only |
-| Prosthetics | `prosthetics.yml` injury → tier list; install/upgrade via right click |
+| Prosthetics | `prosthetics.yml` injury → trait/item map; install or confirm swap via right click |
 | Fuel | `fuel-templates.yml`; arcane prosthetics; powered/depowered same trait id |
 | Permadeath count | `key: injury` only; prosthetics excluded |
 | Creator | Two skippable stages: permanent injuries (0 pts), one prosthetic (1 pt) |
@@ -33,7 +33,7 @@ Healing vs permanent injuries, progression on zone death, remedies, prosthetic r
 | 4 | [04-permadeath-flow](./04-permadeath-flow.md) | Death order, progression convert, pool roll, risk count |
 | 5 | [05-healing-tick](./05-healing-tick.md) | Online active tick, heal completion |
 | 6 | [06-remedies](./06-remedies.md) | Healing only instant cure |
-| 7 | [07-prosthetics-install](./07-prosthetics-install.md) | Install, upgrade, remove injury trait |
+| 7 | [07-prosthetics-install](./07-prosthetics-install.md) | Install, confirm swap, remove injury trait |
 | 8 | [08-prosthetic-fuel](./08-prosthetic-fuel.md) | Burn tick, refuel, depowered swap |
 | 9 | [09-creator-stages](./09-creator-stages.md) | Two stages, skip, icons, disclaimers |
 | 10 | [10-web-catalog-sync](./10-web-catalog-sync.md) | ProvinceSystem catalog rules |
@@ -45,7 +45,7 @@ Healing vs permanent injuries, progression on zone death, remedies, prosthetic r
 ```text
 zone death → permakill roll → convert OR new healing injury
 healing ticks down while active → remedy cures OR progresses to permanent on death
-permanent injury → right click install prosthetic → upgrade tiers → arcane fuel/refuel
+permanent injury → right click prosthetic item → install or confirm swap → arcane fuel/refuel
 creator + web: optional permanent injuries + one prosthetic
 ```
 

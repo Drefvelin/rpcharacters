@@ -33,17 +33,13 @@ progression:
 ```yaml
 replacements:
   one_handed:
-    install-item: v.blaze_rod
-    tiers:
-      - wooden_claw_arm
-      - basic_prosthetic_arm
-      - arcane_prosthetic_arm
+    wooden_claw_arm: m.utils.wood_claw_arm
+    basic_prosthetic_arm: m.utils.iron_claw_arm
+    arcane_prosthetic_arm: m.utils.arcane_claw_arm
   one_legged:
-    install-item: v.blaze_rod
-    tiers:
-      - pegleg
-      - basic_prosthetic_leg
-      - arcane_prosthetic_leg
+    pegleg: m.utils.wood_claw_leg
+    basic_prosthetic_leg: m.utils.iron_claw_leg
+    arcane_prosthetic_leg: m.utils.arcane_claw_leg
 ```
 
 ### `traits/prosthetic-traits.yml`
@@ -74,7 +70,7 @@ Replace legacy ids with healing + permanent pairs. Healing traits include `durat
 |--------|----------------|
 | `FuelTemplateLoader` | `get(id)`, `getByItem(path)` |
 | `InjuryProgressionLoader` | `getPermanent(healingId)`, `isHealingTrait(id)` via trait duration |
-| `ProstheticLoader` | `getReplacement(injuryId)`, `getTierIndex(prostheticId)`, `resolveInstall(item)` |
+| `ProstheticLoader` | `getReplacement(injuryId)`, `getReplacementForProsthetic(prostheticId)`, `resolveForItem(item)` |
 
 ## Bootstrap (`RPCharacters.java`)
 
@@ -85,7 +81,7 @@ Replace legacy ids with healing + permanent pairs. Healing traits include `durat
 
 - [x] `/rpcharacter reload` loads all files without warnings
 - [x] Invalid progression target logs warning and skips entry
-- [x] Prosthetic tier order preserved from YAML list order
+- [x] Prosthetic trait keys map to install item paths
 
 ## Status
 

@@ -25,6 +25,7 @@ import net.tfminecraft.RPCharacters.Database.Database;
 import net.tfminecraft.RPCharacters.Loaders.RaceLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
+import net.tfminecraft.RPCharacters.Utils.ProstheticTraitRules;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Races.Race;
@@ -352,6 +353,7 @@ public final class CharacterIngestService {
 		}
 		character.setBirthday(birthday);
 		character.setCreatedAtEpochSeconds((int) Instant.now().getEpochSecond());
+		ProstheticTraitRules.stripReplacedInjuries(character);
 		character.ensureTraitStateDefaults();
 		character.update();
 

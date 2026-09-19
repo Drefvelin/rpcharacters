@@ -37,6 +37,7 @@ import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.SelectableItem;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.Utils.PlaytimeGate;
+import net.tfminecraft.RPCharacters.Utils.ProstheticTraitRules;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.enums.CreationGuiContext;
 import net.tfminecraft.RPCharacters.persona.CharacterSlotService;
@@ -343,6 +344,7 @@ public class CreationManager implements Listener{
 				if(cc != null) item.click(cc);
 				else {
 					item.click(c);
+					ProstheticTraitRules.stripReplacedInjuries(c);
 					c.update();
 					RPCharacters.getPlayerManager().savePlayer(p);
 					RPCharacters.getPlayerManager().reevaluateFreeze(p);

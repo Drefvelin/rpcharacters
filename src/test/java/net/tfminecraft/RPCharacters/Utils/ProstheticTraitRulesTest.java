@@ -54,4 +54,28 @@ class ProstheticTraitRulesTest {
 				toRemove);
 		assertEquals(List.of("one_handed", "blind"), kept);
 	}
+
+	@Test
+	void installWhenInjuryAndNoProsthetic() {
+		assertEquals(ProstheticTraitRules.InstallAction.INSTALL,
+				ProstheticTraitRules.resolveInstall(true, null, "wooden_claw_arm"));
+	}
+
+	@Test
+	void alreadyOwnedWhenSameTrait() {
+		assertEquals(ProstheticTraitRules.InstallAction.ALREADY_OWNED,
+				ProstheticTraitRules.resolveInstall(false, "wooden_claw_arm", "wooden_claw_arm"));
+	}
+
+	@Test
+	void replaceWhenDifferentProsthetic() {
+		assertEquals(ProstheticTraitRules.InstallAction.REPLACE,
+				ProstheticTraitRules.resolveInstall(false, "wooden_claw_arm", "arcane_prosthetic_arm"));
+	}
+
+	@Test
+	void noneWhenNoInjuryAndNoProsthetic() {
+		assertEquals(ProstheticTraitRules.InstallAction.NONE,
+				ProstheticTraitRules.resolveInstall(false, null, "wooden_claw_arm"));
+	}
 }

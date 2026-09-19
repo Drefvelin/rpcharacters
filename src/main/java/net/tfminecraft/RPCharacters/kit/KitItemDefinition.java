@@ -5,11 +5,17 @@ public final class KitItemDefinition {
 	private final String path;
 	private final int amount;
 	private final KitEditableSpec editable;
+	private final String displayName;
 
 	public KitItemDefinition(String path, int amount, KitEditableSpec editable) {
+		this(path, amount, editable, null);
+	}
+
+	public KitItemDefinition(String path, int amount, KitEditableSpec editable, String displayName) {
 		this.path = path;
 		this.amount = Math.max(1, amount);
 		this.editable = editable;
+		this.displayName = displayName != null && !displayName.isBlank() ? displayName.trim() : null;
 	}
 
 	public String getPath() {
@@ -26,5 +32,9 @@ public final class KitItemDefinition {
 
 	public boolean isEditable() {
 		return editable != null;
+	}
+
+	public String getDisplayName() {
+		return displayName;
 	}
 }

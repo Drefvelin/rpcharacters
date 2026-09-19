@@ -9,13 +9,41 @@ import java.util.function.Function;
 
 import net.tfminecraft.RPCharacters.Loaders.ProstheticLoader;
 import net.tfminecraft.RPCharacters.Loaders.TraitLoader;
+import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.ProstheticReplacement;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 
 public final class ProstheticTraitRules {
 
+	public enum InstallAction {
+		NONE,
+		INSTALL,
+		REPLACE,
+		ALREADY_OWNED
+	}
+
 	private ProstheticTraitRules() {
+	}
+
+	public static InstallAction resolveInstall(boolean hasInjury, String ownedProstheticId, String targetTraitId) {
+		if (targetTraitId == null || targetTraitId.isBlank()) {
+			return InstallAction.NONE;
+		}
+		String target = targetTraitId.toLowerCase(Locale.ROOT);
+		String owned = ownedProstheticId == null || ownedProstheticId.isBlank()
+				? null
+				: ownedProstheticId.toLowerCase(Locale.ROOT);
+		if (target.equals(owned)) {
+			return InstallAction.ALREADY_OWNED;
+		}
+		if (owned != null) {
+			return InstallAction.REPLACE;
+		}
+		if (hasInjury) {
+			return InstallAction.INSTALL;
+		}
+		return InstallAction.NONE;
 	}
 
 	/**
@@ -24,7 +52,7 @@ public final class ProstheticTraitRules {
 	 * @return {@code true} if at least one injury trait was removed
 	 */
 	public static boolean stripReplacedInjuries(RPCharacter character) {
-		if (character == null) {
+		if (character == null || character.getTraits() == null) {
 			return false;
 		}
 		Set<String> injuryIdsToRemove = injuriesSupersededByProsthetics(
@@ -43,6 +71,24 @@ public final class ProstheticTraitRules {
 			character.removeTrait(trait);
 		}
 		return !toRemove.isEmpty();
+	}
+
+	/**
+	 * Drops superseded injuries on every character for this player.
+	 *
+	 * @return {@code true} if at least one injury trait was removed
+	 */
+	public static boolean sanitize(PlayerData playerData) {
+		if (playerData == null || playerData.getCharacters() == null) {
+			return false;
+		}
+		boolean changed = false;
+		for (RPCharacter character : playerData.getCharacters()) {
+			if (stripReplacedInjuries(character)) {
+				changed = true;
+			}
+		}
+		return changed;
 	}
 
 	static Set<String> injuriesSupersededByProsthetics(

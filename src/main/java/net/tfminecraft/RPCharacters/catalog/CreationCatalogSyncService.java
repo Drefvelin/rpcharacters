@@ -557,6 +557,9 @@ public final class CreationCatalogSyncService {
 				if (item.isEditable()) {
 					sb.append(",\"editable\":true");
 				}
+				if (item.getDisplayName() != null && !item.getDisplayName().isBlank()) {
+					appendField(sb, "display_name", item.getDisplayName(), false);
+				}
 				sb.append('}');
 			}
 			sb.append("]}");

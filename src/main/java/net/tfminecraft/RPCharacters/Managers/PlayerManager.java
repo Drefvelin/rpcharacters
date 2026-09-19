@@ -49,6 +49,7 @@ import net.tfminecraft.RPCharacters.Objects.Trait.TraitEffectResolver;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Managers.CreationManager;
 import net.tfminecraft.RPCharacters.Utils.ClueProgressFormatter;
+import net.tfminecraft.RPCharacters.Utils.ProstheticTraitRules;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.Utils.Integrator;
 import net.tfminecraft.RPCharacters.Permissions;
@@ -369,6 +370,9 @@ public class PlayerManager implements Listener{
 			}
 			final PlayerData loaded = pd;
 			data.add(loaded);
+			if (ProstheticTraitRules.sanitize(loaded)) {
+				savePlayer(p);
+			}
 			if(!loaded.hasActiveCharacter() && loaded.getCharacters(Status.ALIVE).size() > 0) {
 				loaded.setActiveCharacter(loaded.getCharacters(Status.ALIVE).get(0));
 			}

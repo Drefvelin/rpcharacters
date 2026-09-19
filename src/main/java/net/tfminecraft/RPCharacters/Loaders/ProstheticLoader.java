@@ -3,8 +3,8 @@ package net.tfminecraft.RPCharacters.Loaders;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -21,12 +21,12 @@ import net.tfminecraft.RPCharacters.Objects.FuelTemplate;
 import net.tfminecraft.RPCharacters.Objects.ProstheticReplacement;
 import net.tfminecraft.RPCharacters.Objects.Trait.Trait;
 import net.tfminecraft.RPCharacters.RPCharacters;
+import net.tfminecraft.RPCharacters.prosthetics.ProstheticInstallMatch;
 
 public final class ProstheticLoader implements LoaderInterface {
 
 	private static final Map<String, ProstheticReplacement> byInjuryId = new HashMap<>();
 	private static final Map<String, ProstheticReplacement> byProstheticId = new HashMap<>();
-	private static final Map<String, List<ProstheticReplacement>> byInstallItem = new HashMap<>();
 	private static final List<ProstheticReplacement> loadOrder = new ArrayList<>();
 
 	@Override
@@ -40,7 +40,6 @@ public final class ProstheticLoader implements LoaderInterface {
 
 		byInjuryId.clear();
 		byProstheticId.clear();
-		byInstallItem.clear();
 		loadOrder.clear();
 
 		if (!config.isConfigurationSection("replacements")) {
@@ -71,36 +70,29 @@ public final class ProstheticLoader implements LoaderInterface {
 				continue;
 			}
 
-			String installItem = section.getString("install-item");
-			if (installItem == null || installItem.isBlank()) {
-				RPCharacters.plugin.getLogger().warning(
-						"Prosthetic replacement '" + injuryId + "' has no install-item and was skipped.");
-				continue;
-			}
-
-			List<String> tiers = section.getStringList("tiers");
-			if (tiers == null || tiers.isEmpty()) {
-				RPCharacters.plugin.getLogger().warning(
-						"Prosthetic replacement '" + injuryId + "' has no tiers and was skipped.");
-				continue;
-			}
-
-			List<String> normalizedTiers = new ArrayList<>();
+			Map<String, String> itemByTraitId = new LinkedHashMap<>();
 			boolean valid = true;
-			for (String tierId : tiers) {
-				if (tierId == null || tierId.isBlank()) {
+			for (String traitId : section.getKeys(false)) {
+				if (traitId == null || traitId.isBlank()) {
 					continue;
 				}
-				Trait prostheticTrait = TraitLoader.getByString(tierId);
+				String itemPath = section.getString(traitId);
+				if (itemPath == null || itemPath.isBlank()) {
+					RPCharacters.plugin.getLogger().warning(
+							"Prosthetic '" + traitId + "' for '" + injuryId + "' has no item path and was skipped.");
+					valid = false;
+					break;
+				}
+				Trait prostheticTrait = TraitLoader.getByString(traitId);
 				if (prostheticTrait == null) {
 					RPCharacters.plugin.getLogger().warning(
-							"Prosthetic tier '" + tierId + "' for '" + injuryId + "' is unknown and was skipped.");
+							"Prosthetic '" + traitId + "' for '" + injuryId + "' is unknown and was skipped.");
 					valid = false;
 					break;
 				}
 				if (!prostheticTrait.getTraitData().isProstheticKey()) {
 					RPCharacters.plugin.getLogger().warning(
-							"Prosthetic tier '" + tierId + "' for '" + injuryId
+							"Prosthetic '" + traitId + "' for '" + injuryId
 									+ "' is not key prosthetic and was skipped.");
 					valid = false;
 					break;
@@ -109,43 +101,45 @@ public final class ProstheticLoader implements LoaderInterface {
 					FuelTemplate template = FuelTemplateLoader.getByString(prostheticTrait.getFuelTemplateId());
 					if (template == null) {
 						RPCharacters.plugin.getLogger().warning(
-								"Prosthetic tier '" + tierId + "' references unknown fuel template '"
+								"Prosthetic '" + traitId + "' references unknown fuel template '"
 										+ prostheticTrait.getFuelTemplateId() + "' and was skipped.");
 						valid = false;
 						break;
 					}
 					if (prostheticTrait.getFuelCapacity() <= 0) {
 						RPCharacters.plugin.getLogger().warning(
-								"Prosthetic tier '" + tierId + "' has invalid fuel-capacity and was skipped.");
+								"Prosthetic '" + traitId + "' has invalid fuel-capacity and was skipped.");
 						valid = false;
 						break;
 					}
 					if (!prostheticTrait.hasPoweredVariant() || prostheticTrait.getDepoweredVariant() == null) {
 						RPCharacters.plugin.getLogger().warning(
-								"Prosthetic tier '" + tierId + "' is fueled but missing powered/depowered blocks.");
+								"Prosthetic '" + traitId + "' is fueled but missing powered/depowered blocks.");
 						valid = false;
 						break;
 					}
 				}
-				normalizedTiers.add(tierId.toLowerCase(Locale.ROOT));
+				String traitKey = traitId.toLowerCase(Locale.ROOT);
+				if (byProstheticId.containsKey(traitKey)) {
+					RPCharacters.plugin.getLogger().warning(
+							"Prosthetic '" + traitId + "' is already mapped and was skipped.");
+					valid = false;
+					break;
+				}
+				itemByTraitId.put(traitKey, itemPath);
 			}
 
-			if (!valid || normalizedTiers.isEmpty()) {
+			if (!valid || itemByTraitId.isEmpty()) {
 				continue;
 			}
 
 			String injuryKey = injuryId.toLowerCase(Locale.ROOT);
-			ProstheticReplacement replacement = new ProstheticReplacement(
-					injuryKey,
-					installItem,
-					normalizedTiers);
+			ProstheticReplacement replacement = new ProstheticReplacement(injuryKey, itemByTraitId);
 			byInjuryId.put(injuryKey, replacement);
 			loadOrder.add(replacement);
-			for (String tierId : normalizedTiers) {
-				byProstheticId.put(tierId, replacement);
+			for (String traitKey : itemByTraitId.keySet()) {
+				byProstheticId.put(traitKey, replacement);
 			}
-			String itemKey = installItem.toLowerCase(Locale.ROOT);
-			byInstallItem.computeIfAbsent(itemKey, ignored -> new ArrayList<>()).add(replacement);
 		}
 	}
 
@@ -163,43 +157,17 @@ public final class ProstheticLoader implements LoaderInterface {
 		return byProstheticId.get(prostheticTraitId.toLowerCase(Locale.ROOT));
 	}
 
-	public static int getTierIndex(String prostheticTraitId) {
-		ProstheticReplacement replacement = getReplacementForProsthetic(prostheticTraitId);
-		if (replacement == null) {
-			return -1;
-		}
-		return replacement.getTierIndex(prostheticTraitId);
-	}
-
-	public static String getNextTierId(String currentProstheticId) {
-		ProstheticReplacement replacement = getReplacementForProsthetic(currentProstheticId);
-		if (replacement == null) {
+	public static ProstheticInstallMatch resolveForItem(ItemStack item) {
+		if (item == null || item.getType().isAir()) {
 			return null;
 		}
-		return replacement.getNextTierId(currentProstheticId);
-	}
-
-	public static List<ProstheticReplacement> getByInstallItem(String itemPath) {
-		if (itemPath == null || itemPath.isBlank()) {
-			return List.of();
-		}
-		List<ProstheticReplacement> matches = byInstallItem.get(itemPath.toLowerCase(Locale.ROOT));
-		if (matches == null) {
-			return List.of();
-		}
-		return Collections.unmodifiableList(matches);
-	}
-
-	public static List<ProstheticReplacement> resolveForItem(ItemStack item) {
-		if (item == null || item.getType().isAir()) {
-			return List.of();
-		}
-		List<ProstheticReplacement> matches = new ArrayList<>();
 		for (ProstheticReplacement replacement : loadOrder) {
-			if (TLibs.getItemAPI().getChecker().checkItemWithPath(item, replacement.getInstallItem())) {
-				matches.add(replacement);
+			for (Map.Entry<String, String> entry : replacement.getItemByTraitId().entrySet()) {
+				if (TLibs.getItemAPI().getChecker().checkItemWithPath(item, entry.getValue())) {
+					return new ProstheticInstallMatch(replacement, entry.getKey(), entry.getValue());
+				}
 			}
 		}
-		return Collections.unmodifiableList(matches);
+		return null;
 	}
 }

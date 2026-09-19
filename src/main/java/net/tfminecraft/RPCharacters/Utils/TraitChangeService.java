@@ -90,26 +90,16 @@ public final class TraitChangeService {
 		return true;
 	}
 
-	public static boolean upgradeProsthetic(Player player, RPCharacter character, String fromId, String toId) {
+	public static boolean replaceProsthetic(Player player, RPCharacter character, String fromId, String toId) {
 		Trait fromTrait = findOwnedTrait(character, fromId);
 		Trait toTrait = TraitLoader.getByString(toId);
 		if (fromTrait == null || toTrait == null) {
 			return false;
 		}
 
-		double oldFuel = character.getFuel(fromId);
-		double oldCapacity = fromTrait.getFuelCapacity();
-		double newCapacity = toTrait.getFuelCapacity();
-		boolean migrateFuel = fromTrait.hasFuelTemplate() && toTrait.hasFuelTemplate()
-				&& oldCapacity > 0D && newCapacity > 0D && oldFuel >= 0D;
-
 		removeTrait(player, character, fromTrait);
+		sendLostMessage(player, fromTrait);
 		addTrait(player, character, toTrait);
-		if (migrateFuel) {
-			double ratio = Math.max(0D, Math.min(1D, oldFuel / oldCapacity));
-			character.setFuel(toId, ratio * newCapacity);
-			RPCharacters.getPlayerManager().savePlayer(player);
-		}
 		sendGainedMessage(player, toTrait);
 		return true;
 	}

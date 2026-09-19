@@ -154,7 +154,7 @@ public final class KitLoader implements LoaderInterface {
 					return null;
 				}
 			}
-			loaded.add(new KitItemDefinition(path, amount, editable));
+			loaded.add(new KitItemDefinition(path, amount, editable, stringOf(map.get("display-name"))));
 		}
 		return loaded;
 	}
