@@ -14,7 +14,7 @@ display-name:
   length-maximum: 24
 
 alias:
-  allowed-chars: "abcdefghijklmnopqrstuvwxyz.-'' áéíóú"
+  allowed-chars: "abcdefghijklmnopqrstuvwxyz.,-'' áéíóú"
   cooldown-seconds: 10
 
 gender:
