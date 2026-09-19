@@ -101,15 +101,15 @@ class PartyManagerTest {
 	}
 
 	@Test
-	void leaderQuitDisbandsParty() {
+	void leaderQuitKeepsParty() {
 		PartyManager.get().create(leader, "Scouts");
 		PartyManager.get().invite(leader, member);
 		PartyManager.get().join(member);
 
 		PartyManager.get().handleQuit(leader);
 
-		assertNull(PartyManager.get().getParty(leader));
-		assertNull(PartyManager.get().getParty(member));
+		assertNotNull(PartyManager.get().getParty(leader));
+		assertNotNull(PartyManager.get().getParty(member));
 	}
 
 	@Test

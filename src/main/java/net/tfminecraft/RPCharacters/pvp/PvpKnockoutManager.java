@@ -10,11 +10,13 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Pose;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -69,17 +71,43 @@ public final class PvpKnockoutManager implements Listener {
 		if (player.getHealth() - event.getFinalDamage() > 0) {
 			return;
 		}
-		PlayerData pd = PlayerManager.get(player);
-		if (pd == null || !pd.hasActiveCharacter()) {
-			return;
-		}
-		RPCharacter character = pd.getActiveCharacter();
-		if (character.isPvpLethal()) {
+		if (!usesNonlethalMode(event, player)) {
 			return;
 		}
 
 		event.setCancelled(true);
 		applyKnockout(player);
+	}
+
+	static boolean usesNonlethalMode(EntityDamageEvent event, Player player) {
+		Player attacker = attackingPlayer(event);
+		// In PvP the attacker's choice controls whether their blow can kill.
+		// Keep the existing victim-mode behaviour for non-PvP damage.
+		Player modeOwner = attacker != null && !attacker.getUniqueId().equals(player.getUniqueId())
+				? attacker : player;
+		PlayerData pd = PlayerManager.get(modeOwner);
+		if (pd == null || !pd.hasActiveCharacter()) {
+			return false;
+		}
+		RPCharacter character = pd.getActiveCharacter();
+		return !character.isPvpLethal();
+	}
+
+	static Player attackingPlayer(EntityDamageEvent event) {
+		if (event.getDamageSource() != null
+				&& event.getDamageSource().getCausingEntity() instanceof Player player) {
+			return player;
+		}
+		if (event instanceof EntityDamageByEntityEvent byEntity) {
+			if (byEntity.getDamager() instanceof Player player) {
+				return player;
+			}
+			if (byEntity.getDamager() instanceof Projectile projectile
+					&& projectile.getShooter() instanceof Player player) {
+				return player;
+			}
+		}
+		return null;
 	}
 
 	@EventHandler
