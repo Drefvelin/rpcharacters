@@ -333,8 +333,11 @@ public class SpawnedClueManager implements Listener {
 		Chunk chunk = event.getChunk();
 		processCluesInChunk(event.getWorld().getName(), chunk.getX(), chunk.getZ());
 		World world = event.getWorld();
-		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (player.getWorld().equals(world)) {
+		int cx = chunk.getX();
+		int cz = chunk.getZ();
+		for (Player player : world.getPlayers()) {
+			Location loc = player.getLocation();
+			if ((loc.getBlockX() >> 4) == cx && (loc.getBlockZ() >> 4) == cz) {
 				ClueDiscoveryVisualManager.get().refreshViewer(player);
 			}
 		}

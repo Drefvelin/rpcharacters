@@ -798,6 +798,10 @@ public class PlayerManager implements Listener{
 		Player p = e.getPlayer();
 		PlayerData pd = get(p);
 		if(!pd.hasActiveCharacter()) return;
+		if(e.getProfession() == null) {
+			ClassService.trackFromPlayer(p);
+			return;
+		}
 		RPCharacter c = pd.getActiveCharacter();
 		if(c.getAttributeData().getExperienceModifiers().size() == 0) return;
 		String profession = e.getProfession().getId();

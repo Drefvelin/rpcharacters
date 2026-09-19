@@ -74,40 +74,27 @@ public final class KitCustomiseIngestService {
 	}
 
 	/**
-	 * Must run on the main thread. Sync-fetches ready lore items for one character,
-	 * applies them inline (no scheduler hop), and acks. Used before kit claim.
+	 * Must run on the main thread. Applies already-fetched pending lore rows for
+	 * one character. Caller fetches HTTP off-thread.
+	 *
+	 * @return ack payload rows (empty if nothing applied)
 	 */
-	public static void ingestReadyForCharacterOnMain(Player player, RPCharacter character) {
+	public static List<JSONObject> applyReadyForCharacterOnMain(
+			Player player,
+			RPCharacter character,
+			List<JSONObject> all
+	) {
 		if (player == null || character == null || Cache.devCharacters) {
-			return;
+			return List.of();
 		}
 		String characterId = character.getId();
 		String playerUuid = player.getUniqueId().toString();
 		if (characterId == null || characterId.isBlank()) {
-			return;
+			return List.of();
 		}
-		ProvinceSystemClient.SimpleResult pending =
-				ProvinceSystemClient.fetchPendingLoreItems();
-		if (!pending.ok) {
-			RPCharacters.plugin.getLogger().warning(
-					"[kit-customise] claim-pull failed: " + pending.error
-			);
-			return;
-		}
-		String body = pending.body != null ? pending.body : "";
-		if (body.isBlank()) {
-			RPCharacters.plugin.getLogger().info(
-					"[kit-customise] claim-pull empty body char=" + characterId
-							+ " uuid=" + playerUuid
-			);
-		} else {
-			RPCharacters.plugin.getLogger().info(
-					"[kit-customise] claim-pull body=" + body
-			);
-		}
-		List<JSONObject> all = ProvinceSystemClient.parsePendingLoreItems(pending.body);
+		List<JSONObject> source = all != null ? all : List.of();
 		List<JSONObject> mine = new ArrayList<>();
-		for (JSONObject row : all) {
+		for (JSONObject row : source) {
 			if (row == null) {
 				continue;
 			}
@@ -118,7 +105,7 @@ public final class KitCustomiseIngestService {
 			}
 		}
 		RPCharacters.plugin.getLogger().info(
-				"[kit-customise] claim-pull total=" + all.size()
+				"[kit-customise] claim-pull total=" + source.size()
 						+ " matched=" + mine.size()
 						+ " char=" + characterId
 						+ " uuid=" + playerUuid
@@ -128,7 +115,7 @@ public final class KitCustomiseIngestService {
 					"[kit-customise] claim-pull no ready rows for char="
 							+ characterId + " uuid=" + playerUuid
 			);
-			return;
+			return List.of();
 		}
 		List<JSONObject> results = new ArrayList<>();
 		for (JSONObject row : mine) {
@@ -155,17 +142,28 @@ public final class KitCustomiseIngestService {
 							+ (err != null ? " error=" + err : "")
 			);
 		}
-		ProvinceSystemClient.SimpleResult ack =
-				ProvinceSystemClient.ackLoreItems(buildAckJson(results));
-		if (!ack.ok) {
-			RPCharacters.plugin.getLogger().warning(
-					"[kit-customise] claim-pull ack failed: " + ack.error
-			);
-		} else {
-			RPCharacters.plugin.getLogger().info(
-					"[kit-customise] claim-pull ack ok results=" + results.size()
-			);
+		return results;
+	}
+
+	/** POST applied ack off the server thread. */
+	public static void ackAsync(List<JSONObject> results) {
+		if (results == null || results.isEmpty() || RPCharacters.plugin == null) {
+			return;
 		}
+		List<JSONObject> copy = new ArrayList<>(results);
+		Bukkit.getScheduler().runTaskAsynchronously(RPCharacters.plugin, () -> {
+			ProvinceSystemClient.SimpleResult ack =
+					ProvinceSystemClient.ackLoreItems(buildAckJson(copy));
+			if (!ack.ok) {
+				RPCharacters.plugin.getLogger().warning(
+						"[kit-customise] claim-pull ack failed: " + ack.error
+				);
+			} else {
+				RPCharacters.plugin.getLogger().info(
+						"[kit-customise] claim-pull ack ok results=" + copy.size()
+				);
+			}
+		});
 	}
 
 	private static List<JSONObject> applyAllOnMain(JavaPlugin plugin, List<JSONObject> items) {

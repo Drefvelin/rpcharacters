@@ -4,20 +4,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.json.simple.JSONObject;
 
 import me.Plugins.TLibs.TLibs;
+import net.tfminecraft.RPCharacters.Cache;
 import net.tfminecraft.RPCharacters.Loaders.KitLoader;
 import net.tfminecraft.RPCharacters.Managers.PlayerManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Utils.RPTexts;
+import net.tfminecraft.RPCharacters.api.ProvinceSystemClient;
+import net.tfminecraft.RPCharacters.ingest.KitCustomiseIngestService;
 
 public final class KitService {
+
+	private static final Set<UUID> claimsInFlight = ConcurrentHashMap.newKeySet();
 
 	private KitService() {
 	}
@@ -99,6 +109,112 @@ public final class KitService {
 			return;
 		}
 
+		if (!prepareLocalClaim(player, pd, character, kit, kitId)) {
+			return;
+		}
+
+		UUID playerId = player.getUniqueId();
+		if (!claimsInFlight.add(playerId)) {
+			RPTexts.send(player, RPTexts.WARN + "Your kit claim is already in progress.");
+			return;
+		}
+
+		String characterId = character.getId();
+		RPTexts.send(player, RPTexts.MUTED + "Checking your kit...");
+		Bukkit.getScheduler().runTaskAsynchronously(RPCharacters.plugin, () -> {
+			boolean scheduledMain = false;
+			try {
+				ProvinceSystemClient.SimpleResult claimStatus =
+						ProvinceSystemClient.fetchLoreItemClaimStatus(
+								playerId.toString(), characterId, kitId
+						);
+				boolean pendingSkin = claimStatus.ok
+						&& ProvinceSystemClient.claimStatusPendingSkin(claimStatus.body);
+				boolean pendingPack = claimStatus.ok
+						&& ProvinceSystemClient.claimStatusPendingPack(claimStatus.body);
+				if (claimStatus.ok) {
+					String body = claimStatus.body != null ? claimStatus.body : "";
+					String snippet = body.length() > 400 ? body.substring(0, 400) + "..." : body;
+					RPCharacters.plugin.getLogger().info(
+							"[kit-claim] claim-status ok pending_skin=" + pendingSkin
+									+ " pending_pack=" + pendingPack
+									+ " body=" + snippet
+					);
+				} else {
+					RPCharacters.plugin.getLogger().warning(
+							"[kit-claim] claim-status failed for " + playerId
+									+ " kit=" + kitId + ": " + claimStatus.error
+					);
+				}
+
+				List<JSONObject> pendingItems = List.of();
+				if (!Cache.devCharacters) {
+					ProvinceSystemClient.SimpleResult pending =
+							ProvinceSystemClient.fetchPendingLoreItems();
+					if (!pending.ok) {
+						RPCharacters.plugin.getLogger().warning(
+								"[kit-customise] claim-pull failed: " + pending.error
+						);
+					} else {
+						String body = pending.body != null ? pending.body : "";
+						if (body.isBlank()) {
+							RPCharacters.plugin.getLogger().info(
+									"[kit-customise] claim-pull empty body char=" + characterId
+											+ " uuid=" + playerId
+							);
+						} else {
+							RPCharacters.plugin.getLogger().info(
+									"[kit-customise] claim-pull body=" + body
+							);
+						}
+						pendingItems = ProvinceSystemClient.parsePendingLoreItems(pending.body);
+					}
+				}
+
+				List<JSONObject> itemsForMain = pendingItems;
+				boolean skin = pendingSkin;
+				boolean pack = pendingPack;
+				Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> {
+					try {
+						finishClaimAfterFetch(
+								playerId, kitId, characterId, skin, pack, itemsForMain
+						);
+					} finally {
+						claimsInFlight.remove(playerId);
+					}
+				});
+				scheduledMain = true;
+			} catch (Exception e) {
+				RPCharacters.plugin.getLogger().warning(
+						"[kit-claim] async failed for " + playerId + " kit=" + kitId
+								+ ": " + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName())
+				);
+				Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> {
+					Player online = Bukkit.getPlayer(playerId);
+					if (online != null && online.isOnline()) {
+						RPTexts.send(online, RPTexts.ERROR + "Could not check your kit. Try again.");
+					}
+				});
+			} finally {
+				if (!scheduledMain) {
+					claimsInFlight.remove(playerId);
+				}
+			}
+		});
+	}
+
+	/**
+	 * Local eligibility before HTTP. Stamps missing kit status as eligible.
+	 *
+	 * @return false if the player was already told they cannot claim
+	 */
+	private static boolean prepareLocalClaim(
+			Player player,
+			PlayerData pd,
+			RPCharacter character,
+			KitDefinition kit,
+			String kitId
+	) {
 		KitStatus status = character.getKitStatus(kitId);
 		RPCharacters.plugin.getLogger().info(
 				"[kit-claim] start player=" + player.getName()
@@ -120,11 +236,11 @@ public final class KitService {
 		if (kit.isOncePerCharacter()) {
 			if (status == KitStatus.GRANTED) {
 				RPTexts.send(player, RPTexts.ERROR + "This character has already claimed that kit.");
-				return;
+				return false;
 			}
 			if (status != KitStatus.ELIGIBLE && status != KitStatus.INELIGIBLE) {
 				RPTexts.send(player, RPTexts.ERROR + "This character cannot claim that kit.");
-				return;
+				return false;
 			}
 		}
 
@@ -132,36 +248,46 @@ public final class KitService {
 			int hours = cooldownRemainingHoursCeil(pd, kitId);
 			RPTexts.send(player, RPTexts.WARN
 					+ "You must wait " + hours + " hours before claiming that kit again.");
+			return false;
+		}
+		return true;
+	}
+
+	private static void finishClaimAfterFetch(
+			UUID playerId,
+			String kitId,
+			String expectedCharacterId,
+			boolean pendingSkin,
+			boolean pendingPack,
+			List<JSONObject> pendingItems
+	) {
+		Player player = Bukkit.getPlayer(playerId);
+		if (player == null || !player.isOnline()) {
 			return;
 		}
-
-		String playerUuid = player.getUniqueId().toString();
-		String characterId = character.getId();
-		net.tfminecraft.RPCharacters.api.ProvinceSystemClient.SimpleResult claimStatus =
-				net.tfminecraft.RPCharacters.api.ProvinceSystemClient.fetchLoreItemClaimStatus(
-						playerUuid, characterId, kitId
-				);
-		boolean pendingSkin = claimStatus.ok
-				&& net.tfminecraft.RPCharacters.api.ProvinceSystemClient.claimStatusPendingSkin(
-						claimStatus.body
-				);
-		boolean pendingPack = claimStatus.ok
-				&& net.tfminecraft.RPCharacters.api.ProvinceSystemClient.claimStatusPendingPack(
-						claimStatus.body
-				);
-		if (claimStatus.ok) {
-			String body = claimStatus.body != null ? claimStatus.body : "";
-			String snippet = body.length() > 400 ? body.substring(0, 400) + "…" : body;
-			RPCharacters.plugin.getLogger().info(
-					"[kit-claim] claim-status ok pending_skin=" + pendingSkin
-							+ " pending_pack=" + pendingPack
-							+ " body=" + snippet
-			);
-		} else {
-			RPCharacters.plugin.getLogger().warning(
-					"[kit-claim] claim-status failed for " + player.getName()
-							+ " kit=" + kitId + ": " + claimStatus.error
-			);
+		if (!PlayerManager.exists(player)) {
+			RPTexts.send(player, RPTexts.ERROR + "No character data loaded.");
+			return;
+		}
+		PlayerData pd = PlayerManager.get(player);
+		if (pd == null || !pd.hasActiveCharacter()) {
+			RPTexts.send(player, RPTexts.ERROR + "You need an active character to claim a kit.");
+			return;
+		}
+		RPCharacter character = pd.getActiveCharacter();
+		if (character == null
+				|| expectedCharacterId == null
+				|| !expectedCharacterId.equalsIgnoreCase(character.getId())) {
+			RPTexts.send(player, RPTexts.ERROR + "Your active character changed. Claim the kit again.");
+			return;
+		}
+		KitDefinition kit = KitLoader.getKit(kitId);
+		if (kit == null) {
+			RPTexts.send(player, RPTexts.ERROR + "Unknown kit. Usage: /rpcharacter kit <id>");
+			return;
+		}
+		if (!prepareLocalClaim(player, pd, character, kit, kitId)) {
+			return;
 		}
 		if (pendingSkin) {
 			RPTexts.send(player, RPTexts.WARN
@@ -175,9 +301,20 @@ public final class KitService {
 			return;
 		}
 
-		net.tfminecraft.RPCharacters.ingest.KitCustomiseIngestService
-				.ingestReadyForCharacterOnMain(player, character);
+		List<JSONObject> ackRows = KitCustomiseIngestService.applyReadyForCharacterOnMain(
+				player, character, pendingItems
+		);
+		KitCustomiseIngestService.ackAsync(ackRows);
+		grantKitItems(player, pd, character, kit, kitId);
+	}
 
+	private static void grantKitItems(
+			Player player,
+			PlayerData pd,
+			RPCharacter character,
+			KitDefinition kit,
+			String kitId
+	) {
 		List<String> editableKeys = kit.editableKitKeys();
 		int customiseCount = 0;
 		for (KitCustomiseData data : character.getKitCustomisations().values()) {
@@ -237,7 +374,7 @@ public final class KitService {
 			if (built.isEmpty()) {
 				RPCharacters.plugin.getLogger().warning(
 						"[kit-claim] kit '" + kitId + "' could not build path '" + def.getPath()
-								+ "' for " + player.getName() + " — skipped line."
+								+ "' for " + player.getName() + " - skipped line."
 				);
 				continue;
 			}
