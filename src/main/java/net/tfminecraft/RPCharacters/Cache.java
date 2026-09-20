@@ -79,7 +79,7 @@ public class Cache {
 	public static int personaDisplayNameMaxLength = 24;
 	public static int personaAliasMinLength = 3;
 	public static int personaAliasMaxLength = 24;
-	public static String personaAliasAllowedChars = "abcdefghijklmnopqrstuvwxyz.-'' áéíóú";
+	public static String personaAliasAllowedChars = "abcdefghijklmnopqrstuvwxyz.,-'' áéíóú";
 	public static int personaAliasCooldownSeconds = 10;
 
 	public static List<String> personaGenders = new ArrayList<>();

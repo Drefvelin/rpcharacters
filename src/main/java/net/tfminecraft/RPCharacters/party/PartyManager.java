@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
@@ -21,11 +24,38 @@ public final class PartyManager {
 	private final Map<UUID, Party> memberIndex = new ConcurrentHashMap<>();
 	private final Map<UUID, Party> partiesById = new ConcurrentHashMap<>();
 	private final Map<UUID, PartyInvite> pendingInvites = new ConcurrentHashMap<>();
+	private PartyStore store;
 
 	private PartyManager() {}
 
 	public static PartyManager get() {
 		return INSTANCE;
+	}
+
+	public void load(Path file) {
+		PartyStore nextStore = new PartyStore(file);
+		try {
+			List<Party> loaded = nextStore.load();
+			memberIndex.clear();
+			partiesById.clear();
+			pendingInvites.clear();
+			for (Party party : loaded) {
+				partiesById.put(party.getId(), party);
+				for (UUID member : party.getMemberIds()) memberIndex.put(member, party);
+			}
+			store = nextStore;
+		} catch (IOException e) {
+			throw new UncheckedIOException("Unable to load persistent parties", e);
+		}
+	}
+
+	private void save() {
+		if (store == null) return;
+		try {
+			store.save(partiesById.values());
+		} catch (IOException e) {
+			throw new UncheckedIOException("Unable to save persistent parties", e);
+		}
 	}
 
 	public Party getParty(UUID memberId) {
@@ -66,6 +96,7 @@ public final class PartyManager {
 		Party party = new Party(UUID.randomUUID(), name, leaderId);
 		partiesById.put(party.getId(), party);
 		memberIndex.put(leaderId, party);
+		save();
 		return PartyResult.ok(PartyLoader.getCreated().replace("{name}", name));
 	}
 
@@ -135,6 +166,7 @@ public final class PartyManager {
 		pendingInvites.remove(targetId);
 
 		List<UUID> notify = new ArrayList<>(party.getMemberIds());
+		save();
 		notify.remove(targetId);
 		return PartyResult.withNotify(
 				PartyResult.Kind.MEMBER_JOINED,
@@ -199,18 +231,7 @@ public final class PartyManager {
 		}
 
 		pendingInvites.remove(memberId);
-
-		Party party = memberIndex.get(memberId);
-		if (party == null) {
-			return;
-		}
-
-		if (party.isLeader(memberId)) {
-			disband(party, null);
-			return;
-		}
-
-		removeMember(party, memberId);
+		// Membership and leadership survive disconnects. Only explicit leave/kick removes them.
 	}
 
 	public List<String> buildInfoLines(Party party) {
@@ -231,6 +252,7 @@ public final class PartyManager {
 		INSTANCE.memberIndex.clear();
 		INSTANCE.partiesById.clear();
 		INSTANCE.pendingInvites.clear();
+		INSTANCE.store = null;
 	}
 
 	private PartyResult disband(Party party, String leaderMessage) {
@@ -240,6 +262,7 @@ public final class PartyManager {
 		}
 		partiesById.remove(party.getId());
 		pendingInvites.entrySet().removeIf(entry -> entry.getValue().getPartyId().equals(party.getId()));
+		save();
 		return PartyResult.withNotify(PartyResult.Kind.DISBANDED, leaderMessage, notify);
 	}
 
@@ -249,6 +272,7 @@ public final class PartyManager {
 		if (party.getMemberIds().isEmpty()) {
 			partiesById.remove(party.getId());
 		}
+		save();
 	}
 
 	private static String sanitizeName(String rawName) {

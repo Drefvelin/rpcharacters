@@ -223,6 +223,8 @@ public class RPCharacters extends JavaPlugin{
 		createConfigs();
 		registerListeners();
 		loadConfigs();
+		net.tfminecraft.RPCharacters.party.PartyManager.get()
+				.load(new File(getDataFolder(), "data/parties.json").toPath());
 		spawnedClueManager.loadAllFromDisk();
 		net.tfminecraft.RPCharacters.playtime.PlaytimeService.loadAllFromDisk();
 		GraveManager.get().loadAll();
