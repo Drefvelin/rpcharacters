@@ -45,6 +45,9 @@ public final class GraveLoader implements LoaderInterface {
 	private static String messageEmpty = "&7There is nothing left here.";
 	private static String messagePlaced = "&eYour grave was placed at &f{x}, {y}, {z} &ein {world}.";
 	private static String messageInsuranceNone = "&eYou have no grave to recover.";
+	private static String messageUnlockNone = "&eYou have no grave to unlock.";
+	private static String messageUnlockAlready = "&eYour grave is already unlocked.";
+	private static String messageUnlockSuccess = "&aYour grave is now unlocked. Anyone can loot it.";
 	private static String messageRobHint = "&aRight click to rob";
 
 	@Override
@@ -83,6 +86,9 @@ public final class GraveLoader implements LoaderInterface {
 		messageEmpty = config.getString("messages.empty", messageEmpty);
 		messagePlaced = config.getString("messages.placed", messagePlaced);
 		messageInsuranceNone = config.getString("messages.insurance-none", messageInsuranceNone);
+		messageUnlockNone = config.getString("messages.unlock-none", messageUnlockNone);
+		messageUnlockAlready = config.getString("messages.unlock-already", messageUnlockAlready);
+		messageUnlockSuccess = config.getString("messages.unlock-success", messageUnlockSuccess);
 		messageRobHint = config.getString("messages.rob-hint", messageRobHint);
 	}
 
@@ -251,6 +257,18 @@ public final class GraveLoader implements LoaderInterface {
 
 	public static String getMessageInsuranceNone() {
 		return messageInsuranceNone;
+	}
+
+	public static String getMessageUnlockNone() {
+		return messageUnlockNone;
+	}
+
+	public static String getMessageUnlockAlready() {
+		return messageUnlockAlready;
+	}
+
+	public static String getMessageUnlockSuccess() {
+		return messageUnlockSuccess;
 	}
 
 	public static String getMessageRobHint() {

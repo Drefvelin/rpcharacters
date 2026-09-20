@@ -19,6 +19,7 @@ public final class Grave {
 	private UUID killer;
 	private String killerDisplay;
 	private boolean protect;
+	private boolean locked;
 	private final long created;
 	private int experience;
 	private final ItemStack[] storage;
@@ -33,19 +34,21 @@ public final class Grave {
 		this.owner = owner;
 		this.block = block != null ? block.clone() : null;
 		this.created = System.currentTimeMillis();
+		this.locked = true;
 		this.storage = new ItemStack[STORAGE_SLOTS];
 		this.armor = new ItemStack[ARMOR_SLOTS];
 		this.extras = new ArrayList<>();
 	}
 
-	Grave(UUID id, UUID owner, UUID killer, String killerDisplay, boolean protect, long created, int experience,
-			ItemStack[] storage, ItemStack[] armor, ItemStack offhand, List<ItemStack> extras,
+	Grave(UUID id, UUID owner, UUID killer, String killerDisplay, boolean protect, boolean locked, long created,
+			int experience, ItemStack[] storage, ItemStack[] armor, ItemStack offhand, List<ItemStack> extras,
 			UUID hologramId, Location block) {
 		this.id = id;
 		this.owner = owner;
 		this.killer = killer;
 		this.killerDisplay = killerDisplay;
 		this.protect = protect;
+		this.locked = locked;
 		this.created = created;
 		this.experience = Math.max(0, experience);
 		this.storage = copy(storage, STORAGE_SLOTS);
@@ -90,6 +93,14 @@ public final class Grave {
 
 	public void setProtected(boolean protect) {
 		this.protect = protect;
+	}
+
+	public boolean isLocked() {
+		return locked;
+	}
+
+	public void setLocked(boolean locked) {
+		this.locked = locked;
 	}
 
 	public long getCreated() {

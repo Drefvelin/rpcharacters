@@ -220,6 +220,7 @@ public final class GraveManager {
 		grave.setKiller(killer);
 		grave.setKillerDisplay(killerDisplay);
 		grave.setProtected(protect);
+		grave.setLocked(true);
 		grave.setExperience(experience);
 		copyInto(grave, storage, armor, offhand, extras);
 
@@ -473,6 +474,7 @@ public final class GraveManager {
 		record.killer = grave.getKiller() != null ? grave.getKiller().toString() : null;
 		record.killerDisplay = grave.getKillerDisplay();
 		record.protect = grave.isProtected();
+		record.locked = grave.isLocked();
 		record.created = grave.getCreated();
 		record.experience = grave.getExperience();
 		record.hologramUuid = null;
@@ -505,6 +507,7 @@ public final class GraveManager {
 				parseUuid(record.killer),
 				record.killerDisplay,
 				record.protect,
+				record.locked == null || record.locked,
 				record.created,
 				record.experience,
 				decodeArray(record.storage, Grave.STORAGE_SLOTS),
@@ -595,6 +598,7 @@ public final class GraveManager {
 		String killer;
 		String killerDisplay;
 		boolean protect;
+		Boolean locked;
 		long created;
 		int experience;
 		String hologramUuid;

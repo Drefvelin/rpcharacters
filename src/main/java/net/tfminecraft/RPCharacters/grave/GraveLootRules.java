@@ -25,10 +25,13 @@ public final class GraveLootRules {
 		if (player == null || grave == null || canRecover(player, grave)) {
 			return false;
 		}
-		if (grave.getKiller() == null || !grave.getKiller().equals(player.getUniqueId())) {
+		if (!hasCanLootGravesTrait(player)) {
 			return false;
 		}
-		return hasCanLootGravesTrait(player);
+		if (!grave.isLocked()) {
+			return true;
+		}
+		return grave.getKiller() != null && grave.getKiller().equals(player.getUniqueId());
 	}
 
 	public static boolean hasCanLootGravesTrait(Player player) {

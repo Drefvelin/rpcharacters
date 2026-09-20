@@ -83,6 +83,7 @@ import net.tfminecraft.RPCharacters.mmocore.AttributePointService;
 import net.tfminecraft.RPCharacters.professions.ProfessionCommandHandler;
 import net.tfminecraft.RPCharacters.professions.ProfessionEffectService;
 import net.tfminecraft.RPCharacters.professions.ProfessionListener;
+import net.tfminecraft.RPCharacters.grave.GraveCommand;
 import net.tfminecraft.RPCharacters.grave.GraveDeathListener;
 import net.tfminecraft.RPCharacters.grave.GraveInsuranceListener;
 import net.tfminecraft.RPCharacters.grave.GraveInteractListener;
@@ -172,6 +173,7 @@ public class RPCharacters extends JavaPlugin{
 	private PartyLoader partyLoader;
 	private GraveLoader graveLoader;
 	private final PvpCommand pvpCommand = new PvpCommand();
+	private final GraveCommand graveCommand = new GraveCommand();
 	private final PvpKnockoutManager pvpKnockoutManager = new PvpKnockoutManager();
 	private final PartyListener partyListener = new PartyListener();
 	private final PartyChatRecipientResolver partyChatRecipientResolver = new PartyChatRecipientResolver();
@@ -239,6 +241,8 @@ public class RPCharacters extends JavaPlugin{
 		getCommand("channeltoggle").setTabCompleter(chatChannelCommandHandler);
 		getCommand(PvpCommand.COMMAND).setExecutor(pvpCommand);
 		getCommand(PvpCommand.COMMAND).setTabCompleter(pvpCommand);
+		getCommand(GraveCommand.COMMAND).setExecutor(graveCommand);
+		getCommand(GraveCommand.COMMAND).setTabCompleter(graveCommand);
 		ChatRecipientResolverRegistry.register(
 				net.tfminecraft.RPCharacters.party.PartyManager.PARTY_RESOLVER_ID,
 				partyChatRecipientResolver);

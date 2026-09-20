@@ -28,6 +28,9 @@ commands:
     usage: /<command> <start|lethal|nonlethal>
     description: PvP start warning and lethal or nonlethal mode
     permission: rpchar.pvp
+  grave:
+    usage: /<command> unlock
+    description: Unlock your newest grave so others can loot it
 permissions:
   rpchar.profession.use:
     default: true

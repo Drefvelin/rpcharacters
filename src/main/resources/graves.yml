@@ -41,4 +41,7 @@ messages:
   empty: "&7There is nothing left here."
   placed: "&eYour grave was placed at &f{x}, {y}, {z} &ein {world}."
   insurance-none: "&eYou have no grave to recover."
+  unlock-none: "&eYou have no grave to unlock."
+  unlock-already: "&eYour grave is already unlocked."
+  unlock-success: "&aYour grave is now unlocked. Anyone can loot it."
   rob-hint: "&aRight click to rob"
