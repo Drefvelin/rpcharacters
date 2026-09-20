@@ -21,6 +21,7 @@ import net.tfminecraft.RPCharacters.Utils.RPTexts;
 import net.tfminecraft.RPCharacters.calendar.BirthdayValidator;
 import net.tfminecraft.RPCharacters.calendar.FantasyCalendar;
 import net.tfminecraft.RPCharacters.identity.NameColour;
+import net.tfminecraft.RPCharacters.identity.TempAliasService;
 import net.tfminecraft.RPCharacters.persona.AliasValidator;
 import net.tfminecraft.RPCharacters.persona.DescriptionValidator;
 import net.tfminecraft.RPCharacters.persona.NameColourParser;
@@ -289,7 +290,7 @@ public final class CharCommand {
 		}
 		if (args.length < 4) {
 			RPTexts.send(sender, RPTexts.WARN + "Usage: /" + label
-					+ " override <player> <alias|gender|description|namecolour|birthday|playtime> <value...>");
+					+ " override <player> <alias|tempalias|gender|description|namecolour|birthday|playtime> <value...>");
 			return true;
 		}
 		Player target = Bukkit.getPlayerExact(args[1]);
@@ -307,6 +308,8 @@ public final class CharCommand {
 		switch (field) {
 			case "alias":
 				return overrideAlias(sender, target, character, args);
+			case "tempalias":
+				return overrideTempalias(sender, target, args);
 			case "gender":
 				return overrideGender(sender, target, character, args);
 			case "description":
@@ -319,7 +322,7 @@ public final class CharCommand {
 				return overridePlaytime(sender, target, args);
 			default:
 				RPTexts.send(sender, RPTexts.ERROR
-						+ "Unknown field. Use alias, gender, description, namecolour, birthday, or playtime.");
+						+ "Unknown field. Use alias, tempalias, gender, description, namecolour, birthday, or playtime.");
 				return true;
 		}
 	}
@@ -333,7 +336,7 @@ public final class CharCommand {
 					+ RPTexts.SUCCESS + ".");
 			return true;
 		}
-		String error = AliasValidator.validate(aliasInput);
+		String error = AliasValidator.validate(aliasInput, false);
 		if (error != null) {
 			RPTexts.send(sender, error);
 			return true;
@@ -342,6 +345,29 @@ public final class CharCommand {
 		RPCharacters.getPlayerManager().savePlayer(target);
 		RPTexts.send(sender, RPTexts.SUCCESS + "Set alias for " + RPTexts.WARN + target.getName()
 				+ RPTexts.SUCCESS + " to " + RPTexts.WARN + character.getAlias() + RPTexts.SUCCESS + ".");
+		return true;
+	}
+
+	private static boolean overrideTempalias(CommandSender sender, Player target, String[] args) {
+		String aliasInput = String.join(" ", Arrays.copyOfRange(args, 3, args.length)).trim();
+		if (aliasInput.equalsIgnoreCase("clear")) {
+			TempAliasService.clear(target);
+			RPTexts.send(sender, RPTexts.SUCCESS + "Cleared temp alias for " + RPTexts.WARN + target.getName()
+					+ RPTexts.SUCCESS + ".");
+			return true;
+		}
+		String error = AliasValidator.validate(aliasInput, false);
+		if (error != null) {
+			RPTexts.send(sender, error);
+			return true;
+		}
+		error = TempAliasService.setPlain(target, aliasInput);
+		if (error != null) {
+			RPTexts.send(sender, error);
+			return true;
+		}
+		RPTexts.send(sender, RPTexts.SUCCESS + "Set temp alias for " + RPTexts.WARN + target.getName()
+				+ RPTexts.SUCCESS + " to " + RPTexts.WARN + TempAliasService.getPlain(target) + RPTexts.SUCCESS + ".");
 		return true;
 	}
 

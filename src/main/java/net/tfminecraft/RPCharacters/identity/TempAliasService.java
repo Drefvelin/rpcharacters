@@ -22,10 +22,14 @@ public final class TempAliasService {
 	}
 
 	public static String set(Player player, String input) {
-		String error = AliasValidator.validate(input);
+		String error = AliasValidator.validate(input, false);
 		if (error != null) {
 			return error;
 		}
+		return setPlain(player, input);
+	}
+
+	public static String setPlain(Player player, String input) {
 		PlayerData data = PlayerManager.get(player);
 		if (data == null) {
 			return RPTexts.formatDisplay(RPTexts.ERROR + "Player data not loaded.");

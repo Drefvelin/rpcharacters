@@ -30,7 +30,7 @@ public class CommandTabCompleter implements TabCompleter {
 			"alias", "namecolour", "gender", "description", "profile", "override", "birthday");
 	private static final List<String> CLEAR = List.of("clear");
 	private static final List<String> OVERRIDE_FIELDS = List.of(
-			"alias", "gender", "description", "namecolour", "birthday", "playtime");
+			"alias", "tempalias", "gender", "description", "namecolour", "birthday", "playtime");
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
@@ -361,8 +361,8 @@ public class CommandTabCompleter implements TabCompleter {
 		}
 		if (args.length == 4) {
 			String field = args[2].toLowerCase(Locale.ROOT);
-			if (field.equals("alias") || field.equals("description") || field.equals("namecolour")
-					|| field.equals("birthday") || field.equals("playtime")) {
+			if (field.equals("alias") || field.equals("tempalias") || field.equals("description")
+					|| field.equals("namecolour") || field.equals("birthday") || field.equals("playtime")) {
 				return filter(CLEAR, args[3]);
 			}
 			if (field.equals("gender")) {

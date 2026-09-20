@@ -9,6 +9,10 @@ public final class AliasValidator {
 	private AliasValidator() {}
 
 	public static String validate(String alias) {
+		return validate(alias, true);
+	}
+
+	public static String validate(String alias, boolean enforceMaxLength) {
 		if (alias == null) {
 			return RPTexts.formatDisplay(RPTexts.ERROR + "Alias cannot be empty.");
 		}
@@ -16,7 +20,7 @@ public final class AliasValidator {
 		if (plain.isEmpty()) {
 			return RPTexts.formatDisplay(RPTexts.ERROR + "Alias cannot be empty.");
 		}
-		String lengthError = validateLength(plain, "Alias");
+		String lengthError = validateLength(plain, "Alias", enforceMaxLength);
 		if (lengthError != null) {
 			return lengthError;
 		}
@@ -40,7 +44,7 @@ public final class AliasValidator {
 			return RPTexts.formatDisplay(RPTexts.ERROR + "Colour codes are not allowed in character names. Use "
 					+ RPTexts.COMMAND + "/char namecolour " + RPTexts.ERROR + "for display colour.");
 		}
-		return validateLength(trimmed, "Name");
+		return validateLength(trimmed, "Name", true);
 	}
 
 	private static boolean containsColourCodes(String input) {
@@ -56,12 +60,16 @@ public final class AliasValidator {
 	}
 
 	public static String validateLength(String plain, String label) {
+		return validateLength(plain, label, true);
+	}
+
+	public static String validateLength(String plain, String label, boolean enforceMaxLength) {
 		int length = plain.length();
 		if (length < Cache.personaDisplayNameMinLength) {
 			return RPTexts.formatDisplay(RPTexts.ERROR + label + " must be at least "
 					+ Cache.personaDisplayNameMinLength + " characters.");
 		}
-		if (length > Cache.personaDisplayNameMaxLength) {
+		if (enforceMaxLength && length > Cache.personaDisplayNameMaxLength) {
 			return RPTexts.formatDisplay(RPTexts.ERROR + label + " cannot exceed "
 					+ Cache.personaDisplayNameMaxLength + " characters.");
 		}
