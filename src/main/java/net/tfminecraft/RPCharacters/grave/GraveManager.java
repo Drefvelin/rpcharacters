@@ -255,10 +255,77 @@ public final class GraveManager {
 			}
 		}
 		Location cached = LastSolidTracker.get().getLastSolid(player);
-		if (cached == null) {
+		if (cached != null) {
+			Block placed = pickOnSolid(cached.getBlock());
+			if (placed != null) {
+				return placed;
+			}
+		}
+		return findLastResort(deathLocation);
+	}
+
+	private Block findLastResort(Location deathLocation) {
+		if (deathLocation == null || deathLocation.getWorld() == null) {
 			return null;
 		}
-		return pickOnSolid(cached.getBlock());
+		World world = deathLocation.getWorld();
+		Block deathBlock = deathLocation.getBlock();
+		int x = deathBlock.getX();
+		int y = deathBlock.getY();
+		int z = deathBlock.getZ();
+
+		Block air = findAirAbove(world, x, z, y);
+		if (air != null) {
+			air.getChunk().load();
+			return air;
+		}
+
+		Block inChunk = findAirInChunk(world, x, z, y);
+		if (inChunk != null) {
+			inChunk.getChunk().load();
+			return inChunk;
+		}
+
+		if (!isGrave(deathBlock)) {
+			deathBlock.getChunk().load();
+			return deathBlock;
+		}
+		return null;
+	}
+
+	private Block findAirAbove(World world, int x, int z, int startY) {
+		int maxY = world.getMaxHeight() - 1;
+		for (int y = startY; y <= maxY; y++) {
+			Block block = world.getBlockAt(x, y, z);
+			if (isAirGraveSpot(block)) {
+				return block;
+			}
+		}
+		return null;
+	}
+
+	private Block findAirInChunk(World world, int originX, int originZ, int startY) {
+		int minX = (originX >> 4) << 4;
+		int minZ = (originZ >> 4) << 4;
+		int maxY = world.getMaxHeight() - 1;
+		for (int x = minX; x < minX + 16; x++) {
+			for (int z = minZ; z < minZ + 16; z++) {
+				if (x == originX && z == originZ) {
+					continue;
+				}
+				for (int y = startY; y <= maxY; y++) {
+					Block block = world.getBlockAt(x, y, z);
+					if (isAirGraveSpot(block)) {
+						return block;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private boolean isAirGraveSpot(Block block) {
+		return block != null && !isGrave(block) && block.getType().isAir();
 	}
 
 	private static void copyInto(Grave grave, ItemStack[] storage, ItemStack[] armor, ItemStack offhand,

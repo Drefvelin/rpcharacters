@@ -40,6 +40,7 @@ messages:
   inventory-full: "&eSome items did not fit and were dropped."
   empty: "&7There is nothing left here."
   placed: "&eYour grave was placed at &f{x}, {y}, {z} &ein {world}."
+  unlock-hint: "&eRun &f/grave unlock &eto let others loot this grave."
   insurance-none: "&eYou have no grave to recover."
   unlock-none: "&eYou have no grave to unlock."
   unlock-already: "&eYour grave is already unlocked."

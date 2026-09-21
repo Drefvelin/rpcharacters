@@ -44,6 +44,7 @@ public final class GraveLoader implements LoaderInterface {
 	private static String messageInventoryFull = "&eSome items did not fit and were dropped.";
 	private static String messageEmpty = "&7There is nothing left here.";
 	private static String messagePlaced = "&eYour grave was placed at &f{x}, {y}, {z} &ein {world}.";
+	private static String messageUnlockHint = "&eRun &f/grave unlock &eto let others loot this grave.";
 	private static String messageInsuranceNone = "&eYou have no grave to recover.";
 	private static String messageUnlockNone = "&eYou have no grave to unlock.";
 	private static String messageUnlockAlready = "&eYour grave is already unlocked.";
@@ -85,6 +86,7 @@ public final class GraveLoader implements LoaderInterface {
 		messageInventoryFull = config.getString("messages.inventory-full", messageInventoryFull);
 		messageEmpty = config.getString("messages.empty", messageEmpty);
 		messagePlaced = config.getString("messages.placed", messagePlaced);
+		messageUnlockHint = config.getString("messages.unlock-hint", messageUnlockHint);
 		messageInsuranceNone = config.getString("messages.insurance-none", messageInsuranceNone);
 		messageUnlockNone = config.getString("messages.unlock-none", messageUnlockNone);
 		messageUnlockAlready = config.getString("messages.unlock-already", messageUnlockAlready);
@@ -238,6 +240,10 @@ public final class GraveLoader implements LoaderInterface {
 
 	public static String getMessagePlaced() {
 		return messagePlaced;
+	}
+
+	public static String getMessageUnlockHint() {
+		return messageUnlockHint;
 	}
 
 	public static boolean isInsuranceEnabled() {

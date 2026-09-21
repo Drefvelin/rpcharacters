@@ -1,5 +1,6 @@
 package net.tfminecraft.RPCharacters.grave;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ public final class GraveDeathListener implements Listener {
 	private static final String PROTECT_PERMISSION = "rpchar.grave.protect";
 
 	private final Map<UUID, Map<Integer, ItemStack>> excludedStash = new ConcurrentHashMap<>();
-	private final Map<UUID, String> placedNotice = new ConcurrentHashMap<>();
+	private final Map<UUID, List<String>> placedNotice = new ConcurrentHashMap<>();
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerDeath(PlayerDeathEvent event) {
@@ -81,9 +82,13 @@ public final class GraveDeathListener implements Listener {
 				inventory.setItem(entry.getKey(), entry.getValue());
 			}
 		}
-		String notice = placedNotice.remove(player.getUniqueId());
-		if (notice != null && !notice.isBlank()) {
-			player.sendMessage(notice);
+		List<String> notices = placedNotice.remove(player.getUniqueId());
+		if (notices != null) {
+			for (String notice : notices) {
+				if (notice != null && !notice.isBlank()) {
+					player.sendMessage(notice);
+				}
+			}
 		}
 	}
 
@@ -151,17 +156,23 @@ public final class GraveDeathListener implements Listener {
 		if (player == null || chest == null) {
 			return;
 		}
+		List<String> notices = new ArrayList<>();
 		String template = GraveLoader.getMessagePlaced();
-		if (template == null || template.isBlank()) {
-			return;
+		if (template != null && !template.isBlank()) {
+			String world = chest.getWorld() != null ? chest.getWorld().getName() : "unknown";
+			String text = template
+					.replace("{x}", Integer.toString(chest.getX()))
+					.replace("{y}", Integer.toString(chest.getY()))
+					.replace("{z}", Integer.toString(chest.getZ()))
+					.replace("{world}", world);
+			notices.add(StringFormatter.formatHex(text.replace('&', '\u00A7')));
 		}
-		String world = chest.getWorld() != null ? chest.getWorld().getName() : "unknown";
-		String text = template
-				.replace("{x}", Integer.toString(chest.getX()))
-				.replace("{y}", Integer.toString(chest.getY()))
-				.replace("{z}", Integer.toString(chest.getZ()))
-				.replace("{world}", world);
-		String formatted = StringFormatter.formatHex(text.replace('&', '\u00A7'));
-		placedNotice.put(player.getUniqueId(), formatted);
+		String hint = GraveLoader.getMessageUnlockHint();
+		if (hint != null && !hint.isBlank()) {
+			notices.add(StringFormatter.formatHex(hint.replace('&', '\u00A7')));
+		}
+		if (!notices.isEmpty()) {
+			placedNotice.put(player.getUniqueId(), notices);
+		}
 	}
 }
