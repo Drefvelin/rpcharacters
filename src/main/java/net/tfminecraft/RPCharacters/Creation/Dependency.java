@@ -40,23 +40,45 @@ public class Dependency {
 									.map(Trait::getId)
 									.filter(traitId -> !traitId.equalsIgnoreCase(id))
 									.collect(Collectors.toSet());
-
-			if (mode.equalsIgnoreCase("all")) {
-				for (String s : dependencies) {
-					if (!traitIds.contains(s)) return false;
-				}
-				return true;
-			}
-			if (mode.equalsIgnoreCase("one-or-more")) {
-				for (String s : dependencies) {
-					if(traitIds.contains(s)) return true;
-				}
-				return false;
-			}
+			return matchesTraitIds(traitIds);
 		} else if (type.equalsIgnoreCase("race")) {
 			for (String s : dependencies) {
 				if (c.getRace().getId().equalsIgnoreCase(s)) return true;
 			}
+		}
+		return false;
+	}
+
+	/** Trait requirements against an in-progress id set. Race dependencies stay on the character. */
+	public boolean satisfiedBy(Set<String> traitIds) {
+		if (type == null || !type.equalsIgnoreCase("trait") || traitIds == null) {
+			return false;
+		}
+		return matchesTraitIds(traitIds);
+	}
+
+	public boolean satisfiedByExcluding(Set<String> traitIds, String excludedId) {
+		if (type == null || !type.equalsIgnoreCase("trait") || traitIds == null) {
+			return false;
+		}
+		Set<String> filtered = traitIds.stream()
+				.filter(traitId -> traitId != null && !traitId.equalsIgnoreCase(excludedId))
+				.collect(Collectors.toSet());
+		return matchesTraitIds(filtered);
+	}
+
+	private boolean matchesTraitIds(Set<String> traitIds) {
+		if (mode.equalsIgnoreCase("all")) {
+			for (String s : dependencies) {
+				if (!traitIds.contains(s)) return false;
+			}
+			return true;
+		}
+		if (mode.equalsIgnoreCase("one-or-more")) {
+			for (String s : dependencies) {
+				if (traitIds.contains(s)) return true;
+			}
+			return false;
 		}
 		return false;
 	}

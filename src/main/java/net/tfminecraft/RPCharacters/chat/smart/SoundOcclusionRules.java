@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Openable;
 import org.bukkit.block.data.type.Fence;
 import org.bukkit.block.data.type.Wall;
 import org.bukkit.util.BoundingBox;
@@ -87,10 +88,18 @@ final class SoundOcclusionRules {
 		if (Tag.STAIRS.isTagged(material)) {
 			return true;
 		}
-		if (Tag.DOORS.isTagged(material) && !block.isPassable()) {
+		if (Tag.DOORS.isTagged(material) && isClosed(block)) {
 			return true;
 		}
-		return Tag.TRAPDOORS.isTagged(material) && !block.isPassable();
+		return Tag.TRAPDOORS.isTagged(material) && isClosed(block);
+	}
+
+	private static boolean isClosed(Block block) {
+		BlockData data = block.getBlockData();
+		if (data instanceof Openable openable) {
+			return !openable.isOpen();
+		}
+		return !block.isPassable();
 	}
 
 	private static boolean isPermeable(Material material, BlockData data) {
@@ -105,6 +114,7 @@ final class SoundOcclusionRules {
 
 	private static boolean isPermeableByTag(Material material) {
 		return Tag.FENCES.isTagged(material)
+				|| Tag.LEAVES.isTagged(material)
 				|| Tag.WALLS.isTagged(material)
 				|| Tag.FENCE_GATES.isTagged(material)
 				|| Tag.FLOWER_POTS.isTagged(material)

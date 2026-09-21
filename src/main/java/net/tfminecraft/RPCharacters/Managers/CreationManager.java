@@ -2,6 +2,8 @@ package net.tfminecraft.RPCharacters.Managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -19,6 +21,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import net.tfminecraft.RPCharacters.RPCharacters;
 import net.tfminecraft.RPCharacters.Creation.CharacterCreation;
+import net.tfminecraft.RPCharacters.Creation.Dependency;
 import net.tfminecraft.RPCharacters.Creation.Stage;
 import net.tfminecraft.RPCharacters.Creation.SummaryEditSupport;
 import net.tfminecraft.RPCharacters.Creation.StageEditLock;
@@ -281,6 +284,7 @@ public class CreationManager implements Listener{
 		for(int i = 0; i<s.getSlots().size(); i++) {
 			if(s.getSlots().get(i) == e.getSlot()) {
 				SelectableItem item = s.getOptions().get(i);
+				Set<String> traitIds = conflictTraitIds(c, s, cc);
 				if(!item.isSelected()) {
 					for(SelectableItem stored : s.getSelection()) {
 						if(stored.isExclusive(item)) {
@@ -289,8 +293,9 @@ public class CreationManager implements Listener{
 							return;
 						}
 					}
-					for(Trait t : c.getTraits()) {
-						if(item.isExclusive(t.getId()) || t.getTraitData().isExclusive(item.getId())) {
+					for(String traitId : traitIds) {
+						Trait t = TraitLoader.getByString(traitId);
+						if(item.isExclusive(traitId) || (t != null && t.getTraitData() != null && t.getTraitData().isExclusive(item.getId()))) {
 							RPTexts.send(p, RPTexts.ERROR + "You have one or more incompatible traits");
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
@@ -314,7 +319,7 @@ public class CreationManager implements Listener{
 						return;
 					}
 					if(item.hasDependency()) {
-						if(!item.getDependency().check(c)) {
+						if(!dependencyMet(item.getDependency(), c, traitIds, cc, s)) {
 							RPTexts.send(p, RPTexts.ERROR + "Lacking requirements");
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
@@ -330,9 +335,17 @@ public class CreationManager implements Listener{
 					}
 					s.select(item);
 				} else {
-					for(Trait t : c.getTraits()) {
-						if(t.getTraitData().hasDependency() && t.getTraitData().getDependency().getDependencies().contains(item.getId()) && !t.getTraitData().getDependency().checkExclude(c, item.getId())) {
-							RPTexts.send(p, t.getTraitData().getDependency().toString());
+					for(String traitId : traitIds) {
+						Trait t = TraitLoader.getByString(traitId);
+						if(t == null || t.getTraitData() == null || !t.getTraitData().hasDependency()) {
+							continue;
+						}
+						Dependency dependency = t.getTraitData().getDependency();
+						if(dependency == null || dependency.getDependencies() == null || !dependency.getDependencies().contains(item.getId())) {
+							continue;
+						}
+						if(!dependencyStillMet(dependency, c, traitIds, item.getId(), cc, s)) {
+							RPTexts.send(p, dependency.toString());
 							RPTexts.send(p, RPTexts.ERROR + "Your trait " + t.getName() + RPTexts.ERROR + " is dependent on this trait, remove that first!");
 							p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
 							return;
@@ -377,6 +390,61 @@ public class CreationManager implements Listener{
 			h.override();
 			s.confirm(p, cc);
 		}
+	}
+
+	private static boolean usesDraftTraits(CharacterCreation cc, SelectionStage stage) {
+		return cc != null && stage.getTarget() != null && stage.getTarget().equalsIgnoreCase("trait");
+	}
+
+	/**
+	 * During a creation or edit session, this stage's picks are the draft.
+	 * Saved traits of the same key are stale until confirm. Other keys stay live.
+	 * Outside a session, clicks write the character immediately, so the saved list is current.
+	 */
+	private static Set<String> conflictTraitIds(RPCharacter character, SelectionStage stage, CharacterCreation cc) {
+		Set<String> ids = new LinkedHashSet<>();
+		boolean draft = usesDraftTraits(cc, stage);
+		if (character.getTraits() != null) {
+			for (Trait trait : character.getTraits()) {
+				if (draft && sameStageKey(trait, stage.getKey())) {
+					continue;
+				}
+				if (trait.getId() != null) {
+					ids.add(trait.getId());
+				}
+			}
+		}
+		if (draft) {
+			for (SelectableItem selected : stage.getSelection()) {
+				if (selected.getId() != null) {
+					ids.add(selected.getId());
+				}
+			}
+		}
+		return ids;
+	}
+
+	private static boolean sameStageKey(Trait trait, String stageKey) {
+		if (stageKey == null || trait.getTraitData() == null || trait.getTraitData().getKey() == null) {
+			return false;
+		}
+		return trait.getTraitData().getKey().equalsIgnoreCase(stageKey);
+	}
+
+	private static boolean dependencyMet(Dependency dependency, RPCharacter character, Set<String> traitIds,
+			CharacterCreation cc, SelectionStage stage) {
+		if (usesDraftTraits(cc, stage) && dependency.getType() != null && dependency.getType().equalsIgnoreCase("trait")) {
+			return dependency.satisfiedBy(traitIds);
+		}
+		return dependency.check(character);
+	}
+
+	private static boolean dependencyStillMet(Dependency dependency, RPCharacter character, Set<String> traitIds,
+			String removedId, CharacterCreation cc, SelectionStage stage) {
+		if (usesDraftTraits(cc, stage) && dependency.getType() != null && dependency.getType().equalsIgnoreCase("trait")) {
+			return dependency.satisfiedByExcluding(traitIds, removedId);
+		}
+		return dependency.checkExclude(character, removedId);
 	}
 
 	private void handleSummaryClick(Player p, InventoryClickEvent e) {
