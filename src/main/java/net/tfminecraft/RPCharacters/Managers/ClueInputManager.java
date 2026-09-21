@@ -1,6 +1,5 @@
 package net.tfminecraft.RPCharacters.Managers;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -25,8 +24,8 @@ import net.tfminecraft.RPCharacters.enums.CreationGuiContext;
 
 public class ClueInputManager implements Listener {
 
-	private static final Map<Player, String> pendingCharacterId = new HashMap<>();
-	private static final Set<Player> creationSummaryClueInput = ConcurrentHashMap.newKeySet();
+	private static final Map<UUID, String> pendingCharacterId = new ConcurrentHashMap<>();
+	private static final Set<UUID> creationSummaryClueInput = ConcurrentHashMap.newKeySet();
 	private static final Set<UUID> skipConversationTracking = ConcurrentHashMap.newKeySet();
 
 	public static boolean consumeConversationSkip(UUID playerId) {
@@ -38,9 +37,10 @@ public class ClueInputManager implements Listener {
 	}
 
 	public static void beginInput(Player player, String characterId, boolean fromCreationSummary) {
-		pendingCharacterId.put(player, characterId);
+		UUID id = player.getUniqueId();
+		pendingCharacterId.put(id, characterId);
 		if (fromCreationSummary) {
-			creationSummaryClueInput.add(player);
+			creationSummaryClueInput.add(id);
 		}
 		player.closeInventory();
 		RPTexts.send(player, RPTexts.WARN + "Type your clue in chat.");
@@ -49,35 +49,32 @@ public class ClueInputManager implements Listener {
 	}
 
 	public static String getPendingCharacterId(Player player) {
-		return pendingCharacterId.get(player);
+		return pendingCharacterId.get(player.getUniqueId());
 	}
 
 	public static boolean isPending(Player player) {
-		return pendingCharacterId.containsKey(player);
+		return pendingCharacterId.containsKey(player.getUniqueId());
 	}
 
 	public static void cancel(Player player) {
-		pendingCharacterId.remove(player);
-		creationSummaryClueInput.remove(player);
+		UUID id = player.getUniqueId();
+		pendingCharacterId.remove(id);
+		creationSummaryClueInput.remove(id);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
-		if (!pendingCharacterId.containsKey(player)) {
+		UUID id = player.getUniqueId();
+		if (!pendingCharacterId.containsKey(id)) {
 			return;
 		}
-		if (CreationManager.activeCreators.containsKey(player)) {
-			if (!creationSummaryClueInput.contains(player)) {
-				return;
-			}
-			creationSummaryClueInput.remove(player);
-		}
 
-		skipConversationTracking.add(player.getUniqueId());
+		creationSummaryClueInput.remove(id);
+		skipConversationTracking.add(id);
 		event.setCancelled(true);
 		String message = event.getMessage();
-		String characterId = pendingCharacterId.remove(player);
+		String characterId = pendingCharacterId.remove(id);
 
 		Bukkit.getScheduler().runTask(RPCharacters.plugin, () -> handleClueInput(player, characterId, message));
 	}
@@ -102,9 +99,10 @@ public class ClueInputManager implements Listener {
 		ClueAddResult result = character.addPlayerClue(message);
 		if (result != ClueAddResult.SUCCESS) {
 			RPTexts.send(player, character.getClueAddErrorMessage(result));
-			pendingCharacterId.put(player, characterId);
+			UUID id = player.getUniqueId();
+			pendingCharacterId.put(id, characterId);
 			if (CreationManager.isDraftCharacter(player, characterId)) {
-				creationSummaryClueInput.add(player);
+				creationSummaryClueInput.add(id);
 			}
 			return;
 		}
@@ -131,8 +129,6 @@ public class ClueInputManager implements Listener {
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
-		Player player = event.getPlayer();
-		pendingCharacterId.remove(player);
-		creationSummaryClueInput.remove(player);
+		cancel(event.getPlayer());
 	}
 }

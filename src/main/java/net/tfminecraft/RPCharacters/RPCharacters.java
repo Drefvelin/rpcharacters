@@ -67,6 +67,7 @@ import net.tfminecraft.RPCharacters.chat.ChatChannelCommandInterceptor;
 import net.tfminecraft.RPCharacters.chat.ChatChannelPreferenceManager;
 import net.tfminecraft.RPCharacters.chat.ChatCooldownManager;
 import net.tfminecraft.RPCharacters.chat.ChatManager;
+import net.tfminecraft.RPCharacters.chat.VanillaChatKillSwitch;
 import net.tfminecraft.RPCharacters.conversation.ConversationManager;
 import net.tfminecraft.RPCharacters.Objects.PlayerData;
 import net.tfminecraft.RPCharacters.Objects.RPCharacter;
@@ -304,6 +305,7 @@ public class RPCharacters extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(playtimeListener, this);
 		getServer().getPluginManager().registerEvents(conversationManager, this);
 		getServer().getPluginManager().registerEvents(chatManager, this);
+		getServer().getPluginManager().registerEvents(new VanillaChatKillSwitch(), this);
 		getServer().getPluginManager().registerEvents(new ChatChannelCommandInterceptor(), this);
 		getServer().getPluginManager().registerEvents(ChatCooldownManager.get(), this);
 		getServer().getPluginManager().registerEvents(ChatChannelPreferenceManager.get(), this);
